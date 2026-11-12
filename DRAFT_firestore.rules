@@ -1,0 +1,199 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Reusable Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'sajjadsajju2626@gmail.com'
+      );
+    }
+
+    // Validation Blueprint: CompetitionItem
+    function isValidCompetitionItem(data, docId) {
+      return data.keys().hasAll(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'authorId', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'authorId', 'createdAt']) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.id == docId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.malayalamName is string && data.malayalamName.size() <= 120 &&
+        data.category is string && data.category.size() <= 40 &&
+        data.category in ['High School', 'Higher Secondary', 'General', 'Sub-Junior'] &&
+        data.stage is string && data.stage.size() >= 1 && data.stage.size() <= 60 &&
+        data.maxMarks is int && data.maxMarks == 100 &&
+        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        data.createdAt is timestamp;
+    }
+
+    // Validation Blueprint: Participant
+    function isValidParticipant(data, docId) {
+      return data.keys().hasAll(['id', 'itemId', 'chestNo', 'name', 'school', 'authorId', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'itemId', 'chestNo', 'name', 'school', 'authorId', 'createdAt']) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.id == docId &&
+        data.itemId is string && data.itemId.size() >= 1 && data.itemId.size() <= 64 && data.itemId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.chestNo is string && data.chestNo.size() >= 1 && data.chestNo.size() <= 20 && data.chestNo.matches('^[A-Z0-9\\-]+$') &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.school is string && data.school.size() >= 1 && data.school.size() <= 160 &&
+        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        data.createdAt is timestamp;
+    }
+
+    // Validation Blueprint: JudgeScore
+    function isValidJudgeScore(data, docId) {
+      return data.keys().hasAll([
+          'id', 'itemId', 'participantId', 'chestNo', 'judgeSlot', 'judgeName',
+          'rhythm', 'expression', 'perfection', 'overall', 'total', 'remarks',
+          'authorId', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'itemId', 'participantId', 'chestNo', 'judgeSlot', 'judgeName',
+          'rhythm', 'expression', 'perfection', 'overall', 'total', 'remarks',
+          'authorId', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id.size() >= 1 && data.id.size() <= 128 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.id == docId &&
+        data.itemId is string && data.itemId.size() >= 1 && data.itemId.size() <= 64 && data.itemId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.participantId is string && data.participantId.size() >= 1 && data.participantId.size() <= 64 && data.participantId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.chestNo is string && data.chestNo.size() >= 1 && data.chestNo.size() <= 20 &&
+        data.judgeSlot is string && data.judgeSlot.size() <= 10 && data.judgeSlot in ['J1', 'J2', 'J3'] &&
+        data.judgeName is string && data.judgeName.size() >= 1 && data.judgeName.size() <= 100 &&
+        data.rhythm is number && data.rhythm >= 0 && data.rhythm <= 25 &&
+        data.expression is number && data.expression >= 0 && data.expression <= 25 &&
+        data.perfection is number && data.perfection >= 0 && data.perfection <= 25 &&
+        data.overall is number && data.overall >= 0 && data.overall <= 25 &&
+        data.total is number && data.total >= 0 && data.total <= 100 &&
+        data.total == data.rhythm + data.expression + data.perfection + data.overall &&
+        data.remarks is string && data.remarks.size() <= 300 &&
+        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Admins Collection (System-managed, never writable by clients)
+    match /admins/{adminId} {
+      allow get: if isVerifiedUser() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list: if false;
+      allow create, update, delete: if false;
+    }
+
+    // Competition Items Collection
+    match /items/{itemId} {
+      allow get: if isSignedIn() && isValidId(itemId) && existing().maxMarks == 100;
+      allow list: if isSignedIn() && existing().maxMarks == 100;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(itemId) &&
+        isValidCompetitionItem(incoming(), itemId) &&
+        incoming().createdAt == request.time;
+
+      allow update: if isVerifiedUser() &&
+        isValidId(itemId) &&
+        isValidCompetitionItem(incoming(), itemId) &&
+        incoming().id == existing().id &&
+        incoming().authorId == existing().authorId &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().authorId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'malayalamName', 'category', 'stage']))
+        );
+
+      allow delete: if isVerifiedUser() &&
+        isValidId(itemId) &&
+        (existing().authorId == request.auth.uid || isAdmin());
+    }
+
+    // Participants Collection
+    match /participants/{participantId} {
+      allow get: if isSignedIn() && isValidId(participantId) && existing().chestNo.size() <= 20;
+      allow list: if isSignedIn() && existing().chestNo.size() <= 20;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(participantId) &&
+        isValidParticipant(incoming(), participantId) &&
+        incoming().createdAt == request.time &&
+        exists(/databases/$(database)/documents/items/$(incoming().itemId));
+
+      allow update: if isVerifiedUser() &&
+        isValidId(participantId) &&
+        isValidParticipant(incoming(), participantId) &&
+        incoming().id == existing().id &&
+        incoming().itemId == existing().itemId &&
+        incoming().authorId == existing().authorId &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().authorId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['chestNo', 'name', 'school']))
+        );
+
+      allow delete: if isVerifiedUser() &&
+        isValidId(participantId) &&
+        (existing().authorId == request.auth.uid || isAdmin());
+    }
+
+    // Judge Scores Collection
+    match /scores/{scoreId} {
+      allow get: if isSignedIn() && isValidId(scoreId) && existing().total <= 100;
+      allow list: if isSignedIn() && existing().total <= 100;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(scoreId) &&
+        isValidJudgeScore(incoming(), scoreId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/items/$(incoming().itemId)) &&
+        exists(/databases/$(database)/documents/participants/$(incoming().participantId));
+
+      allow update: if isVerifiedUser() &&
+        isValidId(scoreId) &&
+        isValidJudgeScore(incoming(), scoreId) &&
+        incoming().id == existing().id &&
+        incoming().itemId == existing().itemId &&
+        incoming().participantId == existing().participantId &&
+        incoming().chestNo == existing().chestNo &&
+        incoming().judgeSlot == existing().judgeSlot &&
+        incoming().authorId == existing().authorId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          isAdmin() ||
+          (existing().authorId == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'judgeName', 'rhythm', 'expression', 'perfection', 'overall', 'total', 'remarks', 'updatedAt'
+            ]))
+        );
+
+      allow delete: if isVerifiedUser() &&
+        isValidId(scoreId) &&
+        (existing().authorId == request.auth.uid || isAdmin());
+    }
+  }
+}

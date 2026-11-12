@@ -1,0 +1,6 @@
+{
+  "name": "Kalolsavam Live — Digital Arts Festival Judging & Tabulation",
+  "description": "Real-time Arts Festival Judging and Tabulation Web Application (കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്) with Firestore live sync, offline persistence, judge scoring portal, and live leaderboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

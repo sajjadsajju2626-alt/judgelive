@@ -1,0 +1,219 @@
+{
+  "entities": {
+    "CompetitionItem": {
+      "title": "CompetitionItem",
+      "description": "An arts festival competition event or item with category and stage details.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique identifier for the competition item."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "English name of the competition item."
+        },
+        "malayalamName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Malayalam name of the competition item."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["High School", "Higher Secondary", "General", "Sub-Junior"],
+          "maxLength": 40,
+          "description": "Competition division category."
+        },
+        "stage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Assigned stage or venue name."
+        },
+        "maxMarks": {
+          "type": "number",
+          "description": "Maximum marks possible for this item (always 100)."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of the user who created the item."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the item was created."
+        }
+      },
+      "required": ["id", "name", "malayalamName", "category", "stage", "maxMarks", "authorId", "createdAt"]
+    },
+    "Participant": {
+      "title": "Participant",
+      "description": "A registered contestant with a chest number assigned to a competition item.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique participant document identifier."
+        },
+        "itemId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Referenced competition item ID."
+        },
+        "chestNo": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[A-Z0-9\\-]+$",
+          "description": "Contestant chest number."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Full name of the contestant or team lead."
+        },
+        "school": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "School, college, or house represented."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of the user who registered the participant."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when registered."
+        }
+      },
+      "required": ["id", "itemId", "chestNo", "name", "school", "authorId", "createdAt"]
+    },
+    "JudgeScore": {
+      "title": "JudgeScore",
+      "description": "Score entry submitted by a judge for a specific participant in an item.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Deterministic score ID combining itemId, participantId, and judgeSlot."
+        },
+        "itemId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Competition item ID."
+        },
+        "participantId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Participant document ID."
+        },
+        "chestNo": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "description": "Participant chest number."
+        },
+        "judgeSlot": {
+          "type": "string",
+          "enum": ["J1", "J2", "J3"],
+          "maxLength": 10,
+          "description": "Judge panel slot identifier."
+        },
+        "judgeName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Display name of the judge."
+        },
+        "rhythm": {
+          "type": "number",
+          "description": "Criterion 1: Rhythm / Thalam (0-25)."
+        },
+        "expression": {
+          "type": "number",
+          "description": "Criterion 2: Expression / Bhavam (0-25)."
+        },
+        "perfection": {
+          "type": "number",
+          "description": "Criterion 3: Perfection / Technique (0-25)."
+        },
+        "overall": {
+          "type": "number",
+          "description": "Criterion 4: Overall Presentation (0-25)."
+        },
+        "total": {
+          "type": "number",
+          "description": "Total score out of 100."
+        },
+        "remarks": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Optional judge evaluation notes."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of the authenticated judge/user who submitted the score."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial submission."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest score update."
+        }
+      },
+      "required": [
+        "id",
+        "itemId",
+        "participantId",
+        "chestNo",
+        "judgeSlot",
+        "judgeName",
+        "rhythm",
+        "expression",
+        "perfection",
+        "overall",
+        "total",
+        "remarks",
+        "authorId",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/items/{itemId}": {
+      "schema": { "$ref": "#/entities/CompetitionItem" },
+      "description": "Stores arts festival competition events and items."
+    },
+    "/participants/{participantId}": {
+      "schema": { "$ref": "#/entities/Participant" },
+      "description": "Stores registered participants and chest numbers."
+    },
+    "/scores/{scoreId}": {
+      "schema": { "$ref": "#/entities/JudgeScore" },
+      "description": "Stores real-time judge score submissions per chest number and judge slot."
+    }
+  }
+}
