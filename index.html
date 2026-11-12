@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kalolsavam Live — കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്</title>
+  <meta name="description" content="Real-time Arts Festival Judging and Tabulation Web Application (കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്) with Firestore live sync, offline persistence, judge scoring portal, and PIN-protected live leaderboard." />
+  <meta property="og:title" content="Kalolsavam Live — കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്" />
+  <meta property="og:description" content="Real-time Arts Festival Judging and Tabulation Web Application (കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്) with Firestore live sync and offline persistence." />
+  <meta property="og:type" content="website" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,39 +19,169 @@
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
-  <!-- Top Bar -->
-  <header class="flex items-center justify-between gap-8 px-6 py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
-    <a href="#tabulation" onclick="switchView('tabulation'); return false;" class="text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display">
+  <!-- Non-Intrusive Toast Notification -->
+  <div id="sync-toast" role="status" aria-live="polite" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-stone-900 text-white shadow-lg border border-stone-700 text-sm font-semibold">
+    <span class="text-emerald-400" aria-hidden="true">✓</span>
+    <span id="sync-toast-text">Marks Synced to Cloud!</span>
+  </div>
+
+  <!-- Top Bar (Judge-only by default; full nav shown when ?admin=true) -->
+  <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
+    <a href="#" onclick="switchView('judge'); return false;" class="text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display">
       കലോത്സവം Digital Judging
     </a>
-    <nav class="flex items-center gap-6 text-sm font-medium text-stone-600">
-      <button onclick="switchView('tabulation')" id="nav-tabulation" class="hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 pb-0.5">Live Tabulation</button>
-      <button onclick="switchView('judge')" id="nav-judge" class="hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 pb-0.5">Judge Portal</button>
-      <button onclick="switchView('admin')" id="nav-admin" class="hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 pb-0.5">Admin Panel</button>
+    <nav aria-label="Primary Navigation" class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-stone-600">
+      <button type="button" onclick="switchView('judge')" id="nav-judge" class="hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 font-semibold pb-0.5">Judge Portal</button>
+      <button type="button" onclick="switchView('tabulation')" id="nav-tabulation" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Live Tabulation</button>
+      <button type="button" onclick="switchView('admin')" id="nav-admin" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Admin Panel</button>
     </nav>
-    <div class="flex items-center gap-3 shrink-0">
-      <button onclick="switchView('judge')" class="px-4 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap shrink-0">
-        Enter Judge Marks
-      </button>
+    <div class="hidden sm:flex items-center gap-3 shrink-0">
+      <span id="header-mode-label" class="text-xs font-medium text-stone-500 whitespace-nowrap shrink-0">Judge Scoring Mode</span>
     </div>
   </header>
 
-  <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 flex-1 space-y-8">
+  <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 space-y-8">
     <!-- Status Strip -->
-    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-200 text-xs text-stone-600">
-      <div>
-        <span class="font-semibold text-stone-900">Kerala State Arts Festival Tabulation</span>
-        <span class="mx-2">·</span>
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 text-xs text-stone-600">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span class="font-semibold text-stone-900">Kerala State Arts Festival Judging</span>
+        <span aria-hidden="true">·</span>
         <span id="persistence-status">IndexedDB Offline Persistence Active</span>
       </div>
-      <div class="tabular-nums" id="sync-status">Real-Time Firestore Listener Ready</div>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <span class="tabular-nums" id="sync-status">Real-Time Firestore Sync · judgelive-7a621</span>
+        <button type="button" id="auth-btn" onclick="handleAuthClick()" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-md hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0">
+          Cloud Sign In
+        </button>
+      </div>
     </div>
 
-    <!-- VIEW 1: LIVE TABULATION -->
-    <section id="view-tabulation" class="space-y-6">
+    <!-- ADMIN PIN GATE (Shown when ?admin=true and accessing Live Tabulation or Admin Panel) -->
+    <section id="view-pin-gate" class="hidden max-w-md mx-auto my-8 bg-white border border-stone-200 rounded-xl p-6 sm:p-8 space-y-5">
+      <div>
+        <div class="text-xs font-semibold text-amber-800">Restricted Festival Access</div>
+        <h1 class="text-2xl font-bold text-stone-900 mt-1 font-display">Enter Admin PIN</h1>
+        <p class="text-sm text-stone-600 mt-1">
+          Enter the Admin PIN to unlock <span id="pin-target-label" class="font-semibold text-stone-900">Live Tabulation</span>.
+        </p>
+      </div>
+      <form onsubmit="handlePinVerify(event)" class="space-y-4">
+        <div>
+          <label for="admin-pin-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Admin Security PIN</label>
+          <input id="admin-pin-input" type="password" inputmode="numeric" required placeholder="Enter 4-digit PIN (2026)" class="w-full px-3.5 py-2.5 text-base tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+        </div>
+        <div id="pin-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
+          Incorrect Admin PIN. Please try again.
+        </div>
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <button type="button" onclick="switchView('judge')" class="px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors">
+            Back to Judge Portal
+          </button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">
+            Unlock Access
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VIEW 1: JUDGE PORTAL (Default View) -->
+    <section id="view-judge" class="space-y-6">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Judge Scoring Portal (ജഡ്ജിങ് പോർട്ടൽ)</h1>
+          <p class="text-sm text-stone-600 mt-1">Select event and chest number to submit criterion-wise marks with offline persistence.</p>
+        </div>
+
+        <!-- Persistent Judge Session Controls -->
+        <div class="shrink-0">
+          <div id="judge-session-locked" class="hidden items-center gap-3 px-4 py-2.5 bg-white border border-stone-200 rounded-lg text-xs">
+            <div>
+              <span class="text-stone-500">Judge Session:</span>
+              <span id="judge-session-display" class="font-bold text-stone-900 ml-1">J1 — Kalamandalam Hymavathy</span>
+            </div>
+            <button type="button" onclick="toggleJudgeEditor(true)" class="px-2.5 py-1 font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 rounded-md transition-colors whitespace-nowrap shrink-0">
+              Change Judge
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <form onsubmit="handleScoreSubmit(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-6">
+        <!-- Judge Session Editor (Shown until saved or when "Change Judge" is clicked) -->
+        <div id="judge-session-editor" class="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-5 border-b border-stone-200 items-end">
+          <div>
+            <label for="judge-slot" class="block text-xs font-semibold text-stone-700 mb-1.5">Judge Panel Slot</label>
+            <select id="judge-slot" onchange="handleJudgeSlotChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+              <option value="J1">J1 — Judge 1</option>
+              <option value="J2">J2 — Judge 2</option>
+              <option value="J3">J3 — Judge 3</option>
+            </select>
+          </div>
+          <div>
+            <label for="judge-name" class="block text-xs font-semibold text-stone-700 mb-1.5">Judge Name</label>
+            <input id="judge-name" type="text" required placeholder="Enter Judge Name" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div class="flex items-center">
+            <button type="button" onclick="saveJudgeSession(true)" class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap">
+              Save Judge Session
+            </button>
+          </div>
+        </div>
+
+        <!-- Event & Chest Number Selection -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="judge-item" class="block text-xs font-semibold text-stone-700 mb-1.5">Competition Item</label>
+            <select id="judge-item" onchange="populateJudgeParticipants()" class="w-full px-3 py-2.5 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+          </div>
+          <div>
+            <label for="judge-participant" class="block text-xs font-semibold text-stone-700 mb-1.5">Chest Number</label>
+            <select id="judge-participant" onchange="loadExistingJudgeScore()" class="w-full px-3 py-2.5 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+          </div>
+        </div>
+
+        <!-- Criterion-wise Marks -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-stone-200">
+          <div>
+            <label for="crit-rhythm" class="block text-xs font-semibold text-stone-700 mb-1">Rhythm / താളം (0–25)</label>
+            <input id="crit-rhythm" type="number" min="0" max="25" step="0.5" value="0" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="crit-expression" class="block text-xs font-semibold text-stone-700 mb-1">Expression / ഭാവം (0–25)</label>
+            <input id="crit-expression" type="number" min="0" max="25" step="0.5" value="0" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="crit-perfection" class="block text-xs font-semibold text-stone-700 mb-1">Perfection / പൂർണ്ണത (0–25)</label>
+            <input id="crit-perfection" type="number" min="0" max="25" step="0.5" value="0" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="crit-overall" class="block text-xs font-semibold text-stone-700 mb-1">Presentation / അവതരണം (0–25)</label>
+            <input id="crit-overall" type="number" min="0" max="25" step="0.5" value="0" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-stone-200">
+          <div class="flex items-baseline gap-3">
+            <span class="text-sm font-medium text-stone-600">Calculated Total Score:</span>
+            <span id="judge-total-preview" class="text-2xl font-bold text-stone-900 tabular-nums">0 / 100</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="resetScoreInputs()" class="px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors">
+              Reset Fields
+            </button>
+            <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors">
+              Submit & Sync Marks
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- VIEW 2: LIVE TABULATION (Hidden unless ?admin=true and PIN 2026 verified) -->
+    <section id="view-tabulation" class="hidden space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900">Live Tabulation & Leaderboard</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Live Tabulation & Leaderboard</h1>
           <p class="text-sm text-stone-600 mt-1">Real-time average scores, grades (A / B / C), and ordinal ranks (1st, 2nd, 3rd).</p>
         </div>
         <div class="flex items-center gap-3">
@@ -77,72 +211,10 @@
       </div>
     </section>
 
-    <!-- VIEW 2: JUDGE PORTAL -->
-    <section id="view-judge" class="hidden space-y-6">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-stone-900">Judge Scoring Portal (ജഡ്ജിങ് പോർട്ടൽ)</h1>
-        <p class="text-sm text-stone-600 mt-1">Select event and chest number to submit criterion-wise marks with offline persistence.</p>
-      </div>
-
-      <form onsubmit="handleScoreSubmit(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1.5">Competition Item</label>
-            <select id="judge-item" onchange="populateJudgeParticipants()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1.5">Chest Number</label>
-            <select id="judge-participant" onchange="loadExistingJudgeScore()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1.5">Judge Panel Slot</label>
-            <select id="judge-slot" onchange="loadExistingJudgeScore()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg">
-              <option value="J1">J1 — Judge 1</option>
-              <option value="J2">J2 — Judge 2</option>
-              <option value="J3">J3 — Judge 3</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1.5">Judge Name</label>
-            <input id="judge-name" type="text" required value="Kalamandalam Jury" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-stone-200">
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Rhythm / താളം (0–25)</label>
-            <input id="crit-rhythm" type="number" min="0" max="25" step="0.5" value="23" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Expression / ഭാവം (0–25)</label>
-            <input id="crit-expression" type="number" min="0" max="25" step="0.5" value="23" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Perfection / പൂർണ്ണത (0–25)</label>
-            <input id="crit-perfection" type="number" min="0" max="25" step="0.5" value="22" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Presentation / അവതരണം (0–25)</label>
-            <input id="crit-overall" type="number" min="0" max="25" step="0.5" value="22" oninput="updateLiveTotal()" class="w-full px-3 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg" />
-          </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-stone-200">
-          <div class="flex items-baseline gap-3">
-            <span class="text-sm font-medium text-stone-600">Calculated Total Score:</span>
-            <span id="judge-total-preview" class="text-2xl font-bold text-stone-900 tabular-nums">90 / 100</span>
-          </div>
-          <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors">
-            Submit & Sync Marks
-          </button>
-        </div>
-      </form>
-    </section>
-
-    <!-- VIEW 3: ADMIN PANEL -->
+    <!-- VIEW 3: ADMIN PANEL (Hidden unless ?admin=true and PIN 2026 verified) -->
     <section id="view-admin" class="hidden space-y-8">
       <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-stone-900">Festival Admin Console</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console</h1>
         <p class="text-sm text-stone-600 mt-1">Add competition items and register participant chest numbers.</p>
       </div>
 
@@ -150,16 +222,16 @@
         <form onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <h2 class="text-lg font-bold text-stone-900">1. Add Competition Item</h2>
           <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Item Name (English)</label>
+            <label for="admin-item-name" class="block text-xs font-semibold text-stone-700 mb-1">Item Name (English)</label>
             <input id="admin-item-name" type="text" required placeholder="e.g. Kuchipudi" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Malayalam Name</label>
+            <label for="admin-item-ml" class="block text-xs font-semibold text-stone-700 mb-1">Malayalam Name</label>
             <input id="admin-item-ml" type="text" placeholder="e.g. കുച്ചിപ്പുടി" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-stone-700 mb-1">Category</label>
+              <label for="admin-item-cat" class="block text-xs font-semibold text-stone-700 mb-1">Category</label>
               <select id="admin-item-cat" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg">
                 <option value="High School">High School</option>
                 <option value="Higher Secondary">Higher Secondary</option>
@@ -167,7 +239,7 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-stone-700 mb-1">Stage</label>
+              <label for="admin-item-stage" class="block text-xs font-semibold text-stone-700 mb-1">Stage</label>
               <input id="admin-item-stage" type="text" required value="Stage 1 — Nila" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg" />
             </div>
           </div>
@@ -177,21 +249,21 @@
         <form onsubmit="handleAddParticipant(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <h2 class="text-lg font-bold text-stone-900">2. Register Participant Chest No</h2>
           <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">Select Item</label>
+            <label for="admin-part-item" class="block text-xs font-semibold text-stone-700 mb-1">Select Item</label>
             <select id="admin-part-item" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg"></select>
           </div>
           <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="block text-xs font-semibold text-stone-700 mb-1">Chest No</label>
+              <label for="admin-part-chest" class="block text-xs font-semibold text-stone-700 mb-1">Chest No</label>
               <input id="admin-part-chest" type="text" required placeholder="105" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg" />
             </div>
             <div class="col-span-2">
-              <label class="block text-xs font-semibold text-stone-700 mb-1">Participant Name</label>
+              <label for="admin-part-name" class="block text-xs font-semibold text-stone-700 mb-1">Participant Name</label>
               <input id="admin-part-name" type="text" required placeholder="Full Name" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg" />
             </div>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-stone-700 mb-1">School / Institution</label>
+            <label for="admin-part-school" class="block text-xs font-semibold text-stone-700 mb-1">School / Institution</label>
             <input id="admin-part-school" type="text" required placeholder="GHSS Kozhikode" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg" />
           </div>
           <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800">Register Participant</button>
@@ -203,16 +275,25 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import {
       getFirestore,
       collection,
       doc,
+      getDocFromServer,
       setDoc,
+      updateDoc,
       onSnapshot,
       enableIndexedDbPersistence,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // Exact Embedded Firebase Configuration
+    // Exact Embedded Firebase Configuration (judgelive-7a621)
     const firebaseConfig = {
       apiKey: "AIzaSyCkJuoYBM0JpCygr7ippauAr1vta_EHHOs",
       authDomain: "judgelive-7a621.firebaseapp.com",
@@ -224,7 +305,27 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+    const db = getFirestore(app, "ai-studio-0c89871c-a58f-46bc-9586-a86ffacd8fa2");
+
+    let currentUser = null;
+    let unsubItems = null;
+    let unsubParticipants = null;
+    let unsubScores = null;
+
+    function handleFirestoreError(error, operationType, path) {
+      const errInfo = {
+        error: error instanceof Error ? error.message : String(error),
+        operationType,
+        path,
+        authInfo: {
+          userId: auth.currentUser?.uid || null,
+          email: auth.currentUser?.email || null
+        }
+      };
+      console.error("Firestore Error:", JSON.stringify(errInfo));
+    }
 
     enableIndexedDbPersistence(db).then(() => {
       document.getElementById("persistence-status").textContent = "Offline Persistence Enabled (IndexedDB)";
@@ -232,15 +333,44 @@
       document.getElementById("persistence-status").textContent = "Persistence Mode: " + (err.code || "Local");
     });
 
-    // Local fallback state synchronized with Firestore onSnapshot
-    window.state = {
+    async function testConnection() {
+      try {
+        await getDocFromServer(doc(db, "test", "connection"));
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("the client is offline")) {
+          console.error("Please check your Firebase configuration.");
+        }
+      }
+    }
+
+    // Access Control & Persistent Session Constants
+    const ADMIN_PIN = "2026";
+    const JUDGE_SESSION_KEY = "kalolsavam_judge_session_v1";
+    const ADMIN_UNLOCK_KEY = "kalolsavam_admin_unlocked_v1";
+    const LOCAL_STATE_KEY = "kalolsavam_local_state_v1";
+
+    const isAdminUrl = new URLSearchParams(window.location.search).get("admin") === "true";
+    let isAdminUnlocked = sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "true";
+    let pendingProtectedView = "tabulation";
+    let toastTimer = null;
+
+    if (isAdminUrl) {
+      document.getElementById("nav-tabulation").classList.remove("hidden");
+      document.getElementById("nav-admin").classList.remove("hidden");
+      document.getElementById("header-mode-label").textContent = "Admin & Tabulation Mode";
+    }
+
+    // Default seed data merged with localStorage backup for instant availability
+    const defaultState = {
       items: [
         { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila" },
         { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar" }
       ],
       participants: [
         { id: "p_101", itemId: "item_1", chestNo: "101", name: "Meenakshi S. Nair", school: "Providence Girls HSS, Kozhikode" },
-        { id: "p_102", itemId: "item_1", chestNo: "102", name: "Devika R. Menon", school: "Sacred Heart CGHSS, Thrissur" }
+        { id: "p_102", itemId: "item_1", chestNo: "102", name: "Devika R. Menon", school: "Sacred Heart CGHSS, Thrissur" },
+        { id: "p_105", itemId: "item_1", chestNo: "105", name: "Gouri Nandana V.", school: "BSS Gurukulam HSS, Alathur" },
+        { id: "p_201", itemId: "item_2", chestNo: "201", name: "Parvathy Warrier", school: "St. Teresa’s CGHSS, Ernakulam" }
       ],
       scores: [
         { id: "item_1_p_101_J1", itemId: "item_1", participantId: "p_101", chestNo: "101", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 24, expression: 23, perfection: 23, overall: 24, total: 94 },
@@ -248,51 +378,253 @@
       ]
     };
 
-    // Real-time listeners (onSnapshot)
-    onSnapshot(collection(db, "items"), (snap) => {
-      if (!snap.empty) {
-        window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        window.refreshAllSelects();
-      }
-    }, () => {});
+    function loadLocalState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LOCAL_STATE_KEY) || "null");
+        if (saved && Array.isArray(saved.items) && saved.items.length > 0) {
+          return saved;
+        }
+      } catch {}
+      return defaultState;
+    }
 
-    onSnapshot(collection(db, "participants"), (snap) => {
-      if (!snap.empty) {
-        window.state.participants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    function saveLocalState() {
+      try {
+        localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(window.state));
+      } catch {}
+    }
+
+    window.state = loadLocalState();
+
+    function detachListeners() {
+      if (unsubItems) { unsubItems(); unsubItems = null; }
+      if (unsubParticipants) { unsubParticipants(); unsubParticipants = null; }
+      if (unsubScores) { unsubScores(); unsubScores = null; }
+    }
+
+    function attachListeners() {
+      detachListeners();
+      unsubItems = onSnapshot(collection(db, "items"), (snap) => {
+        if (!snap.empty) {
+          window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          saveLocalState();
+          window.refreshAllSelects();
+        }
+      }, (err) => handleFirestoreError(err, "list", "items"));
+
+      unsubParticipants = onSnapshot(collection(db, "participants"), (snap) => {
+        if (!snap.empty) {
+          window.state.participants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          saveLocalState();
+          window.populateJudgeParticipants();
+          window.renderTabulation();
+        }
+      }, (err) => handleFirestoreError(err, "list", "participants"));
+
+      unsubScores = onSnapshot(collection(db, "scores"), (snap) => {
+        if (!snap.empty) {
+          window.state.scores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          saveLocalState();
+          window.populateJudgeParticipants();
+          window.renderTabulation();
+        }
+      }, (err) => handleFirestoreError(err, "list", "scores"));
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const authBtn = document.getElementById("auth-btn");
+      const syncStatus = document.getElementById("sync-status");
+      if (user) {
+        authBtn.textContent = "Sign Out";
+        syncStatus.textContent = `Cloud Synced · ${user.email || "Signed In"}`;
+        testConnection();
+        attachListeners();
+      } else {
+        authBtn.textContent = "Cloud Sign In";
+        syncStatus.textContent = "Real-Time Firestore Sync · judgelive-7a621";
+        detachListeners();
+      }
+    });
+
+    window.handleAuthClick = async () => {
+      if (currentUser) {
+        await signOut(auth);
+        window.showToast("Signed out of Cloud Sync");
+      } else {
+        try {
+          await signInWithPopup(auth, googleProvider);
+          window.showToast("Cloud Sync Connected!");
+        } catch (err) {
+          handleFirestoreError(err, "auth", "google-signin");
+        }
+      }
+    };
+
+    // Persistent Judge Session Management
+    function initJudgeSession() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(JUDGE_SESSION_KEY) || "null");
+        if (saved && saved.judgeSlot && saved.judgeName) {
+          document.getElementById("judge-slot").value = saved.judgeSlot;
+          document.getElementById("judge-name").value = saved.judgeName;
+          setJudgeEditorVisible(false, saved.judgeSlot, saved.judgeName);
+          return;
+        }
+      } catch {}
+      setJudgeEditorVisible(true, "J1", "");
+    }
+
+    function setJudgeEditorVisible(showEditor, slot, name) {
+      const lockedBox = document.getElementById("judge-session-locked");
+      const editorBox = document.getElementById("judge-session-editor");
+      if (showEditor) {
+        lockedBox.classList.add("hidden");
+        lockedBox.classList.remove("flex");
+        editorBox.classList.remove("hidden");
+      } else {
+        document.getElementById("judge-session-display").textContent = `${slot} — ${name}`;
+        lockedBox.classList.remove("hidden");
+        lockedBox.classList.add("flex");
+        editorBox.classList.add("hidden");
+      }
+    }
+
+    window.toggleJudgeEditor = (open) => {
+      const slot = document.getElementById("judge-slot").value;
+      const name = document.getElementById("judge-name").value.trim();
+      setJudgeEditorVisible(open, slot, name);
+    };
+
+    window.handleJudgeSlotChange = () => {
+      const slot = document.getElementById("judge-slot").value;
+      const name = document.getElementById("judge-name").value.trim();
+      if (name) {
+        localStorage.setItem(JUDGE_SESSION_KEY, JSON.stringify({ judgeSlot: slot, judgeName: name }));
+      }
+      window.populateJudgeParticipants();
+    };
+
+    window.saveJudgeSession = (lockAfterSave = true, refreshParticipants = true) => {
+      const judgeSlot = document.getElementById("judge-slot").value;
+      const rawName = document.getElementById("judge-name").value.trim();
+      if (!rawName) {
+        document.getElementById("judge-name").focus();
+        return false;
+      }
+      localStorage.setItem(JUDGE_SESSION_KEY, JSON.stringify({ judgeSlot, judgeName: rawName }));
+      if (lockAfterSave) {
+        setJudgeEditorVisible(false, judgeSlot, rawName);
+      }
+      if (refreshParticipants) {
         window.populateJudgeParticipants();
-        window.renderTabulation();
       }
-    }, () => {});
+      return true;
+    };
 
-    onSnapshot(collection(db, "scores"), (snap) => {
-      if (!snap.empty) {
-        window.state.scores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        window.renderTabulation();
-      }
-    }, () => {});
+    // Toast Notification (Replaces browser alert)
+    window.showToast = (message) => {
+      const toast = document.getElementById("sync-toast");
+      document.getElementById("sync-toast-text").textContent = message;
+      toast.classList.remove("hidden");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3500);
+    };
 
+    // Navigation & Admin PIN Gate
     window.switchView = (view) => {
-      ["tabulation", "judge", "admin"].forEach(v => {
+      if (!isAdminUrl && view !== "judge") return;
+
+      if (isAdminUrl && !isAdminUnlocked && (view === "tabulation" || view === "admin")) {
+        pendingProtectedView = view;
+        document.getElementById("pin-target-label").textContent = view === "admin" ? "Admin Panel" : "Live Tabulation";
+        document.getElementById("view-judge").classList.add("hidden");
+        document.getElementById("view-tabulation").classList.add("hidden");
+        document.getElementById("view-admin").classList.add("hidden");
+        document.getElementById("view-pin-gate").classList.remove("hidden");
+        updateNavHighlights(view);
+        document.getElementById("admin-pin-input").value = "";
+        document.getElementById("pin-error").classList.add("hidden");
+        document.getElementById("admin-pin-input").focus();
+        return;
+      }
+
+      document.getElementById("view-pin-gate").classList.add("hidden");
+      ["judge", "tabulation", "admin"].forEach(v => {
         document.getElementById("view-" + v).classList.toggle("hidden", v !== view);
-        document.getElementById("nav-" + v).classList.toggle("border-b-2", v === view);
-        document.getElementById("nav-" + v).classList.toggle("border-amber-700", v === view);
       });
+      updateNavHighlights(view);
+    };
+
+    function updateNavHighlights(activeView) {
+      ["judge", "tabulation", "admin"].forEach(v => {
+        const btn = document.getElementById("nav-" + v);
+        if (!btn) return;
+        const isActive = v === activeView;
+        btn.classList.toggle("border-amber-700", isActive);
+        btn.classList.toggle("border-transparent", !isActive);
+        btn.classList.toggle("text-stone-900", isActive);
+        btn.classList.toggle("font-semibold", isActive);
+      });
+    }
+
+    window.handlePinVerify = (e) => {
+      e.preventDefault();
+      const entered = document.getElementById("admin-pin-input").value.trim();
+      if (entered === ADMIN_PIN) {
+        isAdminUnlocked = true;
+        sessionStorage.setItem(ADMIN_UNLOCK_KEY, "true");
+        document.getElementById("pin-error").classList.add("hidden");
+        window.switchView(pendingProtectedView);
+      } else {
+        document.getElementById("pin-error").classList.remove("hidden");
+      }
     };
 
     window.refreshAllSelects = () => {
+      const currentJudgeItem = document.getElementById("judge-item").value;
+      const currentTabItem = document.getElementById("tab-item-select").value;
       const opts = window.state.items.map(it => `<option value="${it.id}">${it.name} (${it.category})</option>`).join("");
       document.getElementById("tab-item-select").innerHTML = opts;
       document.getElementById("judge-item").innerHTML = opts;
       document.getElementById("admin-part-item").innerHTML = opts;
+      if (currentJudgeItem && window.state.items.some(i => i.id === currentJudgeItem)) {
+        document.getElementById("judge-item").value = currentJudgeItem;
+      }
+      if (currentTabItem && window.state.items.some(i => i.id === currentTabItem)) {
+        document.getElementById("tab-item-select").value = currentTabItem;
+      }
       window.populateJudgeParticipants();
       window.renderTabulation();
     };
 
     window.populateJudgeParticipants = () => {
       const itemId = document.getElementById("judge-item").value;
+      const slot = document.getElementById("judge-slot").value;
+      const selectEl = document.getElementById("judge-participant");
+      const previousPartId = selectEl.value;
       const parts = window.state.participants.filter(p => p.itemId === itemId);
-      document.getElementById("judge-participant").innerHTML = parts.map(p => `<option value="${p.id}">Chest #${p.chestNo} — ${p.name}</option>`).join("");
+
+      selectEl.innerHTML = parts.map(p => {
+        const isScored = window.state.scores.some(s => s.itemId === itemId && s.participantId === p.id && s.judgeSlot === slot);
+        const label = isScored ? `Chest ${p.chestNo} — ${p.name} (Scored ✓)` : `Chest ${p.chestNo} — ${p.name}`;
+        return `<option value="${p.id}">${label}</option>`;
+      }).join("");
+
+      if (previousPartId && parts.some(p => p.id === previousPartId)) {
+        selectEl.value = previousPartId;
+      }
       window.loadExistingJudgeScore();
+    };
+
+    window.resetScoreInputs = () => {
+      document.getElementById("crit-rhythm").value = 0;
+      document.getElementById("crit-expression").value = 0;
+      document.getElementById("crit-perfection").value = 0;
+      document.getElementById("crit-overall").value = 0;
+      window.updateLiveTotal();
     };
 
     window.updateLiveTotal = () => {
@@ -314,6 +646,8 @@
         document.getElementById("crit-perfection").value = found.perfection;
         document.getElementById("crit-overall").value = found.overall;
         window.updateLiveTotal();
+      } else {
+        window.resetScoreInputs();
       }
     };
 
@@ -351,19 +685,73 @@
       const itemId = document.getElementById("judge-item").value;
       const participantId = document.getElementById("judge-participant").value;
       const judgeSlot = document.getElementById("judge-slot").value;
-      const judgeName = document.getElementById("judge-name").value;
+      const judgeName = document.getElementById("judge-name").value.trim();
       const rhythm = Number(document.getElementById("crit-rhythm").value);
       const expression = Number(document.getElementById("crit-expression").value);
       const perfection = Number(document.getElementById("crit-perfection").value);
       const overall = Number(document.getElementById("crit-overall").value);
       const total = rhythm + expression + perfection + overall;
+
+      if (!window.saveJudgeSession(true, false)) return;
+
       const part = window.state.participants.find(p => p.id === participantId);
       const id = `${itemId}_${participantId}_${judgeSlot}`;
-      const docData = { id, itemId, participantId, chestNo: part?.chestNo || "101", judgeSlot, judgeName, rhythm, expression, perfection, overall, total, updatedAt: new Date().toISOString() };
+      const docData = {
+        id,
+        itemId,
+        participantId,
+        chestNo: part?.chestNo || "101",
+        judgeSlot,
+        judgeName,
+        rhythm,
+        expression,
+        perfection,
+        overall,
+        total,
+        remarks: "",
+        updatedAt: new Date().toISOString()
+      };
+
+      const existingScore = window.state.scores.find(s => s.id === id);
       window.state.scores = [...window.state.scores.filter(s => s.id !== id), docData];
+      saveLocalState();
+      window.showToast("Marks Synced to Cloud!");
+      window.populateJudgeParticipants();
       window.renderTabulation();
-      window.switchView("tabulation");
-      try { await setDoc(doc(db, "scores", id), { ...docData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }); } catch {}
+
+      // Advance to the next unscored participant and reset score input fields
+      const parts = window.state.participants.filter(p => p.itemId === itemId);
+      const nextUnscored = parts.find(p => p.id !== participantId && !window.state.scores.some(s => s.itemId === itemId && s.participantId === p.id && s.judgeSlot === judgeSlot));
+      if (nextUnscored) {
+        document.getElementById("judge-participant").value = nextUnscored.id;
+      }
+      window.resetScoreInputs();
+
+      if (currentUser) {
+        try {
+          if (existingScore && existingScore.authorId) {
+            await updateDoc(doc(db, "scores", id), {
+              judgeName,
+              rhythm,
+              expression,
+              perfection,
+              overall,
+              total,
+              remarks: "",
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(doc(db, "scores", id), {
+              ...docData,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `scores/${id}`);
+        }
+      }
     };
 
     window.handleAddItem = async (e) => {
@@ -371,15 +759,28 @@
       const id = "item_" + Date.now();
       const item = {
         id,
-        name: document.getElementById("admin-item-name").value,
-        malayalamName: document.getElementById("admin-item-ml").value,
+        name: document.getElementById("admin-item-name").value.trim(),
+        malayalamName: document.getElementById("admin-item-ml").value.trim(),
         category: document.getElementById("admin-item-cat").value,
-        stage: document.getElementById("admin-item-stage").value
+        stage: document.getElementById("admin-item-stage").value.trim()
       };
       window.state.items.push(item);
+      saveLocalState();
       window.refreshAllSelects();
       e.target.reset();
-      try { await setDoc(doc(db, "items", id), { ...item, maxMarks: 100, createdAt: serverTimestamp() }); } catch {}
+      window.showToast(`Added "${item.name}"`);
+      if (currentUser) {
+        try {
+          await setDoc(doc(db, "items", id), {
+            ...item,
+            maxMarks: 100,
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+        } catch (err) {
+          handleFirestoreError(err, "create", `items/${id}`);
+        }
+      }
     };
 
     window.handleAddParticipant = async (e) => {
@@ -388,17 +789,30 @@
       const part = {
         id,
         itemId: document.getElementById("admin-part-item").value,
-        chestNo: document.getElementById("admin-part-chest").value,
-        name: document.getElementById("admin-part-name").value,
-        school: document.getElementById("admin-part-school").value
+        chestNo: document.getElementById("admin-part-chest").value.trim().toUpperCase(),
+        name: document.getElementById("admin-part-name").value.trim(),
+        school: document.getElementById("admin-part-school").value.trim()
       };
       window.state.participants.push(part);
+      saveLocalState();
       window.populateJudgeParticipants();
       window.renderTabulation();
       e.target.reset();
-      try { await setDoc(doc(db, "participants", id), { ...part, createdAt: serverTimestamp() }); } catch {}
+      window.showToast(`Registered Chest ${part.chestNo}`);
+      if (currentUser) {
+        try {
+          await setDoc(doc(db, "participants", id), {
+            ...part,
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+        } catch (err) {
+          handleFirestoreError(err, "create", `participants/${id}`);
+        }
+      }
     };
 
+    initJudgeSession();
     window.refreshAllSelects();
   </script>
 </body>
