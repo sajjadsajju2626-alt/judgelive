@@ -202,3 +202,27 @@ test('validateItemInput and validateScoreInput enforce boundaries', () => {
     false
   );
 });
+
+test('URL access control and Admin PIN verification work accurately', async () => {
+  const { isAdminUrlMode, verifyAdminPin, formatChestDropdownLabel } = await import(
+    './scoring'
+  );
+  assert.equal(isAdminUrlMode(''), false);
+  assert.equal(isAdminUrlMode('?admin=false'), false);
+  assert.equal(isAdminUrlMode('?admin=true'), true);
+  assert.equal(isAdminUrlMode('?foo=1&admin=true'), true);
+
+  assert.equal(verifyAdminPin('2026'), true);
+  assert.equal(verifyAdminPin(' 2026 '), true);
+  assert.equal(verifyAdminPin('0000'), false);
+
+  assert.equal(
+    formatChestDropdownLabel({ chestNo: '105', name: 'Meenakshi' }, true),
+    'Chest 105 — Meenakshi (Scored ✓)'
+  );
+  assert.equal(
+    formatChestDropdownLabel({ chestNo: '105', name: 'Meenakshi' }, false),
+    'Chest 105 — Meenakshi'
+  );
+});
+

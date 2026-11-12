@@ -331,3 +331,31 @@ export function validateScoreInput(input: {
   }
   return { valid: true, total };
 }
+
+export const DEFAULT_ADMIN_PIN = '2026';
+
+export function isAdminUrlMode(searchString: string): boolean {
+  try {
+    const params = new URLSearchParams(searchString);
+    return params.get('admin') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function verifyAdminPin(
+  inputPin: string,
+  expectedPin: string = DEFAULT_ADMIN_PIN
+): boolean {
+  return inputPin.trim() === expectedPin;
+}
+
+export function formatChestDropdownLabel(
+  participant: Pick<Participant, 'chestNo' | 'name'>,
+  isScored: boolean
+): string {
+  return isScored
+    ? `Chest ${participant.chestNo} — ${participant.name} (Scored ✓)`
+    : `Chest ${participant.chestNo} — ${participant.name}`;
+}
+

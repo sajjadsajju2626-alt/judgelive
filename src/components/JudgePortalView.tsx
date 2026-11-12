@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronRight, Minus, Plus } from 'lucide-react';
+import { Check, CheckCircle2, Minus, Plus, UserCheck } from 'lucide-react';
 import {
   CompetitionItem,
   JudgeScore,
@@ -12,6 +12,7 @@ import {
   calculateGrade,
   clampCriterion,
   distributeTotalToCriteria,
+  formatChestDropdownLabel,
 } from '../utils/scoring';
 
 interface JudgePortalViewProps {
@@ -20,6 +21,7 @@ interface JudgePortalViewProps {
   scores: JudgeScore[];
   selectedItemId: string;
   selectedParticipantId: string;
+  isAdminMode: boolean;
   onSelectItem: (itemId: string) => void;
   onSelectParticipant: (participantId: string) => void;
   onSubmitScore: (input: {
@@ -37,11 +39,62 @@ interface JudgePortalViewProps {
   onViewLeaderboard: () => void;
 }
 
+const JUDGE_SESSION_STORAGE_KEY = 'kalolsavam_judge_session_v1';
+
 const DEFAULT_JUDGE_NAMES: Record<JudgeSlot, string> = {
   J1: 'Kalamandalam Hymavathy',
   J2: 'Dr. Methil Devika',
   J3: 'Prof. V. P. Dhananjayan',
 };
+
+interface StoredJudgeSession {
+  judgeSlot: JudgeSlot;
+  judgeName: string;
+  locked: boolean;
+}
+
+function loadJudgeSession(): StoredJudgeSession {
+  try {
+    const raw = localStorage.getItem(JUDGE_SESSION_STORAGE_KEY);
+    if (!raw) {
+      return {
+        judgeSlot: 'J1',
+        judgeName: DEFAULT_JUDGE_NAMES.J1,
+        locked: true,
+      };
+    }
+    const parsed = JSON.parse(raw) as Partial<StoredJudgeSession>;
+    const slot: JudgeSlot =
+      parsed.judgeSlot === 'J1' ||
+      parsed.judgeSlot === 'J2' ||
+      parsed.judgeSlot === 'J3'
+        ? parsed.judgeSlot
+        : 'J1';
+    const name =
+      typeof parsed.judgeName === 'string' && parsed.judgeName.trim().length > 0
+        ? parsed.judgeName.trim()
+        : DEFAULT_JUDGE_NAMES[slot];
+    return {
+      judgeSlot: slot,
+      judgeName: name,
+      locked: parsed.locked ?? true,
+    };
+  } catch {
+    return {
+      judgeSlot: 'J1',
+      judgeName: DEFAULT_JUDGE_NAMES.J1,
+      locked: true,
+    };
+  }
+}
+
+function saveJudgeSession(session: StoredJudgeSession): void {
+  try {
+    localStorage.setItem(JUDGE_SESSION_STORAGE_KEY, JSON.stringify(session));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
 
 export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
   items,
@@ -49,26 +102,41 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
   scores,
   selectedItemId,
   selectedParticipantId,
+  isAdminMode,
   onSelectItem,
   onSelectParticipant,
   onSubmitScore,
   onViewLeaderboard,
 }) => {
-  const [judgeSlot, setJudgeSlot] = useState<JudgeSlot>('J1');
-  const [judgeName, setJudgeName] = useState<string>(DEFAULT_JUDGE_NAMES.J1);
+  const initialSession = useMemo(() => loadJudgeSession(), []);
+  const [judgeSlot, setJudgeSlot] = useState<JudgeSlot>(initialSession.judgeSlot);
+  const [judgeName, setJudgeName] = useState<string>(initialSession.judgeName);
+  const [isEditingJudge, setIsEditingJudge] = useState<boolean>(
+    !initialSession.locked
+  );
+
   const [entryMode, setEntryMode] = useState<'criteria' | 'total'>('criteria');
 
-  const [rhythm, setRhythm] = useState<number>(23);
-  const [expression, setExpression] = useState<number>(23);
-  const [perfection, setPerfection] = useState<number>(22);
-  const [overall, setOverall] = useState<number>(22);
-  const [directTotal, setDirectTotal] = useState<number>(90);
+  const [rhythm, setRhythm] = useState<number>(0);
+  const [expression, setExpression] = useState<number>(0);
+  const [perfection, setPerfection] = useState<number>(0);
+  const [overall, setOverall] = useState<number>(0);
+  const [directTotal, setDirectTotal] = useState<number>(0);
   const [remarks, setRemarks] = useState<string>('');
 
-  const [feedback, setFeedback] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Persist judge session to localStorage whenever slot, name, or editing state changes
+  useEffect(() => {
+    if (judgeName.trim().length > 0) {
+      saveJudgeSession({
+        judgeSlot,
+        judgeName: judgeName.trim(),
+        locked: !isEditingJudge,
+      });
+    }
+  }, [judgeSlot, judgeName, isEditingJudge]);
 
   const activeItem = useMemo(() => {
     return items.find((i) => i.id === selectedItemId) ?? items[0] ?? null;
@@ -91,7 +159,7 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
     );
   }, [itemParticipants, selectedParticipantId]);
 
-  // Load existing score when item, participant, or judgeSlot changes
+  // Load existing score if participant was already scored by this judge, or reset to 0 for unscored participant
   useEffect(() => {
     if (!activeItem || !activeParticipant) return;
     const existing = scores.find(
@@ -107,18 +175,15 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
       setOverall(existing.overall);
       setDirectTotal(existing.total);
       setRemarks(existing.remarks);
-      if (existing.judgeName) {
-        setJudgeName(existing.judgeName);
-      }
     } else {
-      setRhythm(23);
-      setExpression(23);
-      setPerfection(22);
-      setOverall(22);
-      setDirectTotal(90);
+      setRhythm(0);
+      setExpression(0);
+      setPerfection(0);
+      setOverall(0);
+      setDirectTotal(0);
       setRemarks('');
     }
-    setFeedback(null);
+    setErrorMessage(null);
   }, [activeItem?.id, activeParticipant?.id, judgeSlot, scores]);
 
   const computedTotal = useMemo(() => {
@@ -131,7 +196,12 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
 
   const handleJudgeSlotChange = (slot: JudgeSlot) => {
     setJudgeSlot(slot);
-    setJudgeName(DEFAULT_JUDGE_NAMES[slot]);
+    if (
+      !judgeName.trim() ||
+      Object.values(DEFAULT_JUDGE_NAMES).includes(judgeName.trim())
+    ) {
+      setJudgeName(DEFAULT_JUDGE_NAMES[slot]);
+    }
   };
 
   const handleDirectTotalChange = (val: number) => {
@@ -151,16 +221,32 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
     setter(clamped);
   };
 
-  const handleSaveScore = async (advanceToNext: boolean) => {
+  const resetScoreFields = () => {
+    setRhythm(0);
+    setExpression(0);
+    setPerfection(0);
+    setOverall(0);
+    setDirectTotal(0);
+    setRemarks('');
+  };
+
+  const showSyncToast = (msg: string) => {
+    setToastMessage(msg);
+    window.setTimeout(() => {
+      setToastMessage((current) => (current === msg ? null : current));
+    }, 3500);
+  };
+
+  const handleSaveScore = async () => {
     if (!activeItem || !activeParticipant) return;
-    setFeedback(null);
+    setErrorMessage(null);
 
     const result = await onSubmitScore({
       itemId: activeItem.id,
       participantId: activeParticipant.id,
       chestNo: activeParticipant.chestNo,
       judgeSlot,
-      judgeName,
+      judgeName: judgeName.trim() || DEFAULT_JUDGE_NAMES[judgeSlot],
       rhythm,
       expression,
       perfection,
@@ -169,20 +255,53 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
     });
 
     if (!result.ok) {
-      setFeedback({ type: 'error', message: result.error });
+      setErrorMessage(result.error);
       return;
     }
 
-    setFeedback({
-      type: 'success',
-      message: `Saved ${result.score.total}/100 for Chest #${activeParticipant.chestNo} (${judgeSlot}). Tabulation updated in real time.`,
+    // Lock judge session in localStorage upon score submission
+    setIsEditingJudge(false);
+    saveJudgeSession({
+      judgeSlot,
+      judgeName: judgeName.trim() || DEFAULT_JUDGE_NAMES[judgeSlot],
+      locked: true,
     });
 
-    if (advanceToNext && itemParticipants.length > 1) {
-      const idx = itemParticipants.findIndex((p) => p.id === activeParticipant.id);
-      const nextParticipant = itemParticipants[(idx + 1) % itemParticipants.length];
-      if (nextParticipant) {
-        onSelectParticipant(nextParticipant.id);
+    // Show non-intrusive toast notification
+    showSyncToast('Marks Synced to Cloud!');
+
+    // Reset score input fields and advance to the next unscored participant (or next in list)
+    resetScoreFields();
+
+    if (itemParticipants.length > 1) {
+      const currentIdx = itemParticipants.findIndex(
+        (p) => p.id === activeParticipant.id
+      );
+      const nextUnscored =
+        itemParticipants.find(
+          (p, idx) =>
+            idx > currentIdx &&
+            !scores.some(
+              (s) =>
+                s.itemId === activeItem.id &&
+                s.participantId === p.id &&
+                s.judgeSlot === judgeSlot
+            )
+        ) ??
+        itemParticipants.find(
+          (p) =>
+            p.id !== activeParticipant.id &&
+            !scores.some(
+              (s) =>
+                s.itemId === activeItem.id &&
+                s.participantId === p.id &&
+                s.judgeSlot === judgeSlot
+            )
+        ) ??
+        itemParticipants[(currentIdx + 1) % itemParticipants.length];
+
+      if (nextUnscored && nextUnscored.id !== activeParticipant.id) {
+        onSelectParticipant(nextUnscored.id);
       }
     }
   };
@@ -191,15 +310,28 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
     return (
       <div className="bg-white border border-stone-200 rounded-xl p-8 text-center">
         <p className="text-sm text-stone-600">
-          No competition items available. Please add an item in the Admin Panel first.
+          No competition items available.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header & Judge Identity Bar */}
+    <div className="space-y-8 relative">
+      {/* Non-Intrusive Toast Notification */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          data-testid="sync-toast"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-stone-900 text-white shadow-lg border border-stone-700 text-sm font-semibold"
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Header & Persistent Judge Identity Bar */}
       <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-stone-200">
         <div className="space-y-1.5">
           <div className="text-xs font-medium text-stone-500">
@@ -208,49 +340,94 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
             <span>Offline-Ready Auto-Sync</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 font-display">
-            Judge Evaluation Sheet
+            Judge Scoring Portal
           </h1>
           <p className="text-sm text-stone-600">
-            Select your judge seat, pick a chest number, and input criterion-wise or total marks.
+            Select your competition event and chest number to submit criterion-wise or total marks.
           </p>
         </div>
 
-        {/* Judge Seat Selector */}
+        {/* Persistent Judge Session Card / Controls */}
         <div className="flex flex-wrap items-center gap-3">
-          <div
-            role="group"
-            aria-label="Select Judge Panel Slot"
-            className="flex items-center gap-1 p-1 bg-stone-100 border border-stone-200 rounded-lg"
-          >
-            {ALLOWED_JUDGE_SLOTS.map((slot) => (
+          {!isEditingJudge ? (
+            <div className="flex items-center gap-3 px-4 py-2 bg-white border border-stone-200 rounded-lg">
+              <UserCheck className="w-4 h-4 text-amber-700 shrink-0" />
+              <div className="text-xs">
+                <span className="text-stone-500">Active Judge: </span>
+                <span className="font-bold text-stone-900">
+                  {judgeSlot} — {judgeName}
+                </span>
+              </div>
               <button
-                key={slot}
                 type="button"
-                onClick={() => handleJudgeSlotChange(slot)}
-                className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                  judgeSlot === slot
-                    ? 'bg-stone-900 text-white'
-                    : 'text-stone-700 hover:text-stone-900'
-                }`}
+                onClick={() => setIsEditingJudge(true)}
+                className="ml-2 px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 rounded-md transition-colors whitespace-nowrap shrink-0"
               >
-                {slot} — Judge {slot.slice(1)}
+                Change Judge
               </button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 p-2 bg-white border border-stone-200 rounded-lg">
+              <label htmlFor="judge-slot-select" className="sr-only">
+                Judge Panel Slot
+              </label>
+              <select
+                id="judge-slot-select"
+                aria-label="Judge Panel Slot"
+                value={judgeSlot}
+                onChange={(e) => handleJudgeSlotChange(e.target.value as JudgeSlot)}
+                className="px-2.5 py-1.5 text-xs font-semibold bg-stone-50 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600"
+              >
+                {ALLOWED_JUDGE_SLOTS.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot} — Judge {slot.slice(1)}
+                  </option>
+                ))}
+              </select>
 
-          <button
-            type="button"
-            onClick={onViewLeaderboard}
-            className="px-3.5 py-2 text-xs font-semibold text-stone-800 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0"
-          >
-            View Live Leaderboard
-          </button>
+              <label htmlFor="judge-name-input" className="sr-only">
+                Judge Name
+              </label>
+              <input
+                id="judge-name-input"
+                type="text"
+                aria-label="Judge Name"
+                value={judgeName}
+                onChange={(e) => setJudgeName(e.target.value)}
+                placeholder="Enter Judge Name"
+                className="px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600"
+              />
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!judgeName.trim()) {
+                    setJudgeName(DEFAULT_JUDGE_NAMES[judgeSlot]);
+                  }
+                  setIsEditingJudge(false);
+                }}
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-stone-900 rounded-md hover:bg-stone-800 transition-colors whitespace-nowrap shrink-0"
+              >
+                Save Judge
+              </button>
+            </div>
+          )}
+
+          {isAdminMode && (
+            <button
+              type="button"
+              onClick={onViewLeaderboard}
+              className="px-3.5 py-2 text-xs font-semibold text-stone-800 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0"
+            >
+              View Live Tabulation
+            </button>
+          )}
         </div>
       </section>
 
       {/* Main 2-Column Judging Console */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Event & Chest Number Roster (4 cols) */}
+        {/* Left Column: Event & Chest Number Dropdown + Roster (4 cols) */}
         <div className="lg:col-span-4 bg-white border border-stone-200 rounded-xl p-5 space-y-5">
           <div>
             <label
@@ -275,28 +452,50 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
 
           <div>
             <label
-              htmlFor="judge-name-input"
+              htmlFor="judge-chest-select"
               className="block text-xs font-semibold text-stone-700 mb-1.5"
             >
-              2. Adjudicator / Judge Name ({judgeSlot})
+              2. Chest Number Dropdown ({judgeSlot} Status)
             </label>
-            <input
-              id="judge-name-input"
-              type="text"
-              value={judgeName}
-              onChange={(e) => setJudgeName(e.target.value)}
-              placeholder="Enter Judge Name"
-              className="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
+            <select
+              id="judge-chest-select"
+              value={activeParticipant?.id ?? ''}
+              onChange={(e) => onSelectParticipant(e.target.value)}
+              className="w-full px-3 py-2.5 text-sm font-medium bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
+            >
+              {itemParticipants.map((part) => {
+                const isScored = scores.some(
+                  (s) =>
+                    s.itemId === activeItem.id &&
+                    s.participantId === part.id &&
+                    s.judgeSlot === judgeSlot
+                );
+                return (
+                  <option key={part.id} value={part.id}>
+                    {formatChestDropdownLabel(part, isScored)}
+                  </option>
+                );
+              })}
+            </select>
           </div>
 
           <div className="pt-4 border-t border-stone-200 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-stone-700">
-                3. Select Contestant Chest No
+                Contestant Queue
               </span>
               <span className="text-xs text-stone-500 font-mono tabular-nums">
-                {itemParticipants.length} registered
+                {
+                  itemParticipants.filter((p) =>
+                    scores.some(
+                      (s) =>
+                        s.itemId === activeItem.id &&
+                        s.participantId === p.id &&
+                        s.judgeSlot === judgeSlot
+                    )
+                  ).length
+                }{' '}
+                / {itemParticipants.length} scored
               </span>
             </div>
 
@@ -329,7 +528,7 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-mono tabular-nums font-bold text-sm text-stone-900">
-                            #{part.chestNo}
+                            Chest {part.chestNo}
                           </span>
                           <span className="text-sm font-semibold truncate">
                             {part.name}
@@ -343,7 +542,7 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
                       <div className="text-right shrink-0">
                         {existingScore ? (
                           <div className="font-mono tabular-nums text-xs font-bold text-emerald-700">
-                            {existingScore.total}/100
+                            Scored ✓ ({existingScore.total})
                           </div>
                         ) : (
                           <div className="text-xs text-stone-400">Pending</div>
@@ -361,13 +560,13 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
         <div className="lg:col-span-8 bg-white border border-stone-200 rounded-xl p-6 space-y-6">
           {!activeParticipant ? (
             <div className="py-12 text-center text-sm text-stone-500">
-              Select or register a participant chest number to enter marks.
+              Select a participant chest number to enter marks.
             </div>
           ) : (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                void handleSaveScore(false);
+                void handleSaveScore();
               }}
               className="space-y-6"
             >
@@ -379,7 +578,9 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
                     <span className="mx-1.5" aria-hidden="true">·</span>
                     <span>{activeItem.category}</span>
                     <span className="mx-1.5" aria-hidden="true">·</span>
-                    <span>Judging as {judgeSlot}</span>
+                    <span>
+                      {judgeSlot} ({judgeName})
+                    </span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-bold text-stone-900 mt-1 font-display">
                     Chest #{activeParticipant.chestNo} — {activeParticipant.name}
@@ -600,11 +801,10 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => void handleSaveScore(true)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-stone-800 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0"
+                    onClick={resetScoreFields}
+                    className="px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0"
                   >
-                    Save & Next Chest No
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    Reset Fields
                   </button>
 
                   <button
@@ -617,16 +817,12 @@ export const JudgePortalView: React.FC<JudgePortalViewProps> = ({
                 </div>
               </div>
 
-              {feedback && (
+              {errorMessage && (
                 <div
-                  role="status"
-                  className={`p-3.5 rounded-lg border text-xs font-medium ${
-                    feedback.type === 'success'
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                      : 'bg-red-50 border-red-200 text-red-900'
-                  }`}
+                  role="alert"
+                  className="p-3.5 rounded-lg border bg-red-50 border-red-200 text-xs font-medium text-red-900"
                 >
-                  {feedback.message}
+                  {errorMessage}
                 </div>
               )}
             </form>
