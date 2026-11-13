@@ -447,3 +447,71 @@ test('Group rule validates hex color, name length, and rejects shadow keys', () 
   });
   assert.equal(validGroup, 'ALLOW');
 });
+
+function evaluateUpdateEventConfigPin(
+  auth: AuthContext | null,
+  eventCode: string,
+  existing: Record<string, unknown>,
+  incoming: Record<string, unknown>
+): 'ALLOW' | 'PERMISSION_DENIED' {
+  if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
+  if (!isValidEventCode(eventCode)) return 'PERMISSION_DENIED';
+  const evalCheck = evaluateCreateEventConfig(
+    { ...auth, uid: String(existing.authorId) },
+    eventCode,
+    'config',
+    { ...incoming, createdAt: REQUEST_TIME, updatedAt: REQUEST_TIME }
+  );
+  if (evalCheck !== 'ALLOW') return 'PERMISSION_DENIED';
+  if (incoming.id !== existing.id || incoming.eventCode !== existing.eventCode || incoming.authorId !== existing.authorId || incoming.createdAt !== existing.createdAt) {
+    return 'PERMISSION_DENIED';
+  }
+  if (incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
+  if (existing.authorId !== auth.uid && auth.email !== 'sajjadsajju2626@gmail.com') return 'PERMISSION_DENIED';
+  const changedKeys = Object.keys(incoming).filter((k) => incoming[k] !== existing[k]);
+  const allowedUpdateKeys = ['title', 'subtitle', 'adminPin', 'chartType', 'updatedAt'];
+  if (!changedKeys.every((k) => allowedUpdateKeys.includes(k))) return 'PERMISSION_DENIED';
+  return 'ALLOW';
+}
+
+test('EventConfig update allows campus author to change adminPin independently and blocks hijack/invalid PIN', () => {
+  const existingCfg = {
+    id: 'config',
+    eventCode: 'CAMPUS02',
+    title: 'CAMPUS02',
+    subtitle: 'Kerala State Arts Festival Judging',
+    adminPin: '1234',
+    chartType: 'bar',
+    authorId: 'user_A',
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  };
+
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      adminPin: '567890',
+      updatedAt: REQUEST_TIME,
+    }),
+    'ALLOW'
+  );
+
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserB, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      adminPin: '9999',
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      adminPin: '12',
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+});
+

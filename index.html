@@ -94,7 +94,7 @@
       <form onsubmit="handlePinVerify(event)" class="space-y-4">
         <div>
           <label for="admin-pin-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Admin Security PIN</label>
-          <input id="admin-pin-input" type="password" inputmode="numeric" required placeholder="Enter Admin PIN" class="w-full px-3.5 py-2.5 text-base tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          <input id="admin-pin-input" type="password" inputmode="numeric" required placeholder="Enter Event Admin PIN" class="w-full px-3.5 py-2.5 text-base tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
         </div>
         <div id="pin-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
           Incorrect Admin PIN. Please try again.
@@ -103,7 +103,7 @@
           <button type="button" onclick="closePinModal()" class="px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
             Cancel
           </button>
-          <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap">
+          <button type="submit" id="pin-verify-submit-btn" class="px-5 py-2 text-xs font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
             Unlock Admin
           </button>
         </div>
@@ -380,20 +380,26 @@
         </div>
       </div>
 
-      <!-- Minimal Single-Input Create New Campus / Event Card -->
+      <!-- Create New Campus / Event Card -->
       <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4">
         <div>
           <h2 class="text-lg font-bold text-stone-900">Create New Campus / Event</h2>
-          <p class="text-xs text-stone-500 mt-0.5">Enter a unique Festival Code to launch an isolated event workspace. The Festival Code is used as the default title with Master PIN 2026.</p>
+          <p class="text-xs text-stone-500 mt-0.5">Enter a unique Festival Code to launch an isolated event workspace. Leave the Initial Admin PIN blank to initialize with default PIN <span class="tabular-nums font-semibold text-stone-700">1234</span>.</p>
         </div>
-        <div class="flex flex-col sm:flex-row sm:items-end gap-3">
-          <div class="flex-1 max-w-md">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+          <div class="sm:col-span-6">
             <label for="create-event-code" class="block text-xs font-semibold text-stone-700 mb-1">Festival Code</label>
             <input id="create-event-code" type="text" required maxlength="32" autocomplete="off" placeholder="e.g. CAMPUS02" class="w-full px-3.5 py-2.5 text-sm uppercase tabular-nums tracking-wider border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
-          <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap shrink-0">
-            Create Event
-          </button>
+          <div class="sm:col-span-4">
+            <label for="create-event-pin" class="block text-xs font-semibold text-stone-700 mb-1">Initial Event PIN (Optional, 4–6 digits)</label>
+            <input id="create-event-pin" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Default: 1234" class="w-full px-3.5 py-2.5 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div class="sm:col-span-2">
+            <button type="submit" class="w-full px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
+              Create Event
+            </button>
+          </div>
         </div>
         <div id="create-event-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
       </form>
@@ -404,29 +410,63 @@
       </div>
 
       <div id="admin-active-event-sections" class="space-y-8">
-      <!-- Optional Display Name & Subtitle Settings -->
-      <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 class="text-lg font-bold text-stone-900">Optional Event Display Name</h2>
-            <p class="text-xs text-stone-500 mt-0.5">Customize the display title and subtitle shown in the header and print sheets for this Festival Code (defaults to the Festival Code).</p>
+      <!-- Optional Display Name & Security PIN Settings -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-lg font-bold text-stone-900">Optional Event Display Name</h2>
+                <p class="text-xs text-stone-500 mt-0.5">Customize the display title and subtitle shown in the header and print sheets for this Festival Code.</p>
+              </div>
+              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Display Title (Optional)</label>
+                <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              </div>
+              <div>
+                <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue (Optional)</label>
+                <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              </div>
+            </div>
           </div>
-          <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Display Title (Optional)</label>
-            <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          <div class="pt-1">
+            <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Display Settings</button>
           </div>
-          <div>
-            <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue (Optional)</label>
-            <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+        </form>
+
+        <!-- Security & Admin PIN Settings Card -->
+        <form id="admin-pin-settings-form" onsubmit="handleUpdateEventPin(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-lg font-bold text-stone-900">Security &amp; Admin PIN Settings</h2>
+                <p class="text-xs text-stone-500 mt-0.5">Set a private Admin PIN for this campus event only. Updating it here never affects other events.</p>
+              </div>
+              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-pin-scope-code">—</span></span>
+            </div>
+            <div class="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg">
+              <div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Current Event Admin PIN</div>
+                <div id="admin-current-pin-display" class="text-base font-bold text-stone-900 tabular-nums tracking-widest mt-0.5">••••</div>
+              </div>
+              <button type="button" id="toggle-current-pin-btn" onclick="toggleCurrentPinVisibility()" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors whitespace-nowrap shrink-0">
+                Show PIN
+              </button>
+            </div>
+            <div>
+              <label for="admin-new-pin" class="block text-xs font-semibold text-stone-700 mb-1">New Event Admin PIN (4–6 digits)</label>
+              <input id="admin-new-pin" type="password" inputmode="numeric" required minlength="4" maxlength="6" autocomplete="new-password" oninput="hideEventPinError()" placeholder="Enter 4–6 digit PIN" class="w-full px-3 py-2 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            </div>
+            <div id="admin-pin-update-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
           </div>
-        </div>
-        <div>
-          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Display Settings</button>
-        </div>
-      </form>
+          <div class="pt-1">
+            <button type="submit" id="admin-update-pin-btn" class="px-4 py-2 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">Update Event PIN</button>
+          </div>
+        </form>
+      </div>
 
       <!-- Manage Groups / Houses & Live Chart Preview -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -676,6 +716,7 @@
 
     // Multi-Event & Access Control Constants
     const MASTER_PIN = "2026";
+    const DEFAULT_EVENT_PIN = "1234";
     const DEFAULT_EVENT_CODE = "FEST2026";
     const DEFAULT_HEADER_TITLE = "Arts Fest Digital Judging";
     const DEFAULT_SUBTITLE = "Kerala State Arts Festival Judging";
@@ -686,6 +727,10 @@
 
     function isValidEventCode(code) {
       return /^[A-Z0-9_-]{2,32}$/.test(code);
+    }
+
+    function isValidEventPin(pin) {
+      return /^\d{4,6}$/.test(String(pin || "").trim());
     }
 
     function getLocalStateKey(code) {
@@ -724,11 +769,11 @@
       return GROUP_COLOR_PALETTE[existingGroups.length % GROUP_COLOR_PALETTE.length];
     }
 
-    function getDefaultConfig(defaultTitle = DEFAULT_HEADER_TITLE) {
+    function getDefaultConfig(defaultTitle = DEFAULT_HEADER_TITLE, adminPin = DEFAULT_EVENT_PIN) {
       return {
         title: defaultTitle,
         subtitle: DEFAULT_SUBTITLE,
-        adminPin: MASTER_PIN,
+        adminPin: adminPin || DEFAULT_EVENT_PIN,
         chartType: "bar"
       };
     }
@@ -809,6 +854,7 @@
     let activeEventCode = "";
     let isAdminUnlocked = false;
     let isSwitchingEvent = false;
+    let isCurrentPinVisible = false;
     let brandTapTimestamps = [];
     let toastTimer = null;
     let defaultInitPromise = null;
@@ -822,7 +868,7 @@
           if (saved && Array.isArray(saved.items) && Array.isArray(saved.participants) && Array.isArray(saved.scores)) {
             const legacyTitle = saved.config?.title || saved.branding?.festivalName || DEFAULT_HEADER_TITLE;
             const legacySub = saved.config?.subtitle ?? saved.branding?.subtitle ?? DEFAULT_SUBTITLE;
-            const legacyPin = saved.config?.adminPin || MASTER_PIN;
+            const legacyPin = saved.config?.adminPin || DEFAULT_EVENT_PIN;
             const legacyChart = normalizeChartType(saved.config?.chartType);
             const legacyAuthor = saved.config?.authorId || saved.branding?.authorId || null;
             return {
@@ -877,7 +923,33 @@
       const subInput = document.getElementById("admin-brand-subtitle");
       if (nameInput && document.activeElement !== nameInput) nameInput.value = cfg.title || activeEventCode || "";
       if (subInput && document.activeElement !== subInput) subInput.value = cfg.subtitle ?? DEFAULT_SUBTITLE;
+
+      updateCurrentPinDisplay();
     }
+
+    function updateCurrentPinDisplay() {
+      const pinDisplay = document.getElementById("admin-current-pin-display");
+      const toggleBtn = document.getElementById("toggle-current-pin-btn");
+      if (!pinDisplay || !toggleBtn) return;
+      const currentPin = window.state?.config?.adminPin || DEFAULT_EVENT_PIN;
+      if (isCurrentPinVisible) {
+        pinDisplay.textContent = currentPin;
+        toggleBtn.textContent = "Hide PIN";
+      } else {
+        pinDisplay.textContent = "•".repeat(Math.max(4, String(currentPin).length));
+        toggleBtn.textContent = "Show PIN";
+      }
+    }
+
+    window.toggleCurrentPinVisibility = () => {
+      isCurrentPinVisible = !isCurrentPinVisible;
+      updateCurrentPinDisplay();
+    };
+
+    window.hideEventPinError = () => {
+      const errEl = document.getElementById("admin-pin-update-error");
+      if (errEl) errEl.classList.add("hidden");
+    };
 
     function applyAdminAccessUI() {
       const hasEvent = Boolean(activeEventCode) && !isSwitchingEvent;
@@ -925,7 +997,7 @@
           window.state.config = {
             title: d.title || DEFAULT_HEADER_TITLE,
             subtitle: d.subtitle || "",
-            adminPin: d.adminPin || MASTER_PIN,
+            adminPin: d.adminPin || DEFAULT_EVENT_PIN,
             chartType: normalizeChartType(d.chartType),
             authorId: d.authorId || null
           };
@@ -998,7 +1070,7 @@
             existingLocal.config = {
               title: d.title || DEFAULT_HEADER_TITLE,
               subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
-              adminPin: d.adminPin || MASTER_PIN,
+              adminPin: d.adminPin || DEFAULT_EVENT_PIN,
               chartType: normalizeChartType(d.chartType),
               authorId: d.authorId || null
             };
@@ -1011,7 +1083,7 @@
               eventCode: DEFAULT_EVENT_CODE,
               title: DEFAULT_HEADER_TITLE,
               subtitle: DEFAULT_SUBTITLE,
-              adminPin: MASTER_PIN,
+              adminPin: DEFAULT_EVENT_PIN,
               chartType: "bar",
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
@@ -1046,7 +1118,7 @@
                   eventCode: activeEventCode,
                   title: window.state.config.title || activeEventCode,
                   subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
-                  adminPin: MASTER_PIN,
+                  adminPin: window.state.config.adminPin || DEFAULT_EVENT_PIN,
                   chartType: normalizeChartType(window.state.config.chartType),
                   authorId: user.uid,
                   createdAt: serverTimestamp(),
@@ -1180,6 +1252,7 @@
     function enterEventWorkspace(code, options = {}) {
       const { keepAdminUnlocked = false, targetView = "judge" } = options;
       isSwitchingEvent = false;
+      isCurrentPinVisible = false;
       activeEventCode = code;
 
       // Re-lock Admin when switching normally
@@ -1191,7 +1264,11 @@
       document.getElementById("pin-modal-event-code").textContent = code;
       document.getElementById("admin-event-code-label").textContent = code;
       document.getElementById("admin-brand-scope-code").textContent = code;
+      document.getElementById("admin-pin-scope-code").textContent = code;
       document.getElementById("clear-modal-event-code").textContent = code;
+      const newPinInput = document.getElementById("admin-new-pin");
+      if (newPinInput) newPinInput.value = "";
+      window.hideEventPinError();
 
       applyBrandingUI();
       initJudgeSession();
@@ -1237,7 +1314,7 @@
               existingLocal.config = {
                 title: d.title || DEFAULT_HEADER_TITLE,
                 subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
-                adminPin: d.adminPin || MASTER_PIN,
+                adminPin: d.adminPin || DEFAULT_EVENT_PIN,
                 chartType: normalizeChartType(d.chartType),
                 authorId: d.authorId || null
               };
@@ -1310,10 +1387,12 @@
         ? "Enter the Admin PIN to unlock Live Tabulation and the Admin Console for"
         : "Enter the Admin PIN to open the Admin Console and create or manage festival events —";
       document.getElementById("pin-modal-event-code").textContent = hasWorkspace ? activeEventCode : "Master Setup";
-      document.getElementById("admin-pin-input").value = "";
+      const pinInput = document.getElementById("admin-pin-input");
+      pinInput.value = "";
+      pinInput.placeholder = hasWorkspace ? "Enter Event Admin PIN" : "Enter Admin PIN";
       document.getElementById("pin-error").classList.add("hidden");
       document.getElementById("pin-modal").classList.remove("hidden");
-      setTimeout(() => document.getElementById("admin-pin-input").focus(), 30);
+      setTimeout(() => pinInput.focus(), 30);
     };
 
     window.closePinModal = () => {
@@ -1324,6 +1403,8 @@
 
     window.lockAdminSession = () => {
       isAdminUnlocked = false;
+      isCurrentPinVisible = false;
+      updateCurrentPinDisplay();
       applyBrandingUI();
       applyAdminAccessUI();
       if (activeEventCode) {
@@ -1367,12 +1448,54 @@
     window.handlePinVerify = async (e) => {
       e.preventDefault();
       const entered = document.getElementById("admin-pin-input").value.trim();
+      const submitBtn = document.getElementById("pin-verify-submit-btn");
       const hasWorkspace = Boolean(activeEventCode) && !isSwitchingEvent;
-      const isAuthorized = entered === MASTER_PIN;
+
+      let storedEventPin = window.state?.config?.adminPin || DEFAULT_EVENT_PIN;
+
+      if (hasWorkspace && entered !== MASTER_PIN && currentUser) {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Verifying...";
+        }
+        try {
+          const cfgSnap = await fetchEventConfigDoc(activeEventCode);
+          if (cfgSnap.exists()) {
+            const d = cfgSnap.data();
+            if (d.adminPin) {
+              storedEventPin = String(d.adminPin);
+              window.state.config = {
+                ...(window.state.config || getDefaultConfig(activeEventCode)),
+                title: d.title || window.state.config?.title || activeEventCode,
+                subtitle: d.subtitle ?? window.state.config?.subtitle ?? DEFAULT_SUBTITLE,
+                adminPin: storedEventPin,
+                chartType: normalizeChartType(d.chartType || window.state.config?.chartType),
+                authorId: d.authorId || window.state.config?.authorId || null
+              };
+              saveLocalState();
+            }
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message.toLowerCase() : "";
+          if (!(err?.code === "unavailable" || msg.includes("offline"))) {
+            handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`);
+          }
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Unlock Admin";
+          }
+        }
+      }
+
+      const isAuthorized = hasWorkspace
+        ? (entered === storedEventPin || entered === MASTER_PIN)
+        : (entered === MASTER_PIN);
 
       if (isAuthorized) {
         isAdminUnlocked = true;
         isSwitchingEvent = false;
+        isCurrentPinVisible = false;
         window.closePinModal();
         applyBrandingUI();
         applyAdminAccessUI();
@@ -1902,7 +2025,7 @@
               eventCode: activeEventCode,
               title: window.state.config.title || activeEventCode,
               subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
-              adminPin: MASTER_PIN,
+              adminPin: window.state.config.adminPin || DEFAULT_EVENT_PIN,
               chartType,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
@@ -2186,9 +2309,12 @@
     window.handleCreateNewEvent = async (e) => {
       e.preventDefault();
       const codeInput = document.getElementById("create-event-code");
+      const pinInput = document.getElementById("create-event-pin");
       const errEl = document.getElementById("create-event-error");
 
       const newCode = normalizeEventCode(codeInput.value);
+      const rawPin = pinInput ? pinInput.value.trim() : "";
+      const initialPin = rawPin || DEFAULT_EVENT_PIN;
       codeInput.value = newCode;
 
       const showCreateErr = (msg) => {
@@ -2199,6 +2325,12 @@
       if (!isValidEventCode(newCode)) {
         showCreateErr("Festival Code must be 2–32 characters (letters, numbers, hyphens, or underscores).");
         codeInput.focus();
+        return;
+      }
+
+      if (rawPin && !isValidEventPin(rawPin)) {
+        showCreateErr("Initial Event PIN must be 4–6 numeric digits (or leave blank for default 1234).");
+        pinInput.focus();
         return;
       }
 
@@ -2232,7 +2364,7 @@
         config: {
           title: newCode,
           subtitle: DEFAULT_SUBTITLE,
-          adminPin: MASTER_PIN,
+          adminPin: initialPin,
           chartType: "bar",
           authorId: currentUser?.uid || null
         },
@@ -2252,7 +2384,7 @@
             eventCode: newCode,
             title: newCode,
             subtitle: DEFAULT_SUBTITLE,
-            adminPin: MASTER_PIN,
+            adminPin: initialPin,
             chartType: "bar",
             authorId: currentUser.uid,
             createdAt: serverTimestamp(),
@@ -2265,7 +2397,7 @@
 
       e.target.reset();
       enterEventWorkspace(newCode, { keepAdminUnlocked: true, targetView: "admin" });
-      window.showToast(`Created ${newCode}! Add groups, items & chest numbers below.`);
+      window.showToast(`Created ${newCode} (PIN: ${initialPin})! Add groups, items & chest numbers below.`);
     };
 
     window.handleSaveEventConfig = async (e) => {
@@ -2275,12 +2407,13 @@
       const title = rawTitle || activeEventCode;
       const subtitle = document.getElementById("admin-brand-subtitle").value.trim();
       const chartType = normalizeChartType(window.state.config?.chartType);
+      const adminPin = window.state.config?.adminPin || DEFAULT_EVENT_PIN;
 
       const existingAuthorId = window.state.config?.authorId || null;
       window.state.config = {
         title,
         subtitle,
-        adminPin: MASTER_PIN,
+        adminPin,
         chartType,
         authorId: existingAuthorId || currentUser?.uid || null
       };
@@ -2295,7 +2428,7 @@
             await updateDoc(eventDocument("settings", "config"), {
               title,
               subtitle,
-              adminPin: MASTER_PIN,
+              adminPin,
               chartType,
               updatedAt: serverTimestamp()
             });
@@ -2305,7 +2438,7 @@
               eventCode: activeEventCode,
               title,
               subtitle,
-              adminPin: MASTER_PIN,
+              adminPin,
               chartType,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
@@ -2316,6 +2449,77 @@
           handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
         }
       }
+    };
+
+    window.handleUpdateEventPin = async (e) => {
+      e.preventDefault();
+      if (!activeEventCode) return;
+      const pinInput = document.getElementById("admin-new-pin");
+      const errEl = document.getElementById("admin-pin-update-error");
+      const submitBtn = document.getElementById("admin-update-pin-btn");
+      const newPin = pinInput.value.trim();
+
+      if (!isValidEventPin(newPin)) {
+        if (errEl) {
+          errEl.textContent = "Event Admin PIN must be 4–6 numeric digits (e.g. 1234 or 458912).";
+          errEl.classList.remove("hidden");
+        }
+        pinInput.focus();
+        return;
+      }
+
+      window.hideEventPinError();
+      const existingAuthorId = window.state.config?.authorId || null;
+      const title = window.state.config?.title || activeEventCode;
+      const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
+      const chartType = normalizeChartType(window.state.config?.chartType);
+
+      window.state.config = {
+        title,
+        subtitle,
+        adminPin: newPin,
+        chartType,
+        authorId: existingAuthorId || currentUser?.uid || null
+      };
+      saveLocalState();
+      updateCurrentPinDisplay();
+      pinInput.value = "";
+
+      if (currentUser) {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Updating PIN...";
+        }
+        try {
+          if (existingAuthorId) {
+            await updateDoc(eventDocument("settings", "config"), {
+              adminPin: newPin,
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(eventDocument("settings", "config"), {
+              id: "config",
+              eventCode: activeEventCode,
+              title,
+              subtitle,
+              adminPin: newPin,
+              chartType,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Update Event PIN";
+          }
+        }
+      }
+
+      window.showToast(`Updated Admin PIN for ${activeEventCode}`);
     };
 
     window.handleAddGroup = async (e) => {
