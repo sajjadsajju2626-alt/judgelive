@@ -1,8 +1,56 @@
 {
   "entities": {
+    "EventBranding": {
+      "title": "EventBranding",
+      "description": "Isolated institution or festival display title and subtitle stored per eventCode.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^branding$",
+          "description": "Fixed document identifier ('branding')."
+        },
+        "eventCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9_\\-]+$",
+          "description": "Normalized uppercase event/institution code."
+        },
+        "festivalName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Display name of the institution or arts festival."
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 160,
+          "description": "Subtitle or venue description shown in status bar and PDF sheets."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of the user who created the event branding."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when branding was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest branding update."
+        }
+      },
+      "required": ["id", "eventCode", "festivalName", "subtitle", "authorId", "createdAt", "updatedAt"]
+    },
     "CompetitionItem": {
       "title": "CompetitionItem",
-      "description": "An arts festival competition event or item with category and stage details.",
+      "description": "An arts festival competition event or item scoped to a specific eventCode.",
       "type": "object",
       "properties": {
         "id": {
@@ -54,7 +102,7 @@
     },
     "Participant": {
       "title": "Participant",
-      "description": "A registered contestant with a chest number assigned to a competition item.",
+      "description": "A registered contestant with a chest number assigned to a competition item within an eventCode.",
       "type": "object",
       "properties": {
         "id": {
@@ -103,7 +151,7 @@
     },
     "JudgeScore": {
       "title": "JudgeScore",
-      "description": "Score entry submitted by a judge for a specific participant in an item.",
+      "description": "Score entry submitted by a judge for a specific participant in an eventCode.",
       "type": "object",
       "properties": {
         "id": {
@@ -203,17 +251,21 @@
     }
   },
   "firestore": {
-    "/items/{itemId}": {
+    "/events/{eventCode}/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/EventBranding" },
+      "description": "Stores isolated institution branding (festivalName, subtitle) for a specific eventCode."
+    },
+    "/events/{eventCode}/items/{itemId}": {
       "schema": { "$ref": "#/entities/CompetitionItem" },
-      "description": "Stores arts festival competition events and items."
+      "description": "Stores competition events and items isolated to eventCode."
     },
-    "/participants/{participantId}": {
+    "/events/{eventCode}/participants/{participantId}": {
       "schema": { "$ref": "#/entities/Participant" },
-      "description": "Stores registered participants and chest numbers."
+      "description": "Stores registered participants and chest numbers isolated to eventCode."
     },
-    "/scores/{scoreId}": {
+    "/events/{eventCode}/scores/{scoreId}": {
       "schema": { "$ref": "#/entities/JudgeScore" },
-      "description": "Stores real-time judge score submissions per chest number and judge slot."
+      "description": "Stores real-time judge score submissions isolated to eventCode."
     }
   }
 }

@@ -36,13 +36,13 @@
     <span id="sync-toast-text">Marks Synced to Cloud!</span>
   </div>
 
-  <!-- Clear All Data Confirmation Modal -->
+  <!-- Clear Event Data Confirmation Modal -->
   <div id="clear-modal" role="dialog" aria-modal="true" aria-labelledby="clear-modal-title" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
     <div class="bg-white border border-stone-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div>
-        <h2 id="clear-modal-title" class="text-lg font-bold text-stone-900 font-display">Clear All Festival Data?</h2>
+        <h2 id="clear-modal-title" class="text-lg font-bold text-stone-900 font-display">Clear Data for Event <span id="clear-modal-event-code" class="tabular-nums text-red-700">—</span>?</h2>
         <p class="text-sm text-stone-600 mt-1">
-          This will permanently remove all competition items, registered chest numbers, and submitted judge scores from this device and cloud workspace so you can start cleanly for the event.
+          This will permanently remove all competition items, registered chest numbers, and submitted judge scores for this event only. Other institutions and event codes will not be affected.
         </p>
       </div>
       <div class="flex items-center justify-end gap-3 pt-2">
@@ -50,7 +50,7 @@
           Cancel
         </button>
         <button type="button" onclick="confirmClearAllData()" class="px-4 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap">
-          Yes, Clear All Data
+          Yes, Clear Event Data
         </button>
       </div>
     </div>
@@ -58,16 +58,19 @@
 
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
   <header class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
-    <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
-      കലോത്സവം Digital Judging
+    <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 max-w-[260px] sm:max-w-xs truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
+      <span id="header-brand-title">കലോത്സവം Digital Judging</span>
     </button>
     <nav aria-label="Primary Navigation" class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-stone-600">
-      <button type="button" onclick="switchView('judge')" id="nav-judge" class="hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 font-semibold pb-0.5">Judge Portal</button>
+      <button type="button" onclick="switchView('judge')" id="nav-judge" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 font-semibold pb-0.5">Judge Portal</button>
       <button type="button" onclick="switchView('tabulation')" id="nav-tabulation" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Live Tabulation</button>
       <button type="button" onclick="switchView('admin')" id="nav-admin" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Admin Panel</button>
     </nav>
-    <div class="flex items-center gap-3 shrink-0">
-      <span id="header-mode-label" class="hidden sm:inline text-xs font-medium text-stone-500 whitespace-nowrap shrink-0">Judge Scoring Mode</span>
+    <div class="flex items-center gap-2.5 shrink-0">
+      <span id="header-mode-label" class="hidden text-xs font-medium text-stone-500 whitespace-nowrap shrink-0">Judge Scoring Mode</span>
+      <button type="button" id="switch-event-btn" onclick="openEventSwitcher()" class="hidden px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0">
+        Switch Event
+      </button>
       <button type="button" id="lock-admin-btn" onclick="lockAdminSession()" class="hidden px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0">
         Lock Admin
       </button>
@@ -81,7 +84,7 @@
         <div class="text-xs font-semibold text-amber-800">Restricted Festival Access</div>
         <h2 id="pin-modal-title" class="text-xl font-bold text-stone-900 mt-1 font-display">Enter Admin PIN</h2>
         <p class="text-sm text-stone-600 mt-1">
-          Enter the Admin PIN to unlock Live Tabulation and the Festival Admin Console.
+          Enter the Admin PIN to unlock Live Tabulation and the Admin Console for <span id="pin-modal-event-code" class="font-semibold text-stone-900 tabular-nums">—</span>.
         </p>
       </div>
       <form onsubmit="handlePinVerify(event)" class="space-y-4">
@@ -105,10 +108,12 @@
   </div>
 
   <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 space-y-8">
-    <!-- Status Strip (Privacy-preserving: only Cloud Synced + green dot) -->
-    <div class="no-print flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 text-xs text-stone-600">
+    <!-- Status Strip (Privacy-preserving: only Cloud Synced + green dot, shown once Event Code is active) -->
+    <div id="status-strip" class="no-print hidden flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 text-xs text-stone-600">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span class="font-semibold text-stone-900">Kerala State Arts Festival Judging</span>
+        <span id="status-subtitle" class="font-semibold text-stone-900">Kerala State Arts Festival Judging</span>
+        <span aria-hidden="true">·</span>
+        <span class="font-semibold text-amber-800 tabular-nums">Event: <span id="active-event-badge">—</span></span>
         <span aria-hidden="true">·</span>
         <span id="persistence-status">IndexedDB Offline Persistence Active</span>
       </div>
@@ -117,6 +122,35 @@
         <span id="sync-status">Cloud Synced</span>
       </div>
     </div>
+
+    <!-- VIEW 0: EVENT / INSTITUTION CODE ENTRY SCREEN -->
+    <section id="view-event-entry" class="no-print max-w-lg mx-auto my-6 sm:my-10 bg-white border border-stone-200 rounded-xl p-6 sm:p-8 space-y-6">
+      <div>
+        <div class="text-xs font-semibold text-amber-800">Multi-Event Workspace</div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 mt-1 font-display">Enter Event / Festival Code</h1>
+        <p class="text-sm text-stone-600 mt-1.5">
+          Every institution or competition operates inside its own isolated database and branding scope. Enter your Event Code to continue.
+        </p>
+      </div>
+      <form onsubmit="handleEventCodeSubmit(event)" class="space-y-4">
+        <div>
+          <label for="event-code-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Event / Institution Code</label>
+          <input id="event-code-input" type="text" required autocomplete="off" maxlength="32" placeholder="e.g. FEST2026 or SCHOOL01" class="w-full px-3.5 py-2.5 text-base uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          <p class="text-xs text-stone-500 mt-1.5">Use 2–32 letters, numbers, hyphens, or underscores (e.g., <span class="tabular-nums font-medium text-stone-700">FEST2026</span>, <span class="tabular-nums font-medium text-stone-700">SCHOOL01</span>).</p>
+        </div>
+        <div id="event-code-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
+          Please enter a valid Event Code (at least 2 letters or numbers).
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" id="event-entry-cancel-btn" onclick="cancelEventSwitcher()" class="hidden px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+            Back to Current Event
+          </button>
+          <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
+            Enter Event Workspace
+          </button>
+        </div>
+      </form>
+    </section>
 
     <!-- VIEW 1: JUDGE PORTAL (Default View — Blind Judging) -->
     <section id="view-judge" class="no-print space-y-6">
@@ -215,7 +249,7 @@
     <section id="view-tabulation" class="hidden space-y-6">
       <!-- Official Print Header (Only visible when printing) -->
       <div class="hidden print-only pb-4 mb-4 border-b-2 border-stone-900">
-        <div class="text-xs font-semibold uppercase tracking-wider text-stone-600">Kerala School Kalolsavam — Official Tabulation Sheet</div>
+        <div id="print-festival-name" class="text-xs font-semibold uppercase tracking-wider text-stone-600">Kerala School Kalolsavam — Official Tabulation Sheet</div>
         <h2 id="print-event-title" class="text-2xl font-bold text-stone-900 mt-1 font-display">Official Results</h2>
         <div id="print-event-meta" class="text-xs text-stone-600 mt-1"></div>
       </div>
@@ -268,8 +302,8 @@
     <section id="view-admin" class="no-print hidden space-y-8">
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console</h1>
-          <p class="text-sm text-stone-600 mt-1">Manage competition items, chest numbers, submitted judge scores, and testing resets.</p>
+          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console — <span id="admin-event-code-label" class="tabular-nums text-amber-800">—</span></h1>
+          <p class="text-sm text-stone-600 mt-1">Manage festival branding, competition items, chest numbers, submitted scores, and event resets.</p>
         </div>
         <!-- Testing & Reset Controls -->
         <div class="flex flex-wrap items-center gap-3">
@@ -280,10 +314,34 @@
             Load Sample Data
           </button>
           <button type="button" onclick="openClearModal()" class="px-3.5 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
-            Clear All Data
+            Clear Event Data
           </button>
         </div>
       </div>
+
+      <!-- Isolated Festival Branding & Title -->
+      <form id="admin-branding-form" onsubmit="handleSaveBranding(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Festival / Institution Branding</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Customize the display title and subtitle exclusively for this Event Code.</p>
+          </div>
+          <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Festival / Institution Name</label>
+            <input id="admin-brand-name" type="text" required maxlength="120" placeholder="e.g. St. Mary's Kalolsavam 2026" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
+            <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+        </div>
+        <div>
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding</button>
+        </div>
+      </form>
 
       <!-- Create Forms -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -427,6 +485,7 @@
     const db = getFirestore(app, "ai-studio-0c89871c-a58f-46bc-9586-a86ffacd8fa2");
 
     let currentUser = null;
+    let unsubBranding = null;
     let unsubItems = null;
     let unsubParticipants = null;
     let unsubScores = null;
@@ -460,28 +519,46 @@
       }
     }
 
-    // Access Control & Persistent Session Constants
+    // Multi-Event & Access Control Constants
     const ADMIN_PIN = "2026";
-    const JUDGE_SESSION_KEY = "kalolsavam_judge_session_v1";
+    const ACTIVE_EVENT_KEY = "kalolsavam_active_event_v1";
     const ADMIN_UNLOCK_KEY = "kalolsavam_admin_unlocked_v1";
-    const LOCAL_STATE_KEY = "kalolsavam_local_state_v1";
 
-    let isAdminUnlocked = sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "true";
-    let brandTapTimestamps = [];
-    let toastTimer = null;
-
-    function applyAdminAccessUI() {
-      document.getElementById("nav-tabulation").classList.toggle("hidden", !isAdminUnlocked);
-      document.getElementById("nav-admin").classList.toggle("hidden", !isAdminUnlocked);
-      document.getElementById("lock-admin-btn").classList.toggle("hidden", !isAdminUnlocked);
-      document.getElementById("header-mode-label").classList.toggle("sm:inline", !isAdminUnlocked);
+    function normalizeEventCode(raw) {
+      return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
     }
 
-    applyAdminAccessUI();
+    function isValidEventCode(code) {
+      return /^[A-Z0-9_-]{2,32}$/.test(code);
+    }
 
-    // Sample data template (used on very first boot and via "Load Sample Data")
-    function getSampleData() {
+    function getLocalStateKey(code) {
+      return `kalolsavam_local_state_${code}_v1`;
+    }
+
+    function getJudgeSessionKey(code) {
+      return `kalolsavam_judge_session_${code}_v1`;
+    }
+
+    function getDefaultBranding() {
       return {
+        festivalName: "കലോത്സവം Digital Judging",
+        subtitle: "Kerala State Arts Festival Judging"
+      };
+    }
+
+    function getEmptyEventState() {
+      return {
+        branding: getDefaultBranding(),
+        items: [],
+        participants: [],
+        scores: []
+      };
+    }
+
+    function getSampleData(currentBranding) {
+      return {
+        branding: currentBranding || getDefaultBranding(),
         items: [
           { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila" },
           { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar" }
@@ -499,22 +576,36 @@
       };
     }
 
-    function loadLocalState() {
+    const storedEvent = normalizeEventCode(localStorage.getItem(ACTIVE_EVENT_KEY) || "");
+    let activeEventCode = isValidEventCode(storedEvent) ? storedEvent : "";
+    let isAdminUnlocked = sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "true";
+    let isSwitchingEvent = false;
+    let brandTapTimestamps = [];
+    let toastTimer = null;
+
+    function loadLocalState(code) {
+      if (!code) return getEmptyEventState();
       try {
-        const raw = localStorage.getItem(LOCAL_STATE_KEY);
+        const raw = localStorage.getItem(getLocalStateKey(code));
         if (raw !== null) {
           const saved = JSON.parse(raw);
           if (saved && Array.isArray(saved.items) && Array.isArray(saved.participants) && Array.isArray(saved.scores)) {
-            return saved;
+            return {
+              branding: saved.branding && saved.branding.festivalName ? saved.branding : getDefaultBranding(),
+              items: saved.items,
+              participants: saved.participants,
+              scores: saved.scores
+            };
           }
         }
       } catch {}
-      return getSampleData();
+      return getEmptyEventState();
     }
 
     function saveLocalState() {
+      if (!activeEventCode) return;
       try {
-        localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(window.state));
+        localStorage.setItem(getLocalStateKey(activeEventCode), JSON.stringify(window.state));
       } catch {}
     }
 
@@ -527,9 +618,46 @@
         .replace(/'/g, "&#39;");
     }
 
-    window.state = loadLocalState();
+    window.state = loadLocalState(activeEventCode);
+
+    function applyBrandingUI() {
+      const brand = window.state?.branding || getDefaultBranding();
+      const name = brand.festivalName || getDefaultBranding().festivalName;
+      const subtitle = brand.subtitle || getDefaultBranding().subtitle;
+
+      document.getElementById("header-brand-title").textContent = name;
+      document.getElementById("status-subtitle").textContent = subtitle || name;
+      document.getElementById("print-festival-name").textContent = `${name}${subtitle ? " — " + subtitle : ""} · Official Tabulation Sheet`;
+      document.title = activeEventCode ? `${name} (${activeEventCode})` : "Kalolsavam Live — കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്";
+
+      const nameInput = document.getElementById("admin-brand-name");
+      const subInput = document.getElementById("admin-brand-subtitle");
+      if (nameInput && document.activeElement !== nameInput) nameInput.value = name;
+      if (subInput && document.activeElement !== subInput) subInput.value = subtitle;
+    }
+
+    function applyAdminAccessUI() {
+      const hasEvent = Boolean(activeEventCode) && !isSwitchingEvent;
+      document.getElementById("nav-judge").classList.toggle("hidden", !hasEvent);
+      document.getElementById("nav-tabulation").classList.toggle("hidden", !(hasEvent && isAdminUnlocked));
+      document.getElementById("nav-admin").classList.toggle("hidden", !(hasEvent && isAdminUnlocked));
+      document.getElementById("switch-event-btn").classList.toggle("hidden", !hasEvent);
+      document.getElementById("lock-admin-btn").classList.toggle("hidden", !(hasEvent && isAdminUnlocked));
+      document.getElementById("header-mode-label").classList.toggle("sm:inline", hasEvent && !isAdminUnlocked);
+      document.getElementById("status-strip").classList.toggle("hidden", !hasEvent);
+    }
+
+    // Firestore Multi-Event Path Helpers
+    function eventCollection(subcollectionName) {
+      return collection(db, "events", activeEventCode, subcollectionName);
+    }
+
+    function eventDocument(subcollectionName, docId) {
+      return doc(db, "events", activeEventCode, subcollectionName, docId);
+    }
 
     function detachListeners() {
+      if (unsubBranding) { unsubBranding(); unsubBranding = null; }
       if (unsubItems) { unsubItems(); unsubItems = null; }
       if (unsubParticipants) { unsubParticipants(); unsubParticipants = null; }
       if (unsubScores) { unsubScores(); unsubScores = null; }
@@ -537,28 +665,44 @@
 
     function attachListeners() {
       detachListeners();
-      unsubItems = onSnapshot(query(collection(db, "items"), where("maxMarks", "==", 100)), (snap) => {
+      if (!currentUser || !activeEventCode) return;
+
+      unsubBranding = onSnapshot(eventDocument("settings", "branding"), (snap) => {
+        if (snap.exists()) {
+          const d = snap.data();
+          window.state.branding = {
+            festivalName: d.festivalName || getDefaultBranding().festivalName,
+            subtitle: d.subtitle || "",
+            authorId: d.authorId || null
+          };
+          saveLocalState();
+          applyBrandingUI();
+          window.renderTabulation();
+        }
+      }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/branding`));
+
+      unsubItems = onSnapshot(query(eventCollection("items"), where("maxMarks", "==", 100)), (snap) => {
         window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.refreshAllSelects();
         window.renderAdminLists();
-      }, (err) => handleFirestoreError(err, "list", "items"));
+      }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/items`));
 
-      unsubParticipants = onSnapshot(query(collection(db, "participants"), where("chestNo", ">", "")), (snap) => {
+      unsubParticipants = onSnapshot(query(eventCollection("participants"), where("chestNo", ">", "")), (snap) => {
         window.state.participants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
-      }, (err) => handleFirestoreError(err, "list", "participants"));
+      }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/participants`));
 
-      unsubScores = onSnapshot(query(collection(db, "scores"), where("total", "<=", 100)), (snap) => {
+      unsubScores = onSnapshot(query(eventCollection("scores"), where("total", "<=", 100)), (snap) => {
         window.state.scores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
-      }, (err) => handleFirestoreError(err, "list", "scores"));
+      }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/scores`));
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -569,7 +713,7 @@
       }
       if (user) {
         testConnection();
-        attachListeners();
+        if (activeEventCode) attachListeners();
       } else {
         detachListeners();
       }
@@ -588,10 +732,11 @@
       }
     };
 
-    // Persistent Judge Session Management
+    // Persistent Judge Session Management (Scoped per Event Code)
     function initJudgeSession() {
+      if (!activeEventCode) return;
       try {
-        const saved = JSON.parse(localStorage.getItem(JUDGE_SESSION_KEY) || "null");
+        const saved = JSON.parse(localStorage.getItem(getJudgeSessionKey(activeEventCode)) || "null");
         if (saved && saved.judgeSlot && saved.judgeName) {
           document.getElementById("judge-slot").value = saved.judgeSlot;
           document.getElementById("judge-name").value = saved.judgeName;
@@ -599,6 +744,8 @@
           return;
         }
       } catch {}
+      document.getElementById("judge-slot").value = "J1";
+      document.getElementById("judge-name").value = "";
       setJudgeEditorVisible(true, "J1", "");
     }
 
@@ -624,22 +771,24 @@
     };
 
     window.handleJudgeSlotChange = () => {
+      if (!activeEventCode) return;
       const slot = document.getElementById("judge-slot").value;
       const name = document.getElementById("judge-name").value.trim();
       if (name) {
-        localStorage.setItem(JUDGE_SESSION_KEY, JSON.stringify({ judgeSlot: slot, judgeName: name }));
+        localStorage.setItem(getJudgeSessionKey(activeEventCode), JSON.stringify({ judgeSlot: slot, judgeName: name }));
       }
       window.populateJudgeParticipants();
     };
 
     window.saveJudgeSession = (lockAfterSave = true, refreshParticipants = true) => {
+      if (!activeEventCode) return false;
       const judgeSlot = document.getElementById("judge-slot").value;
       const rawName = document.getElementById("judge-name").value.trim();
       if (!rawName) {
         document.getElementById("judge-name").focus();
         return false;
       }
-      localStorage.setItem(JUDGE_SESSION_KEY, JSON.stringify({ judgeSlot, judgeName: rawName }));
+      localStorage.setItem(getJudgeSessionKey(activeEventCode), JSON.stringify({ judgeSlot, judgeName: rawName }));
       if (lockAfterSave) {
         setJudgeEditorVisible(false, judgeSlot, rawName);
       }
@@ -660,8 +809,78 @@
       }, 3500);
     };
 
+    // Event Code Entry & Switching
+    function showEventEntryView(allowCancel) {
+      isSwitchingEvent = true;
+      applyAdminAccessUI();
+      ["judge", "tabulation", "admin"].forEach(v => {
+        document.getElementById("view-" + v).classList.add("hidden");
+      });
+      document.getElementById("view-event-entry").classList.remove("hidden");
+      document.getElementById("event-code-error").classList.add("hidden");
+      document.getElementById("event-entry-cancel-btn").classList.toggle("hidden", !allowCancel);
+      const input = document.getElementById("event-code-input");
+      input.value = activeEventCode || "";
+      setTimeout(() => input.focus(), 30);
+    }
+
+    function enterEventWorkspace(code) {
+      isSwitchingEvent = false;
+      activeEventCode = code;
+      localStorage.setItem(ACTIVE_EVENT_KEY, code);
+
+      // Reset admin unlock when switching between different events for isolation
+      isAdminUnlocked = false;
+      sessionStorage.removeItem(ADMIN_UNLOCK_KEY);
+
+      window.state = loadLocalState(code);
+      document.getElementById("active-event-badge").textContent = code;
+      document.getElementById("pin-modal-event-code").textContent = code;
+      document.getElementById("admin-event-code-label").textContent = code;
+      document.getElementById("admin-brand-scope-code").textContent = code;
+      document.getElementById("clear-modal-event-code").textContent = code;
+
+      applyBrandingUI();
+      initJudgeSession();
+      window.refreshAllSelects();
+      applyAdminAccessUI();
+      window.switchView("judge");
+
+      if (currentUser) {
+        attachListeners();
+      }
+    }
+
+    window.handleEventCodeSubmit = (e) => {
+      e.preventDefault();
+      const input = document.getElementById("event-code-input");
+      const normalized = normalizeEventCode(input.value);
+      input.value = normalized;
+      if (!isValidEventCode(normalized)) {
+        document.getElementById("event-code-error").classList.remove("hidden");
+        input.focus();
+        return;
+      }
+      document.getElementById("event-code-error").classList.add("hidden");
+      enterEventWorkspace(normalized);
+      window.showToast(`Entered Event ${normalized}`);
+    };
+
+    window.openEventSwitcher = () => {
+      showEventEntryView(Boolean(activeEventCode));
+    };
+
+    window.cancelEventSwitcher = () => {
+      if (!activeEventCode) return;
+      isSwitchingEvent = false;
+      document.getElementById("view-event-entry").classList.add("hidden");
+      applyAdminAccessUI();
+      window.switchView("judge");
+    };
+
     // Secret Triple-Tap Unlock, Admin Lock & Navigation
     window.handleBrandTap = () => {
+      if (!activeEventCode || isSwitchingEvent) return;
       const now = Date.now();
       brandTapTimestamps = brandTapTimestamps.filter(t => now - t <= 2000);
       brandTapTimestamps.push(now);
@@ -676,6 +895,8 @@
     };
 
     window.openPinModal = () => {
+      if (!activeEventCode) return;
+      document.getElementById("pin-modal-event-code").textContent = activeEventCode;
       document.getElementById("admin-pin-input").value = "";
       document.getElementById("pin-error").classList.add("hidden");
       document.getElementById("pin-modal").classList.remove("hidden");
@@ -704,8 +925,10 @@
     });
 
     window.switchView = (view) => {
+      if (!activeEventCode || isSwitchingEvent) return;
       if (!isAdminUnlocked && view !== "judge") return;
 
+      document.getElementById("view-event-entry").classList.add("hidden");
       ["judge", "tabulation", "admin"].forEach(v => {
         document.getElementById("view-" + v).classList.toggle("hidden", v !== view);
       });
@@ -733,7 +956,7 @@
         window.closePinModal();
         applyAdminAccessUI();
         window.switchView("admin");
-        window.showToast("Admin & Tabulation Unlocked!");
+        window.showToast(`Admin Unlocked for ${activeEventCode}`);
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
         document.getElementById("admin-pin-input").select();
@@ -840,8 +1063,8 @@
         ? `${selectedItem.name}${selectedItem.malayalamName ? " (" + selectedItem.malayalamName + ")" : ""}`
         : "Official Results";
       document.getElementById("print-event-meta").textContent = selectedItem
-        ? `${selectedItem.category} · ${selectedItem.stage} · Printed ${new Date().toLocaleDateString()}`
-        : "";
+        ? `Event ${activeEventCode} · ${selectedItem.category} · ${selectedItem.stage} · Printed ${new Date().toLocaleDateString()}`
+        : `Event ${activeEventCode}`;
 
       if (parts.length === 0) {
         document.getElementById("leaderboard-body").innerHTML = `
@@ -1023,7 +1246,7 @@
       if (currentUser) {
         try {
           if (existingScore && existingScore.authorId) {
-            await updateDoc(doc(db, "scores", id), {
+            await updateDoc(eventDocument("scores", id), {
               judgeName,
               rhythm,
               expression,
@@ -1034,7 +1257,7 @@
               updatedAt: serverTimestamp()
             });
           } else {
-            await setDoc(doc(db, "scores", id), {
+            await setDoc(eventDocument("scores", id), {
               ...docData,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
@@ -1042,13 +1265,57 @@
             });
           }
         } catch (err) {
-          handleFirestoreError(err, "write", `scores/${id}`);
+          handleFirestoreError(err, "write", `events/${activeEventCode}/scores/${id}`);
+        }
+      }
+    };
+
+    window.handleSaveBranding = async (e) => {
+      e.preventDefault();
+      if (!activeEventCode) return;
+      const festivalName = document.getElementById("admin-brand-name").value.trim();
+      const subtitle = document.getElementById("admin-brand-subtitle").value.trim();
+      if (!festivalName) return;
+
+      const existingAuthorId = window.state.branding?.authorId || null;
+      window.state.branding = {
+        festivalName,
+        subtitle,
+        authorId: existingAuthorId || currentUser?.uid || null
+      };
+      saveLocalState();
+      applyBrandingUI();
+      window.renderTabulation();
+      window.showToast(`Updated branding for ${activeEventCode}`);
+
+      if (currentUser) {
+        try {
+          if (existingAuthorId) {
+            await updateDoc(eventDocument("settings", "branding"), {
+              festivalName,
+              subtitle,
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(eventDocument("settings", "branding"), {
+              id: "branding",
+              eventCode: activeEventCode,
+              festivalName,
+              subtitle,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/branding`);
         }
       }
     };
 
     window.handleAddItem = async (e) => {
       e.preventDefault();
+      if (!activeEventCode) return;
       const id = "item_" + Date.now();
       const item = {
         id,
@@ -1064,20 +1331,21 @@
       window.showToast(`Added "${item.name}"`);
       if (currentUser) {
         try {
-          await setDoc(doc(db, "items", id), {
+          await setDoc(eventDocument("items", id), {
             ...item,
             maxMarks: 100,
             authorId: currentUser.uid,
             createdAt: serverTimestamp()
           });
         } catch (err) {
-          handleFirestoreError(err, "create", `items/${id}`);
+          handleFirestoreError(err, "create", `events/${activeEventCode}/items/${id}`);
         }
       }
     };
 
     window.handleAddParticipant = async (e) => {
       e.preventDefault();
+      if (!activeEventCode) return;
       const itemId = document.getElementById("admin-part-item").value;
       if (!itemId) {
         window.showToast("Please add a competition item first");
@@ -1100,18 +1368,19 @@
       window.showToast(`Registered Chest ${part.chestNo}`);
       if (currentUser) {
         try {
-          await setDoc(doc(db, "participants", id), {
+          await setDoc(eventDocument("participants", id), {
             ...part,
             authorId: currentUser.uid,
             createdAt: serverTimestamp()
           });
         } catch (err) {
-          handleFirestoreError(err, "create", `participants/${id}`);
+          handleFirestoreError(err, "create", `events/${activeEventCode}/participants/${id}`);
         }
       }
     };
 
     window.handleDeleteItem = async (itemId) => {
+      if (!activeEventCode) return;
       const removedScores = window.state.scores.filter(s => s.itemId === itemId);
       const removedParts = window.state.participants.filter(p => p.itemId === itemId);
       window.state.items = window.state.items.filter(it => it.id !== itemId);
@@ -1124,17 +1393,18 @@
       if (currentUser) {
         try {
           const batch = writeBatch(db);
-          removedScores.forEach(s => batch.delete(doc(db, "scores", s.id)));
-          removedParts.forEach(p => batch.delete(doc(db, "participants", p.id)));
-          batch.delete(doc(db, "items", itemId));
+          removedScores.forEach(s => batch.delete(eventDocument("scores", s.id)));
+          removedParts.forEach(p => batch.delete(eventDocument("participants", p.id)));
+          batch.delete(eventDocument("items", itemId));
           await batch.commit();
         } catch (err) {
-          handleFirestoreError(err, "delete", `items/${itemId}`);
+          handleFirestoreError(err, "delete", `events/${activeEventCode}/items/${itemId}`);
         }
       }
     };
 
     window.handleDeleteParticipant = async (partId) => {
+      if (!activeEventCode) return;
       const removedScores = window.state.scores.filter(s => s.participantId === partId);
       window.state.participants = window.state.participants.filter(p => p.id !== partId);
       window.state.scores = window.state.scores.filter(s => s.participantId !== partId);
@@ -1147,16 +1417,17 @@
       if (currentUser) {
         try {
           const batch = writeBatch(db);
-          removedScores.forEach(s => batch.delete(doc(db, "scores", s.id)));
-          batch.delete(doc(db, "participants", partId));
+          removedScores.forEach(s => batch.delete(eventDocument("scores", s.id)));
+          batch.delete(eventDocument("participants", partId));
           await batch.commit();
         } catch (err) {
-          handleFirestoreError(err, "delete", `participants/${partId}`);
+          handleFirestoreError(err, "delete", `events/${activeEventCode}/participants/${partId}`);
         }
       }
     };
 
     window.handleDeleteScore = async (scoreId) => {
+      if (!activeEventCode) return;
       window.state.scores = window.state.scores.filter(s => s.id !== scoreId);
       saveLocalState();
       window.populateJudgeParticipants();
@@ -1166,38 +1437,41 @@
 
       if (currentUser) {
         try {
-          await deleteDoc(doc(db, "scores", scoreId));
+          await deleteDoc(eventDocument("scores", scoreId));
         } catch (err) {
-          handleFirestoreError(err, "delete", `scores/${scoreId}`);
+          handleFirestoreError(err, "delete", `events/${activeEventCode}/scores/${scoreId}`);
         }
       }
     };
 
     window.handleLoadSampleData = async () => {
-      const sample = getSampleData();
+      if (!activeEventCode) return;
+      const sample = getSampleData(window.state.branding);
       window.state = sample;
       saveLocalState();
       window.refreshAllSelects();
-      window.showToast("Sample items & participants loaded!");
+      window.showToast(`Sample data loaded for ${activeEventCode}!`);
 
       if (currentUser) {
         try {
           for (const it of sample.items) {
-            await setDoc(doc(db, "items", it.id), { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() });
+            await setDoc(eventDocument("items", it.id), { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() });
           }
           for (const p of sample.participants) {
-            await setDoc(doc(db, "participants", p.id), { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() });
+            await setDoc(eventDocument("participants", p.id), { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() });
           }
           for (const s of sample.scores) {
-            await setDoc(doc(db, "scores", s.id), { ...s, remarks: "", authorId: currentUser.uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            await setDoc(eventDocument("scores", s.id), { ...s, remarks: "", authorId: currentUser.uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
           }
         } catch (err) {
-          handleFirestoreError(err, "write", "sample-data");
+          handleFirestoreError(err, "write", `events/${activeEventCode}/sample-data`);
         }
       }
     };
 
     window.openClearModal = () => {
+      if (!activeEventCode) return;
+      document.getElementById("clear-modal-event-code").textContent = activeEventCode;
       document.getElementById("clear-modal").classList.remove("hidden");
     };
 
@@ -1207,17 +1481,23 @@
 
     window.confirmClearAllData = async () => {
       window.closeClearModal();
-      window.state = { items: [], participants: [], scores: [] };
+      if (!activeEventCode) return;
+      window.state = {
+        branding: window.state.branding || getDefaultBranding(),
+        items: [],
+        participants: [],
+        scores: []
+      };
       saveLocalState();
       window.refreshAllSelects();
-      window.showToast("All test data cleared");
+      window.showToast(`Cleared all data for ${activeEventCode}`);
 
       if (currentUser) {
         try {
           const [scoresSnap, partsSnap, itemsSnap] = await Promise.all([
-            getDocs(query(collection(db, "scores"), where("total", "<=", 100))),
-            getDocs(query(collection(db, "participants"), where("chestNo", ">", ""))),
-            getDocs(query(collection(db, "items"), where("maxMarks", "==", 100)))
+            getDocs(query(eventCollection("scores"), where("total", "<=", 100))),
+            getDocs(query(eventCollection("participants"), where("chestNo", ">", ""))),
+            getDocs(query(eventCollection("items"), where("maxMarks", "==", 100)))
           ]);
           const batch = writeBatch(db);
           scoresSnap.forEach(d => batch.delete(d.ref));
@@ -1225,13 +1505,17 @@
           itemsSnap.forEach(d => batch.delete(d.ref));
           await batch.commit();
         } catch (err) {
-          handleFirestoreError(err, "delete", "clear-all-data");
+          handleFirestoreError(err, "delete", `events/${activeEventCode}/clear-all-data`);
         }
       }
     };
 
-    initJudgeSession();
-    window.refreshAllSelects();
+    // Boot: Enter saved event workspace or show Event Code Entry Screen first
+    if (activeEventCode) {
+      enterEventWorkspace(activeEventCode);
+    } else {
+      showEventEntryView(false);
+    }
   </script>
 </body>
 </html>

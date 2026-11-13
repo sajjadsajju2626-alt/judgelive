@@ -295,3 +295,57 @@ test('Dirty Dozen #12: Self-assigned admin escalation is PERMISSION_DENIED', () 
   const allowCreateAdmin = false; // match /admins/{adminId} { allow create, update, delete: if false; }
   assert.equal(allowCreateAdmin ? 'ALLOW' : 'PERMISSION_DENIED', 'PERMISSION_DENIED');
 });
+
+function isValidEventCode(code: unknown): boolean {
+  return typeof code === 'string' && code.length >= 2 && code.length <= 32 && /^[A-Z0-9_\-]+$/.test(code);
+}
+
+function evaluateCreateBranding(
+  auth: AuthContext | null,
+  eventCode: string,
+  settingId: string,
+  incoming: Record<string, unknown>
+): 'ALLOW' | 'PERMISSION_DENIED' {
+  const reqKeys = ['id', 'eventCode', 'festivalName', 'subtitle', 'authorId', 'createdAt', 'updatedAt'];
+  if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
+  if (!isValidEventCode(eventCode) || !isValidId(settingId)) return 'PERMISSION_DENIED';
+  if (!hasExactKeys(incoming, reqKeys, reqKeys)) return 'PERMISSION_DENIED';
+  if (incoming.id !== 'branding' || incoming.id !== settingId) return 'PERMISSION_DENIED';
+  if (incoming.eventCode !== eventCode) return 'PERMISSION_DENIED';
+  if (typeof incoming.festivalName !== 'string' || incoming.festivalName.length < 1 || incoming.festivalName.length > 120) return 'PERMISSION_DENIED';
+  if (typeof incoming.subtitle !== 'string' || incoming.subtitle.length > 160) return 'PERMISSION_DENIED';
+  if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
+  if (incoming.createdAt !== REQUEST_TIME || incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
+  return 'ALLOW';
+}
+
+test('Multi-tenant EventCode validation rejects lowercase, path traversal, or mismatched eventCode', () => {
+  assert.equal(isValidEventCode('SCHOOL01'), true);
+  assert.equal(isValidEventCode('FEST-2026_A'), true);
+  assert.equal(isValidEventCode('school01'), false);
+  assert.equal(isValidEventCode('A'), false);
+  assert.equal(isValidEventCode('FEST/2026'), false);
+
+  const crossTenantSpoof = evaluateCreateBranding(verifiedUserA, 'SCHOOL01', 'branding', {
+    id: 'branding',
+    eventCode: 'FEST2026',
+    festivalName: "St. Mary's Arts Fest",
+    subtitle: 'Main Campus',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+    updatedAt: REQUEST_TIME,
+  });
+  assert.equal(crossTenantSpoof, 'PERMISSION_DENIED');
+
+  const validBranding = evaluateCreateBranding(verifiedUserA, 'SCHOOL01', 'branding', {
+    id: 'branding',
+    eventCode: 'SCHOOL01',
+    festivalName: "St. Mary's Arts Fest",
+    subtitle: 'Main Campus',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+    updatedAt: REQUEST_TIME,
+  });
+  assert.equal(validBranding, 'ALLOW');
+});
+
