@@ -59,17 +59,20 @@
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
   <header class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
     <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 max-w-[260px] sm:max-w-xs truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
-      <span id="header-brand-title">കലോത്സവം Digital Judging</span>
+      <span id="header-brand-title">Arts Fest Digital Judging</span>
     </button>
     <nav aria-label="Primary Navigation" class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-stone-600">
       <button type="button" onclick="switchView('judge')" id="nav-judge" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 font-semibold pb-0.5">Judge Portal</button>
       <button type="button" onclick="switchView('tabulation')" id="nav-tabulation" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Live Tabulation</button>
       <button type="button" onclick="switchView('admin')" id="nav-admin" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Admin Panel</button>
     </nav>
-    <div class="flex items-center gap-2.5 shrink-0">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
       <span id="header-mode-label" class="hidden text-xs font-medium text-stone-500 whitespace-nowrap shrink-0">Judge Scoring Mode</span>
-      <button type="button" id="switch-event-btn" onclick="openEventSwitcher()" class="hidden px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0">
-        Switch Event
+      <span id="header-event-badge" class="hidden px-2.5 py-1 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded-md tabular-nums whitespace-nowrap shrink-0">
+        Event: <span id="header-event-code">—</span>
+      </span>
+      <button type="button" id="change-event-btn" onclick="openEventSwitcher()" class="hidden px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0">
+        Change Event Code
       </button>
       <button type="button" id="lock-admin-btn" onclick="lockAdminSession()" class="hidden px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0">
         Lock Admin
@@ -83,8 +86,9 @@
       <div>
         <div class="text-xs font-semibold text-amber-800">Restricted Festival Access</div>
         <h2 id="pin-modal-title" class="text-xl font-bold text-stone-900 mt-1 font-display">Enter Admin PIN</h2>
-        <p class="text-sm text-stone-600 mt-1">
-          Enter the Admin PIN to unlock Live Tabulation and the Admin Console for <span id="pin-modal-event-code" class="font-semibold text-stone-900 tabular-nums">—</span>.
+        <p id="pin-modal-desc" class="text-sm text-stone-600 mt-1">
+          <span id="pin-modal-desc-prefix">Enter the Event Admin PIN or Super-Admin Master PIN to unlock the Admin Console for</span>
+          <span id="pin-modal-event-code" class="font-semibold text-stone-900 tabular-nums">—</span>.
         </p>
       </div>
       <form onsubmit="handlePinVerify(event)" class="space-y-4">
@@ -135,17 +139,17 @@
       <form onsubmit="handleEventCodeSubmit(event)" class="space-y-4">
         <div>
           <label for="event-code-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Event / Institution Code</label>
-          <input id="event-code-input" type="text" required autocomplete="off" maxlength="32" placeholder="e.g. FEST2026 or SCHOOL01" class="w-full px-3.5 py-2.5 text-base uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          <p class="text-xs text-stone-500 mt-1.5">Use 2–32 letters, numbers, hyphens, or underscores (e.g., <span class="tabular-nums font-medium text-stone-700">FEST2026</span>, <span class="tabular-nums font-medium text-stone-700">SCHOOL01</span>).</p>
+          <input id="event-code-input" type="text" required autocomplete="off" maxlength="32" oninput="hideEventCodeError()" placeholder="e.g. FEST2026 or CAMPUS02" class="w-full px-3.5 py-2.5 text-base uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          <p class="text-xs text-stone-500 mt-1.5">Enter an official Event Code created by the Admin (default: <span class="tabular-nums font-medium text-stone-700">FEST2026</span>).</p>
         </div>
         <div id="event-code-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
-          Please enter a valid Event Code (at least 2 letters or numbers).
+          Invalid Event Code. This event has not been created by the Admin.
         </div>
         <div class="flex items-center justify-end gap-3 pt-2">
           <button type="button" id="event-entry-cancel-btn" onclick="cancelEventSwitcher()" class="hidden px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
             Back to Current Event
           </button>
-          <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
+          <button type="submit" id="event-entry-submit-btn" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
             Enter Event Workspace
           </button>
         </div>
@@ -298,48 +302,94 @@
       </div>
     </section>
 
-    <!-- VIEW 3: ADMIN PANEL (Hidden unless unlocked via triple-tap + PIN 2026) -->
+    <!-- VIEW 3: ADMIN PANEL (Hidden unless unlocked via triple-tap + Event PIN or Master PIN 2026) -->
     <section id="view-admin" class="no-print hidden space-y-8">
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console — <span id="admin-event-code-label" class="tabular-nums text-amber-800">—</span></h1>
-          <p class="text-sm text-stone-600 mt-1">Manage festival branding, competition items, chest numbers, submitted scores, and event resets.</p>
+          <p class="text-sm text-stone-600 mt-1">Create campus event workspaces, manage event branding &amp; PINs, competition items, chest numbers, and scores.</p>
         </div>
         <!-- Testing & Reset Controls -->
         <div class="flex flex-wrap items-center gap-3">
           <button type="button" id="admin-cloud-btn" onclick="handleAdminCloudAuth()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0">
             Connect Cloud Account
           </button>
-          <button type="button" onclick="handleLoadSampleData()" class="px-3.5 py-2 text-xs font-semibold text-stone-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors whitespace-nowrap shrink-0">
+          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="px-3.5 py-2 text-xs font-semibold text-stone-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors whitespace-nowrap shrink-0">
             Load Sample Data
           </button>
-          <button type="button" onclick="openClearModal()" class="px-3.5 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
+          <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-3.5 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
             Clear Event Data
           </button>
         </div>
       </div>
 
-      <!-- Isolated Festival Branding & Title -->
-      <form id="admin-branding-form" onsubmit="handleSaveBranding(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+      <!-- Create New Campus / Event Card -->
+      <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 class="text-lg font-bold text-stone-900">Festival / Institution Branding</h2>
-            <p class="text-xs text-stone-500 mt-0.5">Customize the display title and subtitle exclusively for this Event Code.</p>
+            <h2 class="text-lg font-bold text-stone-900">Create New Campus / Event</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Launch an isolated campus workspace with its own Event Code, display title, and custom Event Admin PIN.</p>
+          </div>
+          <span class="text-xs font-semibold text-amber-800">Master PIN 2026 retains super-admin access</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label for="create-event-code" class="block text-xs font-semibold text-stone-700 mb-1">New Event Code</label>
+            <input id="create-event-code" type="text" required maxlength="32" autocomplete="off" placeholder="e.g. CAMPUS02" class="w-full px-3 py-2 text-sm uppercase tabular-nums tracking-wider border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="create-event-title" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
+            <input id="create-event-title" type="text" required maxlength="120" placeholder="e.g. Markaz Arts Fest 2026" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="create-event-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue (Optional)</label>
+            <input id="create-event-subtitle" type="text" maxlength="160" placeholder="e.g. Campus Auditorium" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="create-event-pin" class="block text-xs font-semibold text-stone-700 mb-1">Custom Event Admin PIN</label>
+            <input id="create-event-pin" type="text" inputmode="numeric" required minlength="4" maxlength="16" autocomplete="off" placeholder="e.g. 4521" class="w-full px-3 py-2 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+        </div>
+        <div id="create-event-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <p class="text-xs text-stone-500">Checked for duplicates before creation so existing campus events are never overwritten.</p>
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
+            Create &amp; Switch to New Event
+          </button>
+        </div>
+      </form>
+
+      <!-- Prompt shown when Super Admin unlocks before selecting/creating an Event Code -->
+      <div id="admin-no-event-banner" class="hidden bg-stone-100 border border-stone-200 rounded-xl p-5 text-sm text-stone-700">
+        No campus Event Code is currently active. Create a new campus workspace above or click <span class="font-semibold text-stone-900">Change Event Code</span> in the header to open an existing event.
+      </div>
+
+      <div id="admin-active-event-sections" class="space-y-8">
+      <!-- Isolated Event Settings, Branding & Custom Admin PIN -->
+      <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Current Event Settings &amp; Admin PIN</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Update the display title, subtitle, and custom Event Admin PIN exclusively for this Event Code.</p>
           </div>
           <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Festival / Institution Name</label>
-            <input id="admin-brand-name" type="text" required maxlength="120" placeholder="e.g. St. Mary's Kalolsavam 2026" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
+            <input id="admin-brand-name" type="text" required maxlength="120" placeholder="e.g. Markaz Arts Fest 2026" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
           <div>
             <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
             <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
+          <div>
+            <label for="admin-config-pin" class="block text-xs font-semibold text-stone-700 mb-1">Event Admin PIN (4–16 chars)</label>
+            <input id="admin-config-pin" type="text" inputmode="numeric" required minlength="4" maxlength="16" autocomplete="off" placeholder="e.g. 2026 or custom PIN" class="w-full px-3 py-2 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
         </div>
         <div>
-          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding</button>
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Event Settings</button>
         </div>
       </form>
 
@@ -440,6 +490,7 @@
           </table>
         </div>
       </div>
+      </div>
     </section>
   </main>
 
@@ -457,6 +508,7 @@
       query,
       where,
       doc,
+      getDoc,
       getDocFromServer,
       getDocs,
       setDoc,
@@ -520,7 +572,10 @@
     }
 
     // Multi-Event & Access Control Constants
-    const ADMIN_PIN = "2026";
+    const MASTER_PIN = "2026";
+    const DEFAULT_EVENT_CODE = "FEST2026";
+    const DEFAULT_HEADER_TITLE = "Arts Fest Digital Judging";
+    const DEFAULT_SUBTITLE = "Kerala State Arts Festival Judging";
     const ACTIVE_EVENT_KEY = "kalolsavam_active_event_v1";
     const ADMIN_UNLOCK_KEY = "kalolsavam_admin_unlocked_v1";
 
@@ -532,6 +587,10 @@
       return /^[A-Z0-9_-]{2,32}$/.test(code);
     }
 
+    function isValidPinFormat(pin) {
+      return /^[a-zA-Z0-9_-]{4,16}$/.test(String(pin || "").trim());
+    }
+
     function getLocalStateKey(code) {
       return `kalolsavam_local_state_${code}_v1`;
     }
@@ -540,25 +599,57 @@
       return `kalolsavam_judge_session_${code}_v1`;
     }
 
-    function getDefaultBranding() {
+    function getDefaultConfig() {
       return {
-        festivalName: "കലോത്സവം Digital Judging",
-        subtitle: "Kerala State Arts Festival Judging"
+        title: DEFAULT_HEADER_TITLE,
+        subtitle: DEFAULT_SUBTITLE,
+        adminPin: MASTER_PIN
       };
     }
 
     function getEmptyEventState() {
       return {
-        branding: getDefaultBranding(),
+        config: getDefaultConfig(),
         items: [],
         participants: [],
         scores: []
       };
     }
 
-    function getSampleData(currentBranding) {
+    function hasLocalEvent(code) {
+      if (!code) return false;
+      try {
+        return localStorage.getItem(getLocalStateKey(code)) !== null;
+      } catch {
+        return false;
+      }
+    }
+
+    function hasAnyLocalEvents() {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("kalolsavam_local_state_") && key.endsWith("_v1")) {
+            return true;
+          }
+        }
+      } catch {}
+      return false;
+    }
+
+    function ensureDefaultLocalEvent() {
+      if (!hasAnyLocalEvents()) {
+        try {
+          localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(getEmptyEventState()));
+        } catch {}
+      }
+    }
+
+    ensureDefaultLocalEvent();
+
+    function getSampleData(currentConfig) {
       return {
-        branding: currentBranding || getDefaultBranding(),
+        config: currentConfig || getDefaultConfig(),
         items: [
           { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila" },
           { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar" }
@@ -577,11 +668,15 @@
     }
 
     const storedEvent = normalizeEventCode(localStorage.getItem(ACTIVE_EVENT_KEY) || "");
-    let activeEventCode = isValidEventCode(storedEvent) ? storedEvent : "";
+    let activeEventCode = (isValidEventCode(storedEvent) && hasLocalEvent(storedEvent)) ? storedEvent : "";
+    if (storedEvent && !activeEventCode) {
+      localStorage.removeItem(ACTIVE_EVENT_KEY);
+    }
     let isAdminUnlocked = sessionStorage.getItem(ADMIN_UNLOCK_KEY) === "true";
     let isSwitchingEvent = false;
     let brandTapTimestamps = [];
     let toastTimer = null;
+    let defaultInitPromise = null;
 
     function loadLocalState(code) {
       if (!code) return getEmptyEventState();
@@ -590,8 +685,17 @@
         if (raw !== null) {
           const saved = JSON.parse(raw);
           if (saved && Array.isArray(saved.items) && Array.isArray(saved.participants) && Array.isArray(saved.scores)) {
+            const legacyTitle = saved.config?.title || saved.branding?.festivalName || DEFAULT_HEADER_TITLE;
+            const legacySub = saved.config?.subtitle ?? saved.branding?.subtitle ?? DEFAULT_SUBTITLE;
+            const legacyPin = saved.config?.adminPin || MASTER_PIN;
+            const legacyAuthor = saved.config?.authorId || saved.branding?.authorId || null;
             return {
-              branding: saved.branding && saved.branding.festivalName ? saved.branding : getDefaultBranding(),
+              config: {
+                title: legacyTitle,
+                subtitle: legacySub,
+                adminPin: legacyPin,
+                authorId: legacyAuthor
+              },
               items: saved.items,
               participants: saved.participants,
               scores: saved.scores
@@ -621,30 +725,42 @@
     window.state = loadLocalState(activeEventCode);
 
     function applyBrandingUI() {
-      const brand = window.state?.branding || getDefaultBranding();
-      const name = brand.festivalName || getDefaultBranding().festivalName;
-      const subtitle = brand.subtitle || getDefaultBranding().subtitle;
+      const cfg = window.state?.config || getDefaultConfig();
+      const showDefaultHeader = !activeEventCode || isSwitchingEvent;
+      const name = showDefaultHeader ? DEFAULT_HEADER_TITLE : (cfg.title || DEFAULT_HEADER_TITLE);
+      const subtitle = cfg.subtitle || DEFAULT_SUBTITLE;
+      const pin = cfg.adminPin || MASTER_PIN;
 
       document.getElementById("header-brand-title").textContent = name;
       document.getElementById("status-subtitle").textContent = subtitle || name;
-      document.getElementById("print-festival-name").textContent = `${name}${subtitle ? " — " + subtitle : ""} · Official Tabulation Sheet`;
-      document.title = activeEventCode ? `${name} (${activeEventCode})` : "Kalolsavam Live — കലോത്സവം ഡിജിറ്റൽ ജഡ്ജിങ് ആപ്പ്";
+      document.getElementById("print-festival-name").textContent = `${cfg.title || DEFAULT_HEADER_TITLE}${subtitle ? " — " + subtitle : ""} · Official Tabulation Sheet`;
+      document.title = activeEventCode && !isSwitchingEvent ? `${cfg.title || DEFAULT_HEADER_TITLE} (${activeEventCode})` : "Arts Fest Digital Judging — Kalolsavam Live";
 
       const nameInput = document.getElementById("admin-brand-name");
       const subInput = document.getElementById("admin-brand-subtitle");
-      if (nameInput && document.activeElement !== nameInput) nameInput.value = name;
-      if (subInput && document.activeElement !== subInput) subInput.value = subtitle;
+      const pinInput = document.getElementById("admin-config-pin");
+      if (nameInput && document.activeElement !== nameInput) nameInput.value = cfg.title || DEFAULT_HEADER_TITLE;
+      if (subInput && document.activeElement !== subInput) subInput.value = cfg.subtitle ?? DEFAULT_SUBTITLE;
+      if (pinInput && document.activeElement !== pinInput) pinInput.value = pin;
     }
 
     function applyAdminAccessUI() {
       const hasEvent = Boolean(activeEventCode) && !isSwitchingEvent;
       document.getElementById("nav-judge").classList.toggle("hidden", !hasEvent);
-      document.getElementById("nav-tabulation").classList.toggle("hidden", !(hasEvent && isAdminUnlocked));
-      document.getElementById("nav-admin").classList.toggle("hidden", !(hasEvent && isAdminUnlocked));
-      document.getElementById("switch-event-btn").classList.toggle("hidden", !hasEvent);
-      document.getElementById("lock-admin-btn").classList.toggle("hidden", !(hasEvent && isAdminUnlocked));
+      document.getElementById("nav-tabulation").classList.toggle("hidden", !(isAdminUnlocked && hasEvent));
+      document.getElementById("nav-admin").classList.toggle("hidden", !isAdminUnlocked);
+      document.getElementById("header-event-badge").classList.toggle("hidden", !hasEvent);
+      document.getElementById("header-event-code").textContent = activeEventCode || "—";
+      document.getElementById("change-event-btn").classList.toggle("hidden", !(hasEvent || isAdminUnlocked));
+      document.getElementById("lock-admin-btn").classList.toggle("hidden", !isAdminUnlocked);
       document.getElementById("header-mode-label").classList.toggle("sm:inline", hasEvent && !isAdminUnlocked);
       document.getElementById("status-strip").classList.toggle("hidden", !hasEvent);
+
+      document.getElementById("admin-load-sample-btn").classList.toggle("hidden", !hasEvent);
+      document.getElementById("admin-clear-data-btn").classList.toggle("hidden", !hasEvent);
+      document.getElementById("admin-no-event-banner").classList.toggle("hidden", hasEvent);
+      document.getElementById("admin-active-event-sections").classList.toggle("hidden", !hasEvent);
+      document.getElementById("admin-event-code-label").textContent = hasEvent ? activeEventCode : "Master Setup";
     }
 
     // Firestore Multi-Event Path Helpers
@@ -667,19 +783,20 @@
       detachListeners();
       if (!currentUser || !activeEventCode) return;
 
-      unsubBranding = onSnapshot(eventDocument("settings", "branding"), (snap) => {
+      unsubBranding = onSnapshot(eventDocument("settings", "config"), (snap) => {
         if (snap.exists()) {
           const d = snap.data();
-          window.state.branding = {
-            festivalName: d.festivalName || getDefaultBranding().festivalName,
+          window.state.config = {
+            title: d.title || DEFAULT_HEADER_TITLE,
             subtitle: d.subtitle || "",
+            adminPin: d.adminPin || MASTER_PIN,
             authorId: d.authorId || null
           };
           saveLocalState();
           applyBrandingUI();
           window.renderTabulation();
         }
-      }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/branding`));
+      }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`));
 
       unsubItems = onSnapshot(query(eventCollection("items"), where("maxMarks", "==", 100)), (snap) => {
         window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -705,7 +822,65 @@
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/scores`));
     }
 
-    onAuthStateChanged(auth, (user) => {
+    async function fetchEventConfigDoc(code) {
+      const cfgRef = doc(db, "events", code, "settings", "config");
+      try {
+        return await getDocFromServer(cfgRef);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message.toLowerCase() : "";
+        if (err?.code === "unavailable" || msg.includes("offline")) {
+          return await getDoc(cfgRef);
+        }
+        throw err;
+      }
+    }
+
+    async function ensureDefaultEventInitialized() {
+      ensureDefaultLocalEvent();
+      if (!currentUser) return;
+      if (defaultInitPromise) return defaultInitPromise;
+
+      defaultInitPromise = (async () => {
+        try {
+          const snap = await fetchEventConfigDoc(DEFAULT_EVENT_CODE);
+          if (snap.exists()) {
+            const d = snap.data();
+            const existingLocal = loadLocalState(DEFAULT_EVENT_CODE);
+            existingLocal.config = {
+              title: d.title || DEFAULT_HEADER_TITLE,
+              subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
+              adminPin: d.adminPin || MASTER_PIN,
+              authorId: d.authorId || null
+            };
+            localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(existingLocal));
+            return;
+          }
+          if (currentUser.emailVerified !== false) {
+            await setDoc(doc(db, "events", DEFAULT_EVENT_CODE, "settings", "config"), {
+              id: "config",
+              eventCode: DEFAULT_EVENT_CODE,
+              title: DEFAULT_HEADER_TITLE,
+              subtitle: DEFAULT_SUBTITLE,
+              adminPin: MASTER_PIN,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            const localDefault = loadLocalState(DEFAULT_EVENT_CODE);
+            localDefault.config.authorId = currentUser.uid;
+            localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(localDefault));
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${DEFAULT_EVENT_CODE}/settings/config`);
+        } finally {
+          defaultInitPromise = null;
+        }
+      })();
+
+      return defaultInitPromise;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       const adminCloudBtn = document.getElementById("admin-cloud-btn");
       if (adminCloudBtn) {
@@ -713,7 +888,40 @@
       }
       if (user) {
         testConnection();
-        if (activeEventCode) attachListeners();
+        await ensureDefaultEventInitialized();
+        if (activeEventCode) {
+          try {
+            const snap = await fetchEventConfigDoc(activeEventCode);
+            if (!snap.exists()) {
+              if (window.state?.config && !window.state.config.authorId && isAdminUnlocked && user.emailVerified !== false) {
+                await setDoc(eventDocument("settings", "config"), {
+                  id: "config",
+                  eventCode: activeEventCode,
+                  title: window.state.config.title || DEFAULT_HEADER_TITLE,
+                  subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
+                  adminPin: window.state.config.adminPin || MASTER_PIN,
+                  authorId: user.uid,
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp()
+                });
+                window.state.config.authorId = user.uid;
+                saveLocalState();
+              } else {
+                detachListeners();
+                localStorage.removeItem(ACTIVE_EVENT_KEY);
+                localStorage.removeItem(getLocalStateKey(activeEventCode));
+                activeEventCode = "";
+                window.state = getEmptyEventState();
+                showEventEntryView(false);
+                showEventCodeError("Invalid Event Code. This event has not been created by the Admin.");
+                return;
+              }
+            }
+          } catch (err) {
+            handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`);
+          }
+          attachListeners();
+        }
       } else {
         detachListeners();
       }
@@ -810,31 +1018,49 @@
     };
 
     // Event Code Entry & Switching
+    function showEventCodeError(message) {
+      const errEl = document.getElementById("event-code-error");
+      errEl.textContent = message;
+      errEl.classList.remove("hidden");
+    }
+
+    window.hideEventCodeError = () => {
+      document.getElementById("event-code-error").classList.add("hidden");
+    };
+
     function showEventEntryView(allowCancel) {
       isSwitchingEvent = true;
+      applyBrandingUI();
       applyAdminAccessUI();
       ["judge", "tabulation", "admin"].forEach(v => {
         document.getElementById("view-" + v).classList.add("hidden");
       });
       document.getElementById("view-event-entry").classList.remove("hidden");
-      document.getElementById("event-code-error").classList.add("hidden");
+      window.hideEventCodeError();
       document.getElementById("event-entry-cancel-btn").classList.toggle("hidden", !allowCancel);
       const input = document.getElementById("event-code-input");
       input.value = activeEventCode || "";
       setTimeout(() => input.focus(), 30);
     }
 
-    function enterEventWorkspace(code) {
+    function enterEventWorkspace(code, options = {}) {
+      const { keepAdminUnlocked = false, targetView = "judge" } = options;
       isSwitchingEvent = false;
       activeEventCode = code;
       localStorage.setItem(ACTIVE_EVENT_KEY, code);
 
-      // Reset admin unlock when switching between different events for isolation
-      isAdminUnlocked = false;
-      sessionStorage.removeItem(ADMIN_UNLOCK_KEY);
+      // Re-lock Admin when switching normally so campus PIN boundaries hold
+      if (!keepAdminUnlocked) {
+        isAdminUnlocked = false;
+        sessionStorage.removeItem(ADMIN_UNLOCK_KEY);
+      } else {
+        isAdminUnlocked = true;
+        sessionStorage.setItem(ADMIN_UNLOCK_KEY, "true");
+      }
 
       window.state = loadLocalState(code);
       document.getElementById("active-event-badge").textContent = code;
+      document.getElementById("header-event-code").textContent = code;
       document.getElementById("pin-modal-event-code").textContent = code;
       document.getElementById("admin-event-code-label").textContent = code;
       document.getElementById("admin-brand-scope-code").textContent = code;
@@ -844,24 +1070,77 @@
       initJudgeSession();
       window.refreshAllSelects();
       applyAdminAccessUI();
-      window.switchView("judge");
+      window.switchView(targetView);
 
       if (currentUser) {
         attachListeners();
       }
     }
 
-    window.handleEventCodeSubmit = (e) => {
+    window.handleEventCodeSubmit = async (e) => {
       e.preventDefault();
       const input = document.getElementById("event-code-input");
+      const submitBtn = document.getElementById("event-entry-submit-btn");
       const normalized = normalizeEventCode(input.value);
       input.value = normalized;
       if (!isValidEventCode(normalized)) {
-        document.getElementById("event-code-error").classList.remove("hidden");
+        showEventCodeError("Please enter a valid Event Code (at least 2 letters or numbers).");
         input.focus();
         return;
       }
-      document.getElementById("event-code-error").classList.add("hidden");
+
+      window.hideEventCodeError();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Verifying Event Code...";
+      }
+
+      let isVerifiedEvent = false;
+      try {
+        if (currentUser) {
+          if (normalized === DEFAULT_EVENT_CODE) {
+            await ensureDefaultEventInitialized();
+          }
+          try {
+            const cfgSnap = await fetchEventConfigDoc(normalized);
+            if (cfgSnap.exists()) {
+              isVerifiedEvent = true;
+              const d = cfgSnap.data();
+              const existingLocal = loadLocalState(normalized);
+              existingLocal.config = {
+                title: d.title || DEFAULT_HEADER_TITLE,
+                subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
+                adminPin: d.adminPin || MASTER_PIN,
+                authorId: d.authorId || null
+              };
+              localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
+            }
+          } catch (err) {
+            const msg = err instanceof Error ? err.message.toLowerCase() : "";
+            if (err?.code === "unavailable" || msg.includes("offline")) {
+              isVerifiedEvent = hasLocalEvent(normalized);
+            } else {
+              handleFirestoreError(err, "get", `events/${normalized}/settings/config`);
+            }
+          }
+        } else {
+          ensureDefaultLocalEvent();
+          isVerifiedEvent = hasLocalEvent(normalized);
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Enter Event Workspace";
+        }
+      }
+
+      if (!isVerifiedEvent) {
+        showEventCodeError("Invalid Event Code. This event has not been created by the Admin.");
+        input.focus();
+        input.select();
+        return;
+      }
+
       enterEventWorkspace(normalized);
       window.showToast(`Entered Event ${normalized}`);
     };
@@ -874,19 +1153,22 @@
       if (!activeEventCode) return;
       isSwitchingEvent = false;
       document.getElementById("view-event-entry").classList.add("hidden");
+      applyBrandingUI();
       applyAdminAccessUI();
       window.switchView("judge");
     };
 
-    // Secret Triple-Tap Unlock, Admin Lock & Navigation
+    // Secret Triple-Tap Unlock (works from both Event Code screen and active workspace), Admin Lock & Navigation
     window.handleBrandTap = () => {
-      if (!activeEventCode || isSwitchingEvent) return;
       const now = Date.now();
       brandTapTimestamps = brandTapTimestamps.filter(t => now - t <= 2000);
       brandTapTimestamps.push(now);
       if (brandTapTimestamps.length >= 3) {
         brandTapTimestamps = [];
         if (isAdminUnlocked) {
+          isSwitchingEvent = false;
+          applyBrandingUI();
+          applyAdminAccessUI();
           window.switchView("admin");
         } else {
           window.openPinModal();
@@ -895,8 +1177,11 @@
     };
 
     window.openPinModal = () => {
-      if (!activeEventCode) return;
-      document.getElementById("pin-modal-event-code").textContent = activeEventCode;
+      const hasWorkspace = Boolean(activeEventCode) && !isSwitchingEvent;
+      document.getElementById("pin-modal-desc-prefix").textContent = hasWorkspace
+        ? "Enter the Event Admin PIN or Master PIN to unlock Live Tabulation and the Admin Console for"
+        : "Enter the Master PIN to open the Admin Console and create or manage campus events —";
+      document.getElementById("pin-modal-event-code").textContent = hasWorkspace ? activeEventCode : "Master Setup";
       document.getElementById("admin-pin-input").value = "";
       document.getElementById("pin-error").classList.add("hidden");
       document.getElementById("pin-modal").classList.remove("hidden");
@@ -912,8 +1197,13 @@
     window.lockAdminSession = () => {
       isAdminUnlocked = false;
       sessionStorage.removeItem(ADMIN_UNLOCK_KEY);
+      applyBrandingUI();
       applyAdminAccessUI();
-      window.switchView("judge");
+      if (activeEventCode) {
+        window.switchView("judge");
+      } else {
+        showEventEntryView(false);
+      }
       window.showToast("Admin Locked");
     };
 
@@ -925,8 +1215,8 @@
     });
 
     window.switchView = (view) => {
-      if (!activeEventCode || isSwitchingEvent) return;
-      if (!isAdminUnlocked && view !== "judge") return;
+      if (!isAdminUnlocked && (!activeEventCode || isSwitchingEvent || view !== "judge")) return;
+      if (!activeEventCode && view !== "admin") return;
 
       document.getElementById("view-event-entry").classList.add("hidden");
       ["judge", "tabulation", "admin"].forEach(v => {
@@ -947,16 +1237,46 @@
       });
     }
 
-    window.handlePinVerify = (e) => {
+    window.handlePinVerify = async (e) => {
       e.preventDefault();
       const entered = document.getElementById("admin-pin-input").value.trim();
-      if (entered === ADMIN_PIN) {
+      const hasWorkspace = Boolean(activeEventCode) && !isSwitchingEvent;
+      let isAuthorized = entered === MASTER_PIN;
+
+      if (!isAuthorized && hasWorkspace) {
+        let eventAdminPin = window.state?.config?.adminPin || "";
+        if (currentUser) {
+          try {
+            const snap = await getDoc(eventDocument("settings", "config"));
+            if (snap.exists()) {
+              const d = snap.data();
+              eventAdminPin = d.adminPin || eventAdminPin;
+              window.state.config = {
+                title: d.title || window.state.config?.title || DEFAULT_HEADER_TITLE,
+                subtitle: d.subtitle ?? window.state.config?.subtitle ?? DEFAULT_SUBTITLE,
+                adminPin: eventAdminPin || MASTER_PIN,
+                authorId: d.authorId || null
+              };
+              saveLocalState();
+            }
+          } catch (err) {
+            handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`);
+          }
+        }
+        if (eventAdminPin && entered === eventAdminPin) {
+          isAuthorized = true;
+        }
+      }
+
+      if (isAuthorized) {
         isAdminUnlocked = true;
+        isSwitchingEvent = false;
         sessionStorage.setItem(ADMIN_UNLOCK_KEY, "true");
         window.closePinModal();
+        applyBrandingUI();
         applyAdminAccessUI();
         window.switchView("admin");
-        window.showToast(`Admin Unlocked for ${activeEventCode}`);
+        window.showToast(hasWorkspace ? `Admin Unlocked for ${activeEventCode}` : "Super-Admin Unlocked");
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
         document.getElementById("admin-pin-input").select();
@@ -1270,45 +1590,152 @@
       }
     };
 
-    window.handleSaveBranding = async (e) => {
+    window.handleCreateNewEvent = async (e) => {
+      e.preventDefault();
+      const codeInput = document.getElementById("create-event-code");
+      const titleInput = document.getElementById("create-event-title");
+      const subtitleInput = document.getElementById("create-event-subtitle");
+      const pinInput = document.getElementById("create-event-pin");
+      const errEl = document.getElementById("create-event-error");
+
+      const newCode = normalizeEventCode(codeInput.value);
+      codeInput.value = newCode;
+      const title = titleInput.value.trim();
+      const subtitle = subtitleInput.value.trim() || DEFAULT_SUBTITLE;
+      const adminPin = pinInput.value.trim();
+
+      const showCreateErr = (msg) => {
+        errEl.textContent = msg;
+        errEl.classList.remove("hidden");
+      };
+
+      if (!isValidEventCode(newCode)) {
+        showCreateErr("Event Code must be 2–32 characters (letters, numbers, hyphens, or underscores).");
+        codeInput.focus();
+        return;
+      }
+      if (!title) {
+        showCreateErr("Please enter an Institution / Festival Name.");
+        titleInput.focus();
+        return;
+      }
+      if (!isValidPinFormat(adminPin)) {
+        showCreateErr("Event Admin PIN must be 4–16 alphanumeric characters.");
+        pinInput.focus();
+        return;
+      }
+
+      // Duplicate check against active workspace & local storage
+      if (newCode === activeEventCode || localStorage.getItem(getLocalStateKey(newCode)) !== null) {
+        showCreateErr(`Event Code "${newCode}" already exists. Choose a unique code to prevent overwriting.`);
+        codeInput.focus();
+        return;
+      }
+
+      // Duplicate check against Firestore cloud records
+      if (currentUser) {
+        try {
+          const [cfgSnap, itemsSnap] = await Promise.all([
+            fetchEventConfigDoc(newCode),
+            getDocs(query(collection(db, "events", newCode, "items"), where("maxMarks", "==", 100)))
+          ]);
+          if (cfgSnap.exists() || !itemsSnap.empty) {
+            showCreateErr(`Event Code "${newCode}" already exists in the cloud database. Choose a unique code.`);
+            codeInput.focus();
+            return;
+          }
+        } catch (err) {
+          handleFirestoreError(err, "get", `events/${newCode}/settings/config`);
+        }
+      }
+
+      errEl.classList.add("hidden");
+
+      const newState = {
+        config: {
+          title,
+          subtitle,
+          adminPin,
+          authorId: currentUser?.uid || null
+        },
+        items: [],
+        participants: [],
+        scores: []
+      };
+      try {
+        localStorage.setItem(getLocalStateKey(newCode), JSON.stringify(newState));
+      } catch {}
+
+      if (currentUser) {
+        try {
+          await setDoc(doc(db, "events", newCode, "settings", "config"), {
+            id: "config",
+            eventCode: newCode,
+            title,
+            subtitle,
+            adminPin,
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } catch (err) {
+          handleFirestoreError(err, "create", `events/${newCode}/settings/config`);
+        }
+      }
+
+      e.target.reset();
+      enterEventWorkspace(newCode, { keepAdminUnlocked: true, targetView: "admin" });
+      window.showToast(`Created & switched to ${newCode}!`);
+    };
+
+    window.handleSaveEventConfig = async (e) => {
       e.preventDefault();
       if (!activeEventCode) return;
-      const festivalName = document.getElementById("admin-brand-name").value.trim();
+      const title = document.getElementById("admin-brand-name").value.trim();
       const subtitle = document.getElementById("admin-brand-subtitle").value.trim();
-      if (!festivalName) return;
+      const adminPin = document.getElementById("admin-config-pin").value.trim();
+      if (!title) return;
+      if (!isValidPinFormat(adminPin)) {
+        window.showToast("Event Admin PIN must be 4–16 alphanumeric characters");
+        document.getElementById("admin-config-pin").focus();
+        return;
+      }
 
-      const existingAuthorId = window.state.branding?.authorId || null;
-      window.state.branding = {
-        festivalName,
+      const existingAuthorId = window.state.config?.authorId || null;
+      window.state.config = {
+        title,
         subtitle,
+        adminPin,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
       applyBrandingUI();
       window.renderTabulation();
-      window.showToast(`Updated branding for ${activeEventCode}`);
+      window.showToast(`Saved settings & PIN for ${activeEventCode}`);
 
       if (currentUser) {
         try {
           if (existingAuthorId) {
-            await updateDoc(eventDocument("settings", "branding"), {
-              festivalName,
+            await updateDoc(eventDocument("settings", "config"), {
+              title,
               subtitle,
+              adminPin,
               updatedAt: serverTimestamp()
             });
           } else {
-            await setDoc(eventDocument("settings", "branding"), {
-              id: "branding",
+            await setDoc(eventDocument("settings", "config"), {
+              id: "config",
               eventCode: activeEventCode,
-              festivalName,
+              title,
               subtitle,
+              adminPin,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
             });
           }
         } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/branding`);
+          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
         }
       }
     };
@@ -1446,7 +1873,7 @@
 
     window.handleLoadSampleData = async () => {
       if (!activeEventCode) return;
-      const sample = getSampleData(window.state.branding);
+      const sample = getSampleData(window.state.config);
       window.state = sample;
       saveLocalState();
       window.refreshAllSelects();
@@ -1483,7 +1910,7 @@
       window.closeClearModal();
       if (!activeEventCode) return;
       window.state = {
-        branding: window.state.branding || getDefaultBranding(),
+        config: window.state.config || getDefaultConfig(),
         items: [],
         participants: [],
         scores: []
@@ -1510,9 +1937,16 @@
       }
     };
 
-    // Boot: Enter saved event workspace or show Event Code Entry Screen first
+    // Boot: Enter saved event workspace, restore Master Admin setup, or show Event Code Entry Screen
     if (activeEventCode) {
-      enterEventWorkspace(activeEventCode);
+      enterEventWorkspace(activeEventCode, {
+        keepAdminUnlocked: isAdminUnlocked,
+        targetView: isAdminUnlocked ? "admin" : "judge"
+      });
+    } else if (isAdminUnlocked) {
+      applyBrandingUI();
+      applyAdminAccessUI();
+      window.switchView("admin");
     } else {
       showEventEntryView(false);
     }

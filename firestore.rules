@@ -43,6 +43,24 @@ service cloud.firestore {
       );
     }
 
+    // Validation Blueprint: EventConfig
+    function isValidEventConfig(data, eventCode, settingId) {
+      return data.keys().hasAll(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt']) &&
+        data.id is string && data.id.size() <= 32 && data.id == 'config' &&
+        data.id == settingId &&
+        data.eventCode is string && data.eventCode.size() >= 2 && data.eventCode.size() <= 32 &&
+        data.eventCode == eventCode &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        data.subtitle is string && data.subtitle.size() <= 160 &&
+        data.adminPin is string && data.adminPin.size() >= 4 && data.adminPin.size() <= 16 &&
+        data.adminPin.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
     // Validation Blueprint: EventBranding
     function isValidEventBranding(data, eventCode, settingId) {
       return data.keys().hasAll(['id', 'eventCode', 'festivalName', 'subtitle', 'authorId', 'createdAt', 'updatedAt']) &&
@@ -132,10 +150,11 @@ service cloud.firestore {
 
     // Multi-Tenant Event Scope: /events/{eventCode}/...
     match /events/{eventCode} {
-      // Isolated Settings & Branding
+      // Isolated Settings, Config & Branding
       match /settings/{settingId} {
         allow get: if isVerifiedAdminEmail() || (
-          isSignedIn() && isValidEventCode(eventCode) && settingId == 'branding' &&
+          isSignedIn() && isValidEventCode(eventCode) &&
+          (settingId == 'config' || settingId == 'branding') &&
           (resource == null || existing().eventCode == eventCode)
         );
         allow list: if isVerifiedAdminEmail() || (
@@ -145,22 +164,30 @@ service cloud.firestore {
         allow create: if isVerifiedUser() &&
           isValidEventCode(eventCode) &&
           isValidId(settingId) &&
-          isValidEventBranding(incoming(), eventCode, settingId) &&
           incoming().createdAt == request.time &&
-          incoming().updatedAt == request.time;
+          incoming().updatedAt == request.time && (
+            (settingId == 'config' && isValidEventConfig(incoming(), eventCode, settingId)) ||
+            (settingId == 'branding' && isValidEventBranding(incoming(), eventCode, settingId))
+          );
 
         allow update: if isVerifiedUser() &&
           isValidEventCode(eventCode) &&
           isValidId(settingId) &&
-          isValidEventBranding(incoming(), eventCode, settingId) &&
           incoming().id == existing().id &&
           incoming().eventCode == existing().eventCode &&
           incoming().authorId == existing().authorId &&
           incoming().createdAt == existing().createdAt &&
           incoming().updatedAt == request.time && (
-            isAdmin() ||
-            (existing().authorId == request.auth.uid &&
-              incoming().diff(existing()).affectedKeys().hasOnly(['festivalName', 'subtitle', 'updatedAt']))
+            (settingId == 'config' && isValidEventConfig(incoming(), eventCode, settingId) && (
+              isAdmin() ||
+              (existing().authorId == request.auth.uid &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['title', 'subtitle', 'adminPin', 'updatedAt']))
+            )) ||
+            (settingId == 'branding' && isValidEventBranding(incoming(), eventCode, settingId) && (
+              isAdmin() ||
+              (existing().authorId == request.auth.uid &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['festivalName', 'subtitle', 'updatedAt']))
+            ))
           );
 
         allow delete: if isVerifiedUser() &&

@@ -349,3 +349,50 @@ test('Multi-tenant EventCode validation rejects lowercase, path traversal, or mi
   assert.equal(validBranding, 'ALLOW');
 });
 
+function evaluateCreateEventConfig(
+  auth: AuthContext | null,
+  eventCode: string,
+  settingId: string,
+  incoming: Record<string, unknown>
+): 'ALLOW' | 'PERMISSION_DENIED' {
+  const reqKeys = ['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt'];
+  if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
+  if (!isValidEventCode(eventCode) || !isValidId(settingId)) return 'PERMISSION_DENIED';
+  if (!hasExactKeys(incoming, reqKeys, reqKeys)) return 'PERMISSION_DENIED';
+  if (incoming.id !== 'config' || incoming.id !== settingId) return 'PERMISSION_DENIED';
+  if (incoming.eventCode !== eventCode) return 'PERMISSION_DENIED';
+  if (typeof incoming.title !== 'string' || incoming.title.length < 1 || incoming.title.length > 120) return 'PERMISSION_DENIED';
+  if (typeof incoming.subtitle !== 'string' || incoming.subtitle.length > 160) return 'PERMISSION_DENIED';
+  if (typeof incoming.adminPin !== 'string' || incoming.adminPin.length < 4 || incoming.adminPin.length > 16 || !/^[a-zA-Z0-9_\-]+$/.test(incoming.adminPin)) return 'PERMISSION_DENIED';
+  if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
+  if (incoming.createdAt !== REQUEST_TIME || incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
+  return 'ALLOW';
+}
+
+test('EventConfig rule enforces custom adminPin length, pattern, and eventCode match', () => {
+  const shortPin = evaluateCreateEventConfig(verifiedUserA, 'CAMPUS02', 'config', {
+    id: 'config',
+    eventCode: 'CAMPUS02',
+    title: 'Markaz Arts Fest 2026',
+    subtitle: 'Campus Auditorium',
+    adminPin: '12',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+    updatedAt: REQUEST_TIME,
+  });
+  assert.equal(shortPin, 'PERMISSION_DENIED');
+
+  const validConfig = evaluateCreateEventConfig(verifiedUserA, 'CAMPUS02', 'config', {
+    id: 'config',
+    eventCode: 'CAMPUS02',
+    title: 'Markaz Arts Fest 2026',
+    subtitle: 'Campus Auditorium',
+    adminPin: '4521',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+    updatedAt: REQUEST_TIME,
+  });
+  assert.equal(validConfig, 'ALLOW');
+});
+
+
