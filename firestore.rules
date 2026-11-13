@@ -46,7 +46,7 @@ service cloud.firestore {
     // Validation Blueprint: EventConfig
     function isValidEventConfig(data, eventCode, settingId) {
       return data.keys().hasAll(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt']) &&
-        data.keys().hasOnly(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'chartType', 'authorId', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'chartType', 'gradeA', 'gradeB', 'gradeC', 'authorId', 'createdAt', 'updatedAt']) &&
         data.id is string && data.id.size() <= 32 && data.id == 'config' &&
         data.id == settingId &&
         data.eventCode is string && data.eventCode.size() >= 2 && data.eventCode.size() <= 32 &&
@@ -60,6 +60,12 @@ service cloud.firestore {
           data.chartType.size() <= 24 &&
           data.chartType in ['bar', 'horizontal', 'doughnut']
         )) &&
+        (!('gradeA' in data) || (data.gradeA is number && data.gradeA >= 1 && data.gradeA <= 100)) &&
+        (!('gradeB' in data) || (data.gradeB is number && data.gradeB >= 1 && data.gradeB <= 100)) &&
+        (!('gradeC' in data) || (data.gradeC is number && data.gradeC >= 0 && data.gradeC <= 100)) &&
+        (!('gradeA' in data && 'gradeB' in data) || data.gradeA > data.gradeB) &&
+        (!('gradeB' in data && 'gradeC' in data) || data.gradeB > data.gradeC) &&
+        (!('gradeA' in data && 'gradeC' in data) || data.gradeA > data.gradeC) &&
         data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
         data.authorId == request.auth.uid &&
         data.createdAt is timestamp &&
@@ -208,7 +214,7 @@ service cloud.firestore {
             (settingId == 'config' && isValidEventConfig(incoming(), eventCode, settingId) && (
               isAdmin() ||
               (existing().authorId == request.auth.uid &&
-                incoming().diff(existing()).affectedKeys().hasOnly(['title', 'subtitle', 'adminPin', 'chartType', 'updatedAt']))
+                incoming().diff(existing()).affectedKeys().hasOnly(['title', 'subtitle', 'adminPin', 'chartType', 'gradeA', 'gradeB', 'gradeC', 'updatedAt']))
             )) ||
             (settingId == 'branding' && isValidEventBranding(incoming(), eventCode, settingId) && (
               isAdmin() ||

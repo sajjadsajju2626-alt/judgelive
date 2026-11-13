@@ -356,7 +356,7 @@ function evaluateCreateEventConfig(
   incoming: Record<string, unknown>
 ): 'ALLOW' | 'PERMISSION_DENIED' {
   const reqKeys = ['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt'];
-  const allowedKeys = [...reqKeys, 'chartType'];
+  const allowedKeys = [...reqKeys, 'chartType', 'gradeA', 'gradeB', 'gradeC'];
   if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
   if (!isValidEventCode(eventCode) || !isValidId(settingId)) return 'PERMISSION_DENIED';
   if (!hasExactKeys(incoming, reqKeys, allowedKeys)) return 'PERMISSION_DENIED';
@@ -366,6 +366,12 @@ function evaluateCreateEventConfig(
   if (typeof incoming.subtitle !== 'string' || incoming.subtitle.length > 160) return 'PERMISSION_DENIED';
   if (typeof incoming.adminPin !== 'string' || incoming.adminPin.length < 4 || incoming.adminPin.length > 16 || !/^[a-zA-Z0-9_\-]+$/.test(incoming.adminPin)) return 'PERMISSION_DENIED';
   if ('chartType' in incoming && !['bar', 'horizontal', 'doughnut'].includes(String(incoming.chartType))) return 'PERMISSION_DENIED';
+  if ('gradeA' in incoming && (typeof incoming.gradeA !== 'number' || !Number.isFinite(incoming.gradeA) || incoming.gradeA < 1 || incoming.gradeA > 100)) return 'PERMISSION_DENIED';
+  if ('gradeB' in incoming && (typeof incoming.gradeB !== 'number' || !Number.isFinite(incoming.gradeB) || incoming.gradeB < 1 || incoming.gradeB > 100)) return 'PERMISSION_DENIED';
+  if ('gradeC' in incoming && (typeof incoming.gradeC !== 'number' || !Number.isFinite(incoming.gradeC) || incoming.gradeC < 0 || incoming.gradeC > 100)) return 'PERMISSION_DENIED';
+  if ('gradeA' in incoming && 'gradeB' in incoming && Number(incoming.gradeA) <= Number(incoming.gradeB)) return 'PERMISSION_DENIED';
+  if ('gradeB' in incoming && 'gradeC' in incoming && Number(incoming.gradeB) <= Number(incoming.gradeC)) return 'PERMISSION_DENIED';
+  if ('gradeA' in incoming && 'gradeC' in incoming && Number(incoming.gradeA) <= Number(incoming.gradeC)) return 'PERMISSION_DENIED';
   if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
   if (incoming.createdAt !== REQUEST_TIME || incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
   return 'ALLOW';
@@ -469,7 +475,7 @@ function evaluateUpdateEventConfigPin(
   if (incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
   if (existing.authorId !== auth.uid && auth.email !== 'sajjadsajju2626@gmail.com') return 'PERMISSION_DENIED';
   const changedKeys = Object.keys(incoming).filter((k) => incoming[k] !== existing[k]);
-  const allowedUpdateKeys = ['title', 'subtitle', 'adminPin', 'chartType', 'updatedAt'];
+  const allowedUpdateKeys = ['title', 'subtitle', 'adminPin', 'chartType', 'gradeA', 'gradeB', 'gradeC', 'updatedAt'];
   if (!changedKeys.every((k) => allowedUpdateKeys.includes(k))) return 'PERMISSION_DENIED';
   return 'ALLOW';
 }
@@ -514,4 +520,81 @@ test('EventConfig update allows campus author to change adminPin independently a
     'PERMISSION_DENIED'
   );
 });
+
+test('EventConfig validates custom A/B/C grading threshold ranges and strict descending order', () => {
+  const existingCfg = {
+    id: 'config',
+    eventCode: 'CAMPUS02',
+    title: 'CAMPUS02',
+    subtitle: 'Kerala State Arts Festival Judging',
+    adminPin: '1234',
+    chartType: 'bar',
+    gradeA: 80,
+    gradeB: 70,
+    gradeC: 60,
+    authorId: 'user_A',
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  };
+
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      gradeA: 85,
+      gradeB: 75,
+      gradeC: 65,
+      updatedAt: REQUEST_TIME,
+    }),
+    'ALLOW'
+  );
+
+  // Inverted thresholds (A <= B) must be denied
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      gradeA: 70,
+      gradeB: 75,
+      gradeC: 60,
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+
+  // Equal thresholds (B == C) must be denied
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      gradeA: 85,
+      gradeB: 60,
+      gradeC: 60,
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+
+  // Out-of-range (>100 or <0) must be denied
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      gradeA: 105,
+      gradeB: 70,
+      gradeC: 60,
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+
+  // Cross-campus hijack must be denied
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserB, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      gradeA: 85,
+      gradeB: 75,
+      gradeC: 65,
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+});
+
 

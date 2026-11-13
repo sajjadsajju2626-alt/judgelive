@@ -43,6 +43,18 @@
           "maxLength": 24,
           "description": "Admin-selected visualization chart type for Group Points & Standings."
         },
+        "gradeA": {
+          "type": "number",
+          "description": "Minimum percentage threshold for Grade A (default 80, must be > gradeB and <= 100)."
+        },
+        "gradeB": {
+          "type": "number",
+          "description": "Minimum percentage threshold for Grade B (default 70, must be > gradeC and < gradeA)."
+        },
+        "gradeC": {
+          "type": "number",
+          "description": "Minimum percentage threshold for Grade C (default 60, must be >= 0 and < gradeB)."
+        },
         "authorId": {
           "type": "string",
           "maxLength": 128,

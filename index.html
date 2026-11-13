@@ -16,6 +16,53 @@
     body { font-family: 'Manrope', 'Noto Sans Malayalam', sans-serif; background-color: #FAF8F5; color: #1C1917; }
     h1, h2, h3, .font-display { font-family: 'Outfit', 'Noto Sans Malayalam', sans-serif; }
     .tabular-nums { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+    .tab-animated-row {
+      will-change: transform;
+      transition: background-color 350ms ease, opacity 280ms ease;
+    }
+    .tab-row-enter {
+      animation: tabRowFadeIn 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .rank-up-flash {
+      animation: rankUpHighlight 1150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .rank-down-flash {
+      animation: rankDownHighlight 1150ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .score-updated-flash {
+      animation: scorePulseHighlight 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .rank-pill-transition {
+      transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), background-color 320ms ease, color 320ms ease;
+    }
+    .progress-fill-transition {
+      transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1), background-color 350ms ease;
+    }
+    @keyframes tabRowFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes rankUpHighlight {
+      0% { background-color: rgba(16, 185, 129, 0.22); }
+      100% { background-color: transparent; }
+    }
+    @keyframes rankDownHighlight {
+      0% { background-color: rgba(245, 158, 11, 0.18); }
+      100% { background-color: transparent; }
+    }
+    @keyframes scorePulseHighlight {
+      0% { color: #B45309; transform: scale(1.06); }
+      100% { color: inherit; transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tab-animated-row, .rank-pill-transition, .progress-fill-transition {
+        transition: none !important;
+        animation: none !important;
+      }
+      .tab-row-enter, .rank-up-flash, .rank-down-flash, .score-updated-flash {
+        animation: none !important;
+      }
+    }
     @media print {
       @page { size: A4 portrait; margin: 14mm; }
       body { background-color: #FFFFFF !important; color: #000000 !important; }
@@ -332,7 +379,10 @@
 
       <!-- Item-wise Leaderboard -->
       <div class="space-y-3">
-        <h2 class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+          <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
+        </div>
         <div class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -505,6 +555,42 @@
             </div>
             <div id="admin-groups-list" class="divide-y divide-stone-200 border border-stone-200 rounded-lg max-h-56 overflow-y-auto"></div>
           </div>
+
+          <!-- Custom A / B / C Grading Thresholds -->
+          <div class="border-t border-stone-200 pt-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="text-sm font-bold text-stone-900">Custom A / B / C Grading Thresholds (%)</h3>
+                <p class="text-xs text-stone-500 mt-0.5">Override default grading (A ≥ 80%, B ≥ 70%, C ≥ 60%) for this Festival Code only.</p>
+              </div>
+              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-grade-scope-code">—</span></span>
+            </div>
+            <form id="admin-grade-thresholds-form" onsubmit="handleSaveGradeThresholds(event)" class="space-y-3">
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <label for="admin-grade-a" class="block text-xs font-semibold text-stone-700 mb-1">A Grade Min %</label>
+                  <input id="admin-grade-a" type="number" min="1" max="100" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="80" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                </div>
+                <div>
+                  <label for="admin-grade-b" class="block text-xs font-semibold text-stone-700 mb-1">B Grade Min %</label>
+                  <input id="admin-grade-b" type="number" min="1" max="99" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="70" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                </div>
+                <div>
+                  <label for="admin-grade-c" class="block text-xs font-semibold text-stone-700 mb-1">C Grade Min %</label>
+                  <input id="admin-grade-c" type="number" min="0" max="98" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="60" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                </div>
+              </div>
+              <div id="admin-grade-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <button type="submit" id="admin-save-grades-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                  Save Grade Rules
+                </button>
+                <button type="button" onclick="resetGradeThresholds()" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors">
+                  Reset Defaults (80 / 70 / 60)
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
 
         <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
@@ -550,6 +636,7 @@
               <select id="admin-item-cat" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
                 <option value="High School">High School</option>
                 <option value="Higher Secondary">Higher Secondary</option>
+                <option value="Sub-Junior">Sub-Junior</option>
                 <option value="General">General</option>
               </select>
             </div>
@@ -591,12 +678,92 @@
         </form>
       </div>
 
+      <!-- Bulk Import via CSV (Scoped to active Festival Code) -->
+      <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="text-lg font-bold text-stone-900">Bulk Import via CSV</h2>
+              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-csv-scope-code">—</span></span>
+            </div>
+            <p class="text-xs text-stone-500 mt-0.5">
+              Upload a CSV file to bulk-register Competition Items or Participant Chest Numbers directly into the active festival workspace.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" onclick="downloadCsvTemplate('items')" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+              Items CSV Template
+            </button>
+            <button type="button" onclick="downloadCsvTemplate('participants')" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+              Participants CSV Template
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div class="md:col-span-4">
+            <label for="csv-import-mode" class="block text-xs font-semibold text-stone-700 mb-1">Import Target</label>
+            <select id="csv-import-mode" onchange="handleCsvModeChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+              <option value="participants">Participant Chest Numbers</option>
+              <option value="items">Competition Items</option>
+            </select>
+          </div>
+          <div class="md:col-span-6">
+            <label for="csv-file-input" class="block text-xs font-semibold text-stone-700 mb-1">Choose CSV File (.csv)</label>
+            <input id="csv-file-input" type="file" accept=".csv,text/csv" onchange="handleCsvFileSelect(event)" class="block w-full text-xs text-stone-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-stone-900 file:text-white hover:file:bg-stone-800 border border-stone-300 rounded-lg bg-white cursor-pointer" />
+          </div>
+          <div class="md:col-span-2 flex items-center gap-2">
+            <button type="button" id="csv-clear-btn" onclick="clearCsvImport()" class="hidden w-full px-3 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+              Clear File
+            </button>
+          </div>
+        </div>
+
+        <div id="csv-format-hint" class="text-xs text-stone-600 bg-stone-50 border border-stone-200 rounded-lg px-3.5 py-2.5">
+          Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name, School</span> (optional: <span class="font-medium text-stone-800">Group, Category, Stage, Malayalam Name</span>).
+        </div>
+
+        <label id="csv-auto-create-wrap" class="inline-flex items-center gap-2 text-xs font-medium text-stone-700 cursor-pointer select-none">
+          <input id="csv-auto-create-missing" type="checkbox" checked onchange="reparseActiveCsv()" class="w-4 h-4 rounded border-stone-300 text-amber-700 focus:ring-amber-600" />
+          <span>Automatically create missing Competition Items &amp; Groups referenced in the CSV</span>
+        </label>
+
+        <div id="csv-error-banner" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+        <div id="csv-result-banner" role="status" class="hidden p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-medium text-emerald-900"></div>
+
+        <!-- Parsed Preview Area -->
+        <div id="csv-preview-box" class="hidden border border-stone-200 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2">
+            <div id="csv-preview-summary" class="text-xs font-semibold text-stone-800"></div>
+            <button type="button" id="csv-import-submit-btn" onclick="executeCsvImport()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+              Import Entries
+            </button>
+          </div>
+          <div id="csv-preview-warnings" class="hidden px-4 py-2.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-900 space-y-1"></div>
+          <div class="overflow-x-auto max-h-60 overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead id="csv-preview-head" class="bg-stone-50/80 border-b border-stone-200 text-stone-600 font-semibold"></thead>
+              <tbody id="csv-preview-body" class="divide-y divide-stone-200"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Manage Entries: Competition Items & Registered Chest Numbers -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
-            <h2 class="text-base font-bold text-stone-900">Competition Items</h2>
-            <span id="admin-items-count" class="text-xs font-medium text-stone-500 tabular-nums">0 items</span>
+          <div class="px-5 py-4 border-b border-stone-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-stone-900">Competition Items</h2>
+              <span id="admin-items-count" class="text-xs font-medium text-stone-500 tabular-nums">0 items</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="admin-items-search" class="sr-only">Search Competition Items</label>
+              <input id="admin-items-search" type="search" autocomplete="off" oninput="handleAdminItemsSearch()" placeholder="Search items by name..." class="w-full px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <button type="button" id="admin-items-search-clear" onclick="clearAdminItemsSearch()" class="hidden px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                Clear
+              </button>
+            </div>
           </div>
           <div id="admin-items-list" class="divide-y divide-stone-200 max-h-80 overflow-y-auto"></div>
         </div>
@@ -720,6 +887,9 @@
     const DEFAULT_EVENT_CODE = "FEST2026";
     const DEFAULT_HEADER_TITLE = "Arts Fest Digital Judging";
     const DEFAULT_SUBTITLE = "Kerala State Arts Festival Judging";
+    const DEFAULT_GRADE_A = 80;
+    const DEFAULT_GRADE_B = 70;
+    const DEFAULT_GRADE_C = 60;
 
     function normalizeEventCode(raw) {
       return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
@@ -756,6 +926,61 @@
       return ["bar", "horizontal", "doughnut"].includes(type) ? type : "bar";
     }
 
+    function normalizeGradeThresholds(cfg) {
+      const a = Number(cfg?.gradeA);
+      const b = Number(cfg?.gradeB);
+      const c = Number(cfg?.gradeC);
+      if (
+        Number.isFinite(a) &&
+        Number.isFinite(b) &&
+        Number.isFinite(c) &&
+        a >= 1 && a <= 100 &&
+        b >= 1 && b <= 100 &&
+        c >= 0 && c <= 100 &&
+        a > b &&
+        b > c
+      ) {
+        return {
+          gradeA: Math.round(a * 100) / 100,
+          gradeB: Math.round(b * 100) / 100,
+          gradeC: Math.round(c * 100) / 100
+        };
+      }
+      return {
+        gradeA: DEFAULT_GRADE_A,
+        gradeB: DEFAULT_GRADE_B,
+        gradeC: DEFAULT_GRADE_C
+      };
+    }
+
+    function validateGradeThresholds(rawA, rawB, rawC) {
+      if (String(rawA ?? "").trim() === "" || String(rawB ?? "").trim() === "" || String(rawC ?? "").trim() === "") {
+        return { valid: false, error: "Please enter percentage thresholds for A, B, and C grades." };
+      }
+      const a = Math.round(Number(rawA) * 100) / 100;
+      const b = Math.round(Number(rawB) * 100) / 100;
+      const c = Math.round(Number(rawC) * 100) / 100;
+      if (!Number.isFinite(a) || !Number.isFinite(b) || !Number.isFinite(c)) {
+        return { valid: false, error: "Grading thresholds must be valid numbers." };
+      }
+      if (a > 100 || a < 1 || b > 100 || b < 1 || c > 100 || c < 0) {
+        return { valid: false, error: "Thresholds must stay within valid percentage bounds (A & B: 1–100%, C: 0–100%)." };
+      }
+      if (!(a > b && b > c)) {
+        return { valid: false, error: "Thresholds must be strictly descending: A Grade % > B Grade % > C Grade %." };
+      }
+      return { valid: true, thresholds: { gradeA: a, gradeB: b, gradeC: c } };
+    }
+
+    function computeGradeFromAverage(avg, cfg) {
+      if (avg === null || avg === undefined || !Number.isFinite(avg)) return "Pending";
+      const { gradeA, gradeB, gradeC } = normalizeGradeThresholds(cfg);
+      if (avg >= gradeA) return "A Grade";
+      if (avg >= gradeB) return "B Grade";
+      if (avg >= gradeC) return "C Grade";
+      return "No Grade";
+    }
+
     function resolveGroupColor(name, existingGroups = []) {
       const lower = String(name || "").toLowerCase();
       if (lower.includes("red") || lower.includes("crimson") || lower.includes("ruby")) return "#DC2626";
@@ -774,7 +999,10 @@
         title: defaultTitle,
         subtitle: DEFAULT_SUBTITLE,
         adminPin: adminPin || DEFAULT_EVENT_PIN,
-        chartType: "bar"
+        chartType: "bar",
+        gradeA: DEFAULT_GRADE_A,
+        gradeB: DEFAULT_GRADE_B,
+        gradeC: DEFAULT_GRADE_C
       };
     }
 
@@ -823,7 +1051,8 @@
       return {
         config: {
           ...(currentConfig || getDefaultConfig()),
-          chartType: normalizeChartType(currentConfig?.chartType)
+          chartType: normalizeChartType(currentConfig?.chartType),
+          ...normalizeGradeThresholds(currentConfig)
         },
         groups: [
           { id: "grp_red", name: "Red House", color: "#DC2626" },
@@ -855,6 +1084,7 @@
     let isAdminUnlocked = false;
     let isSwitchingEvent = false;
     let isCurrentPinVisible = false;
+    let editingAdminItemId = null;
     let brandTapTimestamps = [];
     let toastTimer = null;
     let defaultInitPromise = null;
@@ -870,6 +1100,7 @@
             const legacySub = saved.config?.subtitle ?? saved.branding?.subtitle ?? DEFAULT_SUBTITLE;
             const legacyPin = saved.config?.adminPin || DEFAULT_EVENT_PIN;
             const legacyChart = normalizeChartType(saved.config?.chartType);
+            const legacyGrades = normalizeGradeThresholds(saved.config);
             const legacyAuthor = saved.config?.authorId || saved.branding?.authorId || null;
             return {
               config: {
@@ -877,6 +1108,7 @@
                 subtitle: legacySub,
                 adminPin: legacyPin,
                 chartType: legacyChart,
+                ...legacyGrades,
                 authorId: legacyAuthor
               },
               groups: Array.isArray(saved.groups) ? saved.groups : [],
@@ -924,6 +1156,19 @@
       if (nameInput && document.activeElement !== nameInput) nameInput.value = cfg.title || activeEventCode || "";
       if (subInput && document.activeElement !== subInput) subInput.value = cfg.subtitle ?? DEFAULT_SUBTITLE;
 
+      const grades = normalizeGradeThresholds(cfg);
+      const gradeAInput = document.getElementById("admin-grade-a");
+      const gradeBInput = document.getElementById("admin-grade-b");
+      const gradeCInput = document.getElementById("admin-grade-c");
+      if (gradeAInput && document.activeElement !== gradeAInput) gradeAInput.value = grades.gradeA;
+      if (gradeBInput && document.activeElement !== gradeBInput) gradeBInput.value = grades.gradeB;
+      if (gradeCInput && document.activeElement !== gradeCInput) gradeCInput.value = grades.gradeC;
+
+      const gradeBadgeEl = document.getElementById("tab-grade-rules-badge");
+      if (gradeBadgeEl) {
+        gradeBadgeEl.textContent = `Grading: A ≥ ${grades.gradeA}% · B ≥ ${grades.gradeB}% · C ≥ ${grades.gradeC}%`;
+      }
+
       updateCurrentPinDisplay();
     }
 
@@ -948,6 +1193,11 @@
 
     window.hideEventPinError = () => {
       const errEl = document.getElementById("admin-pin-update-error");
+      if (errEl) errEl.classList.add("hidden");
+    };
+
+    window.hideGradeThresholdError = () => {
+      const errEl = document.getElementById("admin-grade-error");
       if (errEl) errEl.classList.add("hidden");
     };
 
@@ -999,6 +1249,7 @@
             subtitle: d.subtitle || "",
             adminPin: d.adminPin || DEFAULT_EVENT_PIN,
             chartType: normalizeChartType(d.chartType),
+            ...normalizeGradeThresholds(d),
             authorId: d.authorId || null
           };
           saveLocalState();
@@ -1072,6 +1323,7 @@
               subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
               adminPin: d.adminPin || DEFAULT_EVENT_PIN,
               chartType: normalizeChartType(d.chartType),
+              ...normalizeGradeThresholds(d),
               authorId: d.authorId || null
             };
             localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(existingLocal));
@@ -1085,6 +1337,9 @@
               subtitle: DEFAULT_SUBTITLE,
               adminPin: DEFAULT_EVENT_PIN,
               chartType: "bar",
+              gradeA: DEFAULT_GRADE_A,
+              gradeB: DEFAULT_GRADE_B,
+              gradeC: DEFAULT_GRADE_C,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -1113,6 +1368,7 @@
             const snap = await fetchEventConfigDoc(activeEventCode);
             if (!snap.exists()) {
               if (window.state?.config && !window.state.config.authorId && isAdminUnlocked && user.emailVerified !== false) {
+                const grades = normalizeGradeThresholds(window.state.config);
                 await setDoc(eventDocument("settings", "config"), {
                   id: "config",
                   eventCode: activeEventCode,
@@ -1120,6 +1376,9 @@
                   subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
                   adminPin: window.state.config.adminPin || DEFAULT_EVENT_PIN,
                   chartType: normalizeChartType(window.state.config.chartType),
+                  gradeA: grades.gradeA,
+                  gradeB: grades.gradeB,
+                  gradeC: grades.gradeC,
                   authorId: user.uid,
                   createdAt: serverTimestamp(),
                   updatedAt: serverTimestamp()
@@ -1265,10 +1524,17 @@
       document.getElementById("admin-event-code-label").textContent = code;
       document.getElementById("admin-brand-scope-code").textContent = code;
       document.getElementById("admin-pin-scope-code").textContent = code;
+      const gradeScopeEl = document.getElementById("admin-grade-scope-code");
+      if (gradeScopeEl) gradeScopeEl.textContent = code;
+      const csvScopeEl = document.getElementById("admin-csv-scope-code");
+      if (csvScopeEl) csvScopeEl.textContent = code;
       document.getElementById("clear-modal-event-code").textContent = code;
       const newPinInput = document.getElementById("admin-new-pin");
       if (newPinInput) newPinInput.value = "";
       window.hideEventPinError();
+      window.hideGradeThresholdError();
+      if (typeof window.clearCsvImport === "function") window.clearCsvImport();
+      if (typeof window.resetAdminItemsFilterAndEdit === "function") window.resetAdminItemsFilterAndEdit();
 
       applyBrandingUI();
       initJudgeSession();
@@ -1316,6 +1582,7 @@
                 subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
                 adminPin: d.adminPin || DEFAULT_EVENT_PIN,
                 chartType: normalizeChartType(d.chartType),
+                ...normalizeGradeThresholds(d),
                 authorId: d.authorId || null
               };
               localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
@@ -1470,6 +1737,7 @@
                 subtitle: d.subtitle ?? window.state.config?.subtitle ?? DEFAULT_SUBTITLE,
                 adminPin: storedEventPin,
                 chartType: normalizeChartType(d.chartType || window.state.config?.chartType),
+                ...normalizeGradeThresholds(d),
                 authorId: d.authorId || window.state.config?.authorId || null
               };
               saveLocalState();
@@ -1869,6 +2137,250 @@
       });
     }
 
+    // Smooth Animation Helpers for Live Tabulation & Group Standings
+    const prefersReducedMotion = () =>
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function animateNumericCell(el, targetValue, decimals = 0, suffix = "") {
+      if (!el) return;
+      const numericTarget = Number(targetValue);
+      if (!Number.isFinite(numericTarget)) {
+        el.textContent = "—";
+        el.removeAttribute("data-num-val");
+        return;
+      }
+
+      const prevAttr = el.getAttribute("data-num-val");
+      const prevValue = prevAttr !== null && prevAttr !== "" ? Number(prevAttr) : null;
+      el.setAttribute("data-num-val", String(numericTarget));
+
+      const formatVal = (v) => (decimals > 0 ? v.toFixed(decimals) : String(Math.round(v))) + suffix;
+
+      if (prevValue === null || !Number.isFinite(prevValue) || Math.abs(prevValue - numericTarget) < 1e-6 || prefersReducedMotion()) {
+        el.textContent = formatVal(numericTarget);
+        return;
+      }
+
+      el.classList.remove("score-updated-flash");
+      void el.offsetWidth;
+      el.classList.add("score-updated-flash");
+
+      if (el._tweenRaf) cancelAnimationFrame(el._tweenRaf);
+      const start = performance.now();
+      const duration = 480;
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const current = prevValue + (numericTarget - prevValue) * eased;
+        el.textContent = formatVal(current);
+        if (t < 1) {
+          el._tweenRaf = requestAnimationFrame(tick);
+        } else {
+          el.textContent = formatVal(numericTarget);
+          el._tweenRaf = null;
+        }
+      };
+      el._tweenRaf = requestAnimationFrame(tick);
+    }
+
+    function reconcileAnimatedRows(tbody, rowsData, getKey, createRow, updateRow) {
+      if (!tbody) return;
+      const sectionEl = tbody.closest("section");
+      const isVisible = Boolean(sectionEl && !sectionEl.classList.contains("hidden") && tbody.offsetParent !== null);
+
+      const existingMap = new Map();
+      const prevRects = new Map();
+      const prevRanks = new Map();
+
+      Array.from(tbody.querySelectorAll("tr[data-row-key]")).forEach(tr => {
+        const key = tr.getAttribute("data-row-key");
+        existingMap.set(key, tr);
+        if (isVisible) {
+          const rect = tr.getBoundingClientRect();
+          if (rect.height > 0) prevRects.set(key, rect.top);
+        }
+        const prevRankAttr = tr.getAttribute("data-rank-num");
+        if (prevRankAttr) prevRanks.set(key, Number(prevRankAttr));
+      });
+
+      // Remove placeholder/non-keyed rows
+      Array.from(tbody.children).forEach(child => {
+        if (!child.hasAttribute("data-row-key")) child.remove();
+      });
+
+      const nextKeys = new Set();
+      const orderedRows = [];
+      rowsData.forEach((item, index) => {
+        const key = String(getKey(item));
+        nextKeys.add(key);
+        let tr = existingMap.get(key);
+        const isNew = !tr;
+        if (!tr) {
+          tr = createRow(item);
+          tr.setAttribute("data-row-key", key);
+          tr.classList.add("tab-animated-row");
+          if (isVisible) tr.classList.add("tab-row-enter");
+        }
+        const prevRank = prevRanks.has(key) ? prevRanks.get(key) : null;
+        const newRank = updateRow(tr, item, index, prevRank, isNew);
+        if (newRank !== null && newRank !== undefined) {
+          tr.setAttribute("data-rank-num", String(newRank));
+        } else {
+          tr.removeAttribute("data-rank-num");
+        }
+        orderedRows.push({ key, tr, isNew, prevRank, newRank });
+      });
+
+      // Remove stale rows
+      existingMap.forEach((tr, key) => {
+        if (!nextKeys.has(key)) tr.remove();
+      });
+
+      // Reorder DOM nodes in place (preserves nodes for FLIP)
+      orderedRows.forEach(({ tr }) => {
+        tbody.appendChild(tr);
+      });
+
+      if (!isVisible || prefersReducedMotion()) return;
+
+      const movedRows = [];
+      orderedRows.forEach(({ key, tr, isNew, prevRank, newRank }) => {
+        if (!isNew && prevRank !== null && newRank !== null && prevRank !== newRank) {
+          tr.classList.remove("rank-up-flash", "rank-down-flash");
+          void tr.offsetWidth;
+          tr.classList.add(newRank < prevRank ? "rank-up-flash" : "rank-down-flash");
+        }
+        const oldTop = prevRects.get(key);
+        if (oldTop === undefined) return;
+        const newTop = tr.getBoundingClientRect().top;
+        const deltaY = oldTop - newTop;
+        if (Math.abs(deltaY) > 1) {
+          tr.style.transition = "none";
+          tr.style.transform = `translateY(${deltaY}px)`;
+          movedRows.push(tr);
+        }
+      });
+
+      if (movedRows.length > 0) {
+        void tbody.offsetHeight;
+        requestAnimationFrame(() => {
+          movedRows.forEach(tr => {
+            tr.style.transition = "transform 480ms cubic-bezier(0.22, 1, 0.36, 1), background-color 350ms ease";
+            tr.style.transform = "translateY(0)";
+            const cleanup = () => {
+              tr.style.transition = "";
+              tr.style.transform = "";
+              tr.removeEventListener("transitionend", cleanup);
+            };
+            tr.addEventListener("transitionend", cleanup);
+          });
+        });
+      }
+    }
+
+    function renderAnimatedHorizontalBars(containerEl, standings, compact = false) {
+      if (!containerEl || !standings.length) return false;
+      const maxPts = Math.max(1, ...standings.map(g => g.points));
+      let wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
+      if (!wrapper) {
+        containerEl.innerHTML = `<div data-horizontal-bars-wrap class="w-full space-y-3"></div>`;
+        wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
+      }
+
+      const sectionEl = containerEl.closest("section");
+      const isVisible = Boolean(sectionEl && !sectionEl.classList.contains("hidden") && containerEl.offsetParent !== null);
+      const existing = new Map();
+      const prevRects = new Map();
+
+      Array.from(wrapper.querySelectorAll("[data-group-bar-key]")).forEach(el => {
+        const key = el.getAttribute("data-group-bar-key");
+        existing.set(key, el);
+        if (isVisible) {
+          const rect = el.getBoundingClientRect();
+          if (rect.height > 0) prevRects.set(key, rect.top);
+        }
+      });
+
+      const nextKeys = new Set();
+      const ordered = [];
+      standings.forEach(g => {
+        const key = String(g.id);
+        nextKeys.add(key);
+        const pct = g.points > 0 ? Math.max(4, Math.round((g.points / maxPts) * 100)) : 0;
+        let rowEl = existing.get(key);
+        if (!rowEl) {
+          rowEl = document.createElement("div");
+          rowEl.setAttribute("data-group-bar-key", key);
+          rowEl.className = "space-y-1.5 tab-animated-row";
+          rowEl.innerHTML = `
+            <div class="flex items-center justify-between gap-3 text-xs sm:text-sm">
+              <div class="flex items-center gap-2 min-w-0">
+                <span data-col="rank" class="inline-flex items-center justify-center w-6 h-5 rounded bg-stone-100 text-[11px] font-bold text-stone-700 tabular-nums shrink-0 rank-pill-transition"></span>
+                <span data-col="dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
+                <span data-col="name" class="font-semibold text-stone-900 truncate"></span>
+                <span data-col="medals" class="${compact ? "hidden" : "hidden sm:inline"} text-xs text-stone-400 tabular-nums shrink-0"></span>
+              </div>
+              <div class="flex items-baseline gap-2.5 shrink-0 tabular-nums">
+                <span data-col="raw" class="text-[11px] text-stone-500"></span>
+                <span data-col="pts" class="font-bold text-stone-900"></span>
+              </div>
+            </div>
+            <div class="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+              <div data-col="fill" class="h-full rounded-full progress-fill-transition" style="width: 0%;"></div>
+            </div>
+          `;
+        }
+        rowEl.querySelector('[data-col="rank"]').textContent = `#${g.rank}`;
+        rowEl.querySelector('[data-col="dot"]').style.backgroundColor = g.color;
+        rowEl.querySelector('[data-col="name"]').textContent = g.name;
+        const medalsEl = rowEl.querySelector('[data-col="medals"]');
+        if (!compact) medalsEl.textContent = `(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)`;
+        animateNumericCell(rowEl.querySelector('[data-col="raw"]'), g.rawMarks, 1, " raw");
+        animateNumericCell(rowEl.querySelector('[data-col="pts"]'), g.points, 0, " pts");
+        const fillEl = rowEl.querySelector('[data-col="fill"]');
+        fillEl.style.backgroundColor = g.color;
+        requestAnimationFrame(() => {
+          fillEl.style.width = `${pct}%`;
+        });
+        ordered.push({ key, rowEl });
+      });
+
+      existing.forEach((el, key) => {
+        if (!nextKeys.has(key)) el.remove();
+      });
+      ordered.forEach(({ rowEl }) => wrapper.appendChild(rowEl));
+
+      if (!isVisible || prefersReducedMotion()) return true;
+      const moved = [];
+      ordered.forEach(({ key, rowEl }) => {
+        const oldTop = prevRects.get(key);
+        if (oldTop === undefined) return;
+        const deltaY = oldTop - rowEl.getBoundingClientRect().top;
+        if (Math.abs(deltaY) > 1) {
+          rowEl.style.transition = "none";
+          rowEl.style.transform = `translateY(${deltaY}px)`;
+          moved.push(rowEl);
+        }
+      });
+      if (moved.length > 0) {
+        void wrapper.offsetHeight;
+        requestAnimationFrame(() => {
+          moved.forEach(el => {
+            el.style.transition = "transform 480ms cubic-bezier(0.22, 1, 0.36, 1)";
+            el.style.transform = "translateY(0)";
+            const cleanup = () => {
+              el.style.transition = "";
+              el.style.transform = "";
+              el.removeEventListener("transitionend", cleanup);
+            };
+            el.addEventListener("transitionend", cleanup);
+          });
+        });
+      }
+      return true;
+    }
+
     window.renderGroupStandings = () => {
       const standings = window.computeGroupStandings();
       const chartType = normalizeChartType(window.state.config?.chartType);
@@ -1916,9 +2428,9 @@
             ? tiedLeaders.map(g => escapeHtml(g.name)).join(" &amp; ")
             : escapeHtml(leader.name);
           bannerEl.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 tab-row-enter">
               <div class="flex items-center gap-3.5">
-                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white font-bold text-sm tabular-nums shrink-0" style="background-color: ${escapeHtml(leader.color)}">#1</span>
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white font-bold text-sm tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
                 <div>
                   <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
                   <div class="text-xl font-bold text-stone-900 font-display">${leaderTitle}</div>
@@ -1969,28 +2481,54 @@
             </tr>
           `;
         } else {
-          bodyEl.innerHTML = standings.map(g => `
-            <tr class="${g.rank === 1 && hasAnyPoints ? "bg-amber-50/40" : "hover:bg-stone-50"}">
-              <td class="py-2.5 px-3 font-bold tabular-nums whitespace-nowrap">#${g.rank}</td>
-              <td class="py-2.5 px-3">
-                <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
-                  <span class="font-semibold text-stone-900">${escapeHtml(g.name)}</span>
-                </div>
-              </td>
-              <td class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap">${g.firsts} / ${g.seconds} / ${g.thirds}</td>
-              <td class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap">${g.rawMarks.toFixed(1)}</td>
-              <td class="py-2.5 px-3 text-right font-bold text-stone-900 tabular-nums whitespace-nowrap">${g.points} pts</td>
-            </tr>
-          `).join("");
+          reconcileAnimatedRows(
+            bodyEl,
+            standings,
+            (g) => g.id,
+            () => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td data-col="rank" class="py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition"></td>
+                <td class="py-2.5 px-3">
+                  <div class="flex items-center gap-2">
+                    <span data-col="dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
+                    <span data-col="name" class="font-semibold text-stone-900"></span>
+                  </div>
+                </td>
+                <td data-col="medals" class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap"></td>
+                <td data-col="raw" class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap"></td>
+                <td data-col="pts" class="py-2.5 px-3 text-right font-bold text-stone-900 tabular-nums whitespace-nowrap"></td>
+              `;
+              return tr;
+            },
+            (tr, g) => {
+              tr.classList.toggle("bg-amber-50/40", g.rank === 1 && hasAnyPoints);
+              tr.classList.toggle("hover:bg-stone-50", !(g.rank === 1 && hasAnyPoints));
+              tr.querySelector('[data-col="rank"]').textContent = `#${g.rank}`;
+              tr.querySelector('[data-col="dot"]').style.backgroundColor = g.color;
+              tr.querySelector('[data-col="name"]').textContent = g.name;
+              tr.querySelector('[data-col="medals"]').textContent = `${g.firsts} / ${g.seconds} / ${g.thirds}`;
+              animateNumericCell(tr.querySelector('[data-col="raw"]'), g.rawMarks, 1, "");
+              animateNumericCell(tr.querySelector('[data-col="pts"]'), g.points, 0, " pts");
+              return g.rank;
+            }
+          );
         }
       }
 
       if (tabChartEl) {
-        tabChartEl.innerHTML = buildGroupChartMarkup(standings, chartType, false);
+        if (chartType === "horizontal" && standings.length > 0) {
+          renderAnimatedHorizontalBars(tabChartEl, standings, false);
+        } else {
+          tabChartEl.innerHTML = buildGroupChartMarkup(standings, chartType, false);
+        }
       }
       if (adminPreviewEl) {
-        adminPreviewEl.innerHTML = buildGroupChartMarkup(standings, chartType, true);
+        if (chartType === "horizontal" && standings.length > 0) {
+          renderAnimatedHorizontalBars(adminPreviewEl, standings, true);
+        } else {
+          adminPreviewEl.innerHTML = buildGroupChartMarkup(standings, chartType, true);
+        }
       }
     };
 
@@ -2020,6 +2558,7 @@
               updatedAt: serverTimestamp()
             });
           } else {
+            const grades = normalizeGradeThresholds(window.state.config);
             await setDoc(eventDocument("settings", "config"), {
               id: "config",
               eventCode: activeEventCode,
@@ -2027,6 +2566,9 @@
               subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
               adminPin: window.state.config.adminPin || DEFAULT_EVENT_PIN,
               chartType,
+              gradeA: grades.gradeA,
+              gradeB: grades.gradeB,
+              gradeC: grades.gradeC,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -2045,6 +2587,7 @@
       const selectedItem = window.state.items.find(it => it.id === itemId);
       const parts = window.state.participants.filter(p => p.itemId === itemId);
       const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
+      const tbody = document.getElementById("leaderboard-body");
 
       // Update Print Header details
       document.getElementById("print-event-title").textContent = selectedItem
@@ -2055,7 +2598,7 @@
         : `Event ${activeEventCode}`;
 
       if (parts.length === 0) {
-        document.getElementById("leaderboard-body").innerHTML = `
+        tbody.innerHTML = `
           <tr>
             <td colspan="8" class="py-8 px-4 text-center text-sm text-stone-500">No participants registered for this event yet.</td>
           </tr>
@@ -2071,34 +2614,83 @@
         const j3 = sc.find(s => s.judgeSlot === "J3")?.total ?? null;
         const vals = [j1, j2, j3].filter(v => v !== null);
         const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-        const grade = avg === null ? "Pending" : avg >= 80 ? "A Grade" : avg >= 70 ? "B Grade" : avg >= 60 ? "C Grade" : "No Grade";
+        const grade = computeGradeFromAverage(avg, window.state.config);
         const groupObj = p.groupId ? groups.find(g => g.id === p.groupId) : null;
         return { p, groupObj, j1, j2, j3, avg, grade };
       }).sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1));
 
       const labels = ["1st", "2nd", "3rd"];
-      document.getElementById("leaderboard-body").innerHTML = rows.map((r, i) => {
-        const groupLabel = r.groupObj?.name || r.p.groupName || "";
-        const groupColor = r.groupObj?.color || "#78716C";
-        return `
-        <tr class="hover:bg-stone-50">
-          <td class="py-3 px-4 font-bold tabular-nums whitespace-nowrap">${r.avg !== null ? (labels[i] || (i + 1) + "th") : "Pending"}</td>
-          <td class="py-3 px-4 font-semibold tabular-nums whitespace-nowrap">#${escapeHtml(r.p.chestNo)}</td>
-          <td class="py-3 px-4">
-            <div class="font-semibold text-stone-900">${escapeHtml(r.p.name)}</div>
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
-              <span>${escapeHtml(r.p.school)}</span>
-              ${groupLabel ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(groupColor)}"></span>${escapeHtml(groupLabel)}</span>` : ""}
-            </div>
-          </td>
-          <td class="py-3 px-4 text-right tabular-nums whitespace-nowrap">${r.j1 ?? "—"}</td>
-          <td class="py-3 px-4 text-right tabular-nums whitespace-nowrap">${r.j2 ?? "—"}</td>
-          <td class="py-3 px-4 text-right tabular-nums whitespace-nowrap">${r.j3 ?? "—"}</td>
-          <td class="py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap">${r.avg !== null ? r.avg.toFixed(2) : "—"}</td>
-          <td class="py-3 px-4 text-right text-xs font-medium text-stone-700 whitespace-nowrap">${escapeHtml(r.grade)}</td>
-        </tr>
-      `;
-      }).join("");
+      let currentRank = 1;
+      let prevAvg = null;
+      rows.forEach((r, idx) => {
+        if (r.avg === null) {
+          r.rankNum = null;
+          r.rankLabel = "Pending";
+        } else {
+          if (idx > 0 && prevAvg !== null && Math.abs(r.avg - prevAvg) > 1e-6) {
+            currentRank = idx + 1;
+          }
+          prevAvg = r.avg;
+          r.rankNum = currentRank;
+          r.rankLabel = labels[currentRank - 1] || `${currentRank}th`;
+        }
+      });
+
+      reconcileAnimatedRows(
+        tbody,
+        rows,
+        (r) => `${itemId}__${r.p.id}`,
+        () => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-stone-50 tab-animated-row";
+          tr.innerHTML = `
+            <td data-col="rank" class="py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition"></td>
+            <td data-col="chest" class="py-3 px-4 font-semibold tabular-nums whitespace-nowrap"></td>
+            <td class="py-3 px-4">
+              <div data-col="name" class="font-semibold text-stone-900"></div>
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
+                <span data-col="school"></span>
+                <span data-col="group" class="hidden items-center gap-1 font-semibold text-stone-700">
+                  <span data-col="group-dot" class="w-2 h-2 rounded-full inline-block"></span>
+                  <span data-col="group-name"></span>
+                </span>
+              </div>
+            </td>
+            <td data-col="j1" class="py-3 px-4 text-right tabular-nums whitespace-nowrap"></td>
+            <td data-col="j2" class="py-3 px-4 text-right tabular-nums whitespace-nowrap"></td>
+            <td data-col="j3" class="py-3 px-4 text-right tabular-nums whitespace-nowrap"></td>
+            <td data-col="avg" class="py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap"></td>
+            <td data-col="grade" class="py-3 px-4 text-right text-xs font-medium text-stone-700 whitespace-nowrap"></td>
+          `;
+          return tr;
+        },
+        (tr, r) => {
+          const groupLabel = r.groupObj?.name || r.p.groupName || "";
+          const groupColor = r.groupObj?.color || "#78716C";
+          tr.querySelector('[data-col="rank"]').textContent = r.rankLabel;
+          tr.querySelector('[data-col="chest"]').textContent = `#${r.p.chestNo}`;
+          tr.querySelector('[data-col="name"]').textContent = r.p.name;
+          tr.querySelector('[data-col="school"]').textContent = r.p.school;
+
+          const grpWrap = tr.querySelector('[data-col="group"]');
+          if (groupLabel) {
+            grpWrap.classList.remove("hidden");
+            grpWrap.classList.add("inline-flex");
+            tr.querySelector('[data-col="group-dot"]').style.backgroundColor = groupColor;
+            tr.querySelector('[data-col="group-name"]').textContent = groupLabel;
+          } else {
+            grpWrap.classList.add("hidden");
+            grpWrap.classList.remove("inline-flex");
+          }
+
+          animateNumericCell(tr.querySelector('[data-col="j1"]'), r.j1, 0, "");
+          animateNumericCell(tr.querySelector('[data-col="j2"]'), r.j2, 0, "");
+          animateNumericCell(tr.querySelector('[data-col="j3"]'), r.j3, 0, "");
+          animateNumericCell(tr.querySelector('[data-col="avg"]'), r.avg, 2, "");
+          tr.querySelector('[data-col="grade"]').textContent = r.grade;
+          return r.rankNum;
+        }
+      );
 
       window.renderGroupStandings();
     };
@@ -2139,21 +2731,92 @@
         }
       }
 
-      itemsCount.textContent = `${window.state.items.length} ${window.state.items.length === 1 ? "item" : "items"}`;
-      if (window.state.items.length === 0) {
+      const searchTerm = (document.getElementById("admin-items-search")?.value || "").trim();
+      const searchLower = searchTerm.toLowerCase();
+      const clearBtn = document.getElementById("admin-items-search-clear");
+      if (clearBtn) clearBtn.classList.toggle("hidden", searchTerm.length === 0);
+
+      const totalItems = window.state.items.length;
+      const filteredItems = searchLower
+        ? window.state.items.filter(it =>
+            String(it.name || "").toLowerCase().includes(searchLower) ||
+            String(it.malayalamName || "").toLowerCase().includes(searchLower) ||
+            String(it.category || "").toLowerCase().includes(searchLower) ||
+            String(it.stage || "").toLowerCase().includes(searchLower)
+          )
+        : window.state.items;
+
+      itemsCount.textContent = searchTerm
+        ? `${filteredItems.length} of ${totalItems} ${totalItems === 1 ? "item" : "items"}`
+        : `${totalItems} ${totalItems === 1 ? "item" : "items"}`;
+
+      if (totalItems === 0) {
         itemsList.innerHTML = `<div class="p-5 text-sm text-stone-500">No competition items added yet.</div>`;
-      } else {
-        itemsList.innerHTML = window.state.items.map(it => `
-          <div class="px-5 py-3 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              <div class="text-sm font-semibold text-stone-900 truncate">${escapeHtml(it.name)}${it.malayalamName ? " · " + escapeHtml(it.malayalamName) : ""}</div>
-              <div class="text-xs text-stone-500">${escapeHtml(it.category)} · ${escapeHtml(it.stage)}</div>
-            </div>
-            <button type="button" onclick="handleDeleteItem('${escapeHtml(it.id)}')" class="px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors whitespace-nowrap shrink-0">
-              Delete
-            </button>
+      } else if (filteredItems.length === 0) {
+        itemsList.innerHTML = `
+          <div class="p-5 flex flex-wrap items-center justify-between gap-2 text-sm text-stone-500">
+            <span>No competition items matching "<span class="font-semibold text-stone-800">${escapeHtml(searchTerm)}</span>".</span>
+            <button type="button" onclick="clearAdminItemsSearch()" class="text-xs font-semibold text-amber-800 hover:underline">Clear search</button>
           </div>
-        `).join("");
+        `;
+      } else {
+        itemsList.innerHTML = filteredItems.map(it => {
+          if (editingAdminItemId === it.id) {
+            return `
+              <form onsubmit="handleSaveEditItem(event, '${escapeHtml(it.id)}')" class="px-5 py-3.5 bg-amber-50/40 space-y-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Item Name</label>
+                    <input id="edit-item-name-${escapeHtml(it.id)}" type="text" required maxlength="120" value="${escapeHtml(it.name)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Malayalam Name</label>
+                    <input id="edit-item-ml-${escapeHtml(it.id)}" type="text" maxlength="120" value="${escapeHtml(it.malayalamName || "")}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Category</label>
+                    <select id="edit-item-cat-${escapeHtml(it.id)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600">
+                      <option value="High School" ${it.category === "High School" ? "selected" : ""}>High School</option>
+                      <option value="Higher Secondary" ${it.category === "Higher Secondary" ? "selected" : ""}>Higher Secondary</option>
+                      <option value="Sub-Junior" ${it.category === "Sub-Junior" ? "selected" : ""}>Sub-Junior</option>
+                      <option value="General" ${it.category === "General" ? "selected" : ""}>General</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Stage</label>
+                    <input id="edit-item-stage-${escapeHtml(it.id)}" type="text" required maxlength="60" value="${escapeHtml(it.stage)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-1">
+                  <button type="button" onclick="cancelEditItem()" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-md hover:bg-stone-50 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" class="px-3 py-1 text-xs font-semibold text-white bg-stone-900 rounded-md hover:bg-stone-800 transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            `;
+          }
+          return `
+            <div class="px-5 py-3 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold text-stone-900 truncate">${escapeHtml(it.name)}${it.malayalamName ? " · " + escapeHtml(it.malayalamName) : ""}</div>
+                <div class="text-xs text-stone-500">${escapeHtml(it.category)} · ${escapeHtml(it.stage)}</div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="startEditItem('${escapeHtml(it.id)}')" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors whitespace-nowrap">
+                  Edit
+                </button>
+                <button type="button" onclick="handleDeleteItem('${escapeHtml(it.id)}')" class="px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors whitespace-nowrap">
+                  Delete
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
       }
 
       partsCount.textContent = `${window.state.participants.length} ${window.state.participants.length === 1 ? "entry" : "entries"}`;
@@ -2366,6 +3029,9 @@
           subtitle: DEFAULT_SUBTITLE,
           adminPin: initialPin,
           chartType: "bar",
+          gradeA: DEFAULT_GRADE_A,
+          gradeB: DEFAULT_GRADE_B,
+          gradeC: DEFAULT_GRADE_C,
           authorId: currentUser?.uid || null
         },
         groups: [],
@@ -2386,6 +3052,9 @@
             subtitle: DEFAULT_SUBTITLE,
             adminPin: initialPin,
             chartType: "bar",
+            gradeA: DEFAULT_GRADE_A,
+            gradeB: DEFAULT_GRADE_B,
+            gradeC: DEFAULT_GRADE_C,
             authorId: currentUser.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -2408,6 +3077,7 @@
       const subtitle = document.getElementById("admin-brand-subtitle").value.trim();
       const chartType = normalizeChartType(window.state.config?.chartType);
       const adminPin = window.state.config?.adminPin || DEFAULT_EVENT_PIN;
+      const grades = normalizeGradeThresholds(window.state.config);
 
       const existingAuthorId = window.state.config?.authorId || null;
       window.state.config = {
@@ -2415,6 +3085,7 @@
         subtitle,
         adminPin,
         chartType,
+        ...grades,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
@@ -2430,6 +3101,9 @@
               subtitle,
               adminPin,
               chartType,
+              gradeA: grades.gradeA,
+              gradeB: grades.gradeB,
+              gradeC: grades.gradeC,
               updatedAt: serverTimestamp()
             });
           } else {
@@ -2440,6 +3114,9 @@
               subtitle,
               adminPin,
               chartType,
+              gradeA: grades.gradeA,
+              gradeB: grades.gradeB,
+              gradeC: grades.gradeC,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -2473,12 +3150,14 @@
       const title = window.state.config?.title || activeEventCode;
       const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
       const chartType = normalizeChartType(window.state.config?.chartType);
+      const grades = normalizeGradeThresholds(window.state.config);
 
       window.state.config = {
         title,
         subtitle,
         adminPin: newPin,
         chartType,
+        ...grades,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
@@ -2504,6 +3183,9 @@
               subtitle,
               adminPin: newPin,
               chartType,
+              gradeA: grades.gradeA,
+              gradeB: grades.gradeB,
+              gradeC: grades.gradeC,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -2520,6 +3202,113 @@
       }
 
       window.showToast(`Updated Admin PIN for ${activeEventCode}`);
+    };
+
+    async function persistGradeThresholds(thresholds, toastMessage) {
+      if (!activeEventCode) return;
+      const existingAuthorId = window.state.config?.authorId || null;
+      const title = window.state.config?.title || activeEventCode;
+      const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
+      const adminPin = window.state.config?.adminPin || DEFAULT_EVENT_PIN;
+      const chartType = normalizeChartType(window.state.config?.chartType);
+
+      window.state.config = {
+        title,
+        subtitle,
+        adminPin,
+        chartType,
+        gradeA: thresholds.gradeA,
+        gradeB: thresholds.gradeB,
+        gradeC: thresholds.gradeC,
+        authorId: existingAuthorId || currentUser?.uid || null
+      };
+      saveLocalState();
+      applyBrandingUI();
+      window.renderTabulation();
+
+      if (currentUser) {
+        const submitBtn = document.getElementById("admin-save-grades-btn");
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Saving...";
+        }
+        try {
+          if (existingAuthorId) {
+            await updateDoc(eventDocument("settings", "config"), {
+              gradeA: thresholds.gradeA,
+              gradeB: thresholds.gradeB,
+              gradeC: thresholds.gradeC,
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(eventDocument("settings", "config"), {
+              id: "config",
+              eventCode: activeEventCode,
+              title,
+              subtitle,
+              adminPin,
+              chartType,
+              gradeA: thresholds.gradeA,
+              gradeB: thresholds.gradeB,
+              gradeC: thresholds.gradeC,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            window.state.config.authorId = currentUser.uid;
+            saveLocalState();
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Save Grade Rules";
+          }
+        }
+      }
+
+      window.showToast(toastMessage);
+    }
+
+    window.handleSaveGradeThresholds = async (e) => {
+      e.preventDefault();
+      if (!activeEventCode) return;
+      const rawA = document.getElementById("admin-grade-a")?.value;
+      const rawB = document.getElementById("admin-grade-b")?.value;
+      const rawC = document.getElementById("admin-grade-c")?.value;
+      const errEl = document.getElementById("admin-grade-error");
+
+      const check = validateGradeThresholds(rawA, rawB, rawC);
+      if (!check.valid) {
+        if (errEl) {
+          errEl.textContent = check.error;
+          errEl.classList.remove("hidden");
+        }
+        return;
+      }
+
+      window.hideGradeThresholdError();
+      const { gradeA, gradeB, gradeC } = check.thresholds;
+      await persistGradeThresholds(
+        check.thresholds,
+        `Saved ${activeEventCode} grading rules: A ≥ ${gradeA}%, B ≥ ${gradeB}%, C ≥ ${gradeC}%`
+      );
+    };
+
+    window.resetGradeThresholds = async () => {
+      if (!activeEventCode) return;
+      window.hideGradeThresholdError();
+      const gradeAInput = document.getElementById("admin-grade-a");
+      const gradeBInput = document.getElementById("admin-grade-b");
+      const gradeCInput = document.getElementById("admin-grade-c");
+      if (gradeAInput) gradeAInput.value = DEFAULT_GRADE_A;
+      if (gradeBInput) gradeBInput.value = DEFAULT_GRADE_B;
+      if (gradeCInput) gradeCInput.value = DEFAULT_GRADE_C;
+      await persistGradeThresholds(
+        { gradeA: DEFAULT_GRADE_A, gradeB: DEFAULT_GRADE_B, gradeC: DEFAULT_GRADE_C },
+        `Reset ${activeEventCode} grading thresholds to defaults (80% / 70% / 60%)`
+      );
     };
 
     window.handleAddGroup = async (e) => {
@@ -2662,8 +3451,575 @@
       }
     };
 
+    // CSV Bulk Import (Competition Items & Participant Chest Numbers scoped to activeEventCode)
+    let pendingCsvState = {
+      mode: "participants",
+      rawText: "",
+      fileName: "",
+      itemsToCreate: [],
+      groupsToCreate: [],
+      participantsToCreate: [],
+      warnings: []
+    };
+
+    function parseCsvText(text) {
+      const cleaned = String(text || "").replace(/^\uFEFF/, "");
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < cleaned.length; i++) {
+        const ch = cleaned[i];
+        const next = cleaned[i + 1];
+        if (inQuotes) {
+          if (ch === '"' && next === '"') {
+            field += '"';
+            i++;
+          } else if (ch === '"') {
+            inQuotes = false;
+          } else {
+            field += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+          } else if (ch === ",") {
+            row.push(field.trim());
+            field = "";
+          } else if (ch === "\r" && next === "\n") {
+            row.push(field.trim());
+            if (row.some(cell => cell !== "")) rows.push(row);
+            row = [];
+            field = "";
+            i++;
+          } else if (ch === "\n" || ch === "\r") {
+            row.push(field.trim());
+            if (row.some(cell => cell !== "")) rows.push(row);
+            row = [];
+            field = "";
+          } else {
+            field += ch;
+          }
+        }
+      }
+      row.push(field.trim());
+      if (row.some(cell => cell !== "")) rows.push(row);
+      return rows;
+    }
+
+    function normalizeHeaderKey(header) {
+      return String(header || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function normalizeItemCategory(raw) {
+      const val = String(raw || "").trim().toLowerCase();
+      if (val === "high school" || val === "hs") return "High School";
+      if (val === "higher secondary" || val === "hss") return "Higher Secondary";
+      if (val === "sub-junior" || val === "sub junior" || val === "subjunior" || val === "sj") return "Sub-Junior";
+      return "General";
+    }
+
+    function sanitizeChestNo(raw) {
+      return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20);
+    }
+
+    function findColIndex(headers, aliases) {
+      for (const alias of aliases) {
+        const idx = headers.indexOf(alias);
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+
+    function showCsvError(msg) {
+      const errEl = document.getElementById("csv-error-banner");
+      if (!errEl) return;
+      errEl.textContent = msg;
+      errEl.classList.remove("hidden");
+    }
+
+    function hideCsvBanners() {
+      const errEl = document.getElementById("csv-error-banner");
+      const resEl = document.getElementById("csv-result-banner");
+      if (errEl) errEl.classList.add("hidden");
+      if (resEl) resEl.classList.add("hidden");
+    }
+
+    window.handleCsvModeChange = () => {
+      const mode = document.getElementById("csv-import-mode")?.value || "participants";
+      const hintEl = document.getElementById("csv-format-hint");
+      const autoWrap = document.getElementById("csv-auto-create-wrap");
+      if (hintEl) {
+        hintEl.innerHTML = mode === "items"
+          ? `Expected columns: <span class="font-semibold text-stone-900">Item Name, Malayalam Name, Category, Stage</span> (Category: High School, Higher Secondary, Sub-Junior, or General).`
+          : `Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name, School</span> (optional: <span class="font-medium text-stone-800">Group, Category, Stage, Malayalam Name</span>).`;
+      }
+      if (autoWrap) {
+        autoWrap.classList.toggle("hidden", mode === "items");
+      }
+      if (pendingCsvState.rawText) {
+        window.reparseActiveCsv();
+      }
+    };
+
+    window.downloadCsvTemplate = (type) => {
+      const content = type === "items"
+        ? [
+            "Item Name,Malayalam Name,Category,Stage",
+            "Bharatanatyam,ഭരതനാട്യം,High School,Stage 1 — Nila",
+            "Mohiniyattam,മോഹിനിയാട്ടം,Higher Secondary,Stage 2 — Periyar",
+            "Mappilappattu,മാപ്പിളപ്പാട്ട്,General,Stage 3 — Kabani"
+          ].join("\n")
+        : [
+            "Item Name,Chest No,Participant Name,School,Group,Category,Stage",
+            "Bharatanatyam,101,Meenakshi S. Nair,\"Providence Girls HSS, Kozhikode\",Red House,High School,Stage 1 — Nila",
+            "Bharatanatyam,102,Devika R. Menon,\"Sacred Heart CGHSS, Thrissur\",Blue House,High School,Stage 1 — Nila",
+            "Mohiniyattam,201,Parvathy Warrier,\"St. Teresa's CGHSS, Ernakulam\",Green House,Higher Secondary,Stage 2 — Periyar"
+          ].join("\n");
+      const blob = new Blob(["\uFEFF" + content], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = type === "items" ? "competition_items_template.csv" : "participants_chest_numbers_template.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    window.clearCsvImport = () => {
+      pendingCsvState = {
+        mode: document.getElementById("csv-import-mode")?.value || "participants",
+        rawText: "",
+        fileName: "",
+        itemsToCreate: [],
+        groupsToCreate: [],
+        participantsToCreate: [],
+        warnings: []
+      };
+      const fileInput = document.getElementById("csv-file-input");
+      if (fileInput) fileInput.value = "";
+      document.getElementById("csv-clear-btn")?.classList.add("hidden");
+      document.getElementById("csv-preview-box")?.classList.add("hidden");
+      hideCsvBanners();
+    };
+
+    window.handleCsvFileSelect = async (e) => {
+      const file = e.target?.files?.[0];
+      hideCsvBanners();
+      if (!file) {
+        window.clearCsvImport();
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        showCsvError("CSV file exceeds the 2 MB limit. Please split it into smaller batches.");
+        return;
+      }
+      try {
+        const text = await file.text();
+        pendingCsvState.rawText = text;
+        pendingCsvState.fileName = file.name;
+        document.getElementById("csv-clear-btn")?.classList.remove("hidden");
+        window.reparseActiveCsv();
+      } catch {
+        showCsvError("Could not read the selected CSV file.");
+      }
+    };
+
+    window.reparseActiveCsv = () => {
+      hideCsvBanners();
+      const previewBox = document.getElementById("csv-preview-box");
+      const previewSummary = document.getElementById("csv-preview-summary");
+      const previewWarnings = document.getElementById("csv-preview-warnings");
+      const previewHead = document.getElementById("csv-preview-head");
+      const previewBody = document.getElementById("csv-preview-body");
+      const submitBtn = document.getElementById("csv-import-submit-btn");
+
+      if (!pendingCsvState.rawText) {
+        previewBox?.classList.add("hidden");
+        return;
+      }
+
+      const mode = document.getElementById("csv-import-mode")?.value || "participants";
+      const autoCreate = document.getElementById("csv-auto-create-missing")?.checked !== false;
+      const rows = parseCsvText(pendingCsvState.rawText);
+
+      if (rows.length < 2) {
+        previewBox?.classList.add("hidden");
+        showCsvError("CSV must contain a header row and at least one data row.");
+        return;
+      }
+
+      const headers = rows[0].map(normalizeHeaderKey);
+      const baseTs = Date.now();
+      const warnings = [];
+      const itemsToCreate = [];
+      const groupsToCreate = [];
+      const participantsToCreate = [];
+
+      if (mode === "items") {
+        const nameIdx = findColIndex(headers, ["itemname", "name", "item", "competitionitem", "event", "eventname"]);
+        const mlIdx = findColIndex(headers, ["malayalamname", "malayalam", "mlname", "itemml"]);
+        const catIdx = findColIndex(headers, ["category", "cat", "division"]);
+        const stageIdx = findColIndex(headers, ["stage", "venue", "stagevenue"]);
+
+        if (nameIdx === -1) {
+          previewBox?.classList.add("hidden");
+          showCsvError('CSV header must include an "Item Name" (or "Name") column.');
+          return;
+        }
+
+        const knownItemKeys = new Set(
+          (window.state.items || []).map(it => `${it.name.trim().toLowerCase()}__${it.category.trim().toLowerCase()}`)
+        );
+
+        rows.slice(1).forEach((cols, rIdx) => {
+          const lineNum = rIdx + 2;
+          const name = String(cols[nameIdx] || "").trim().slice(0, 120);
+          if (!name) {
+            warnings.push(`Row ${lineNum}: Missing item name — skipped.`);
+            return;
+          }
+          const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").trim().slice(0, 120) : "";
+          const category = catIdx !== -1 ? normalizeItemCategory(cols[catIdx]) : "General";
+          const stageRaw = stageIdx !== -1 ? String(cols[stageIdx] || "").trim() : "";
+          const stage = (stageRaw || "Stage 1 — Nila").slice(0, 60);
+          const dedupeKey = `${name.toLowerCase()}__${category.toLowerCase()}`;
+
+          if (knownItemKeys.has(dedupeKey)) {
+            warnings.push(`Row ${lineNum}: "${name}" (${category}) already exists — skipped.`);
+            return;
+          }
+          knownItemKeys.add(dedupeKey);
+          itemsToCreate.push({
+            id: `item_csv_${baseTs}_${itemsToCreate.length}`,
+            name,
+            malayalamName,
+            category,
+            stage
+          });
+        });
+
+        previewHead.innerHTML = `<tr><th class="py-2 px-3">Item Name</th><th class="py-2 px-3">Malayalam</th><th class="py-2 px-3">Category</th><th class="py-2 px-3">Stage</th></tr>`;
+        previewBody.innerHTML = itemsToCreate.slice(0, 8).map(it => `
+          <tr>
+            <td class="py-2 px-3 font-semibold text-stone-900">${escapeHtml(it.name)}</td>
+            <td class="py-2 px-3 text-stone-600">${escapeHtml(it.malayalamName || "—")}</td>
+            <td class="py-2 px-3 text-stone-700">${escapeHtml(it.category)}</td>
+            <td class="py-2 px-3 text-stone-600">${escapeHtml(it.stage)}</td>
+          </tr>
+        `).join("") || `<tr><td colspan="4" class="py-4 px-3 text-center text-stone-500">No new items to import.</td></tr>`;
+
+        previewSummary.textContent = `${pendingCsvState.fileName}: ${itemsToCreate.length} new competition ${itemsToCreate.length === 1 ? "item" : "items"} ready${warnings.length ? ` · ${warnings.length} skipped` : ""}`;
+        submitBtn.disabled = itemsToCreate.length === 0;
+        submitBtn.textContent = `Import ${itemsToCreate.length} ${itemsToCreate.length === 1 ? "Item" : "Items"} to ${activeEventCode}`;
+      } else {
+        const itemIdx = findColIndex(headers, ["itemname", "item", "competitionitem", "event", "eventname", "itemid"]);
+        const chestIdx = findColIndex(headers, ["chestno", "chestnumber", "chest", "bib", "code"]);
+        const nameIdx = findColIndex(headers, ["participantname", "name", "studentname", "contestant"]);
+        const schoolIdx = findColIndex(headers, ["school", "institution", "college", "schoolinstitution"]);
+        const groupIdx = findColIndex(headers, ["group", "groupname", "house", "team"]);
+        const catIdx = findColIndex(headers, ["category", "cat", "division"]);
+        const stageIdx = findColIndex(headers, ["stage", "venue"]);
+        const mlIdx = findColIndex(headers, ["malayalamname", "malayalam", "mlname"]);
+
+        if (itemIdx === -1 || chestIdx === -1 || nameIdx === -1 || schoolIdx === -1) {
+          previewBox?.classList.add("hidden");
+          showCsvError('CSV header must include "Item Name", "Chest No", "Participant Name", and "School" columns.');
+          return;
+        }
+
+        const itemLookup = new Map();
+        (window.state.items || []).forEach(it => {
+          itemLookup.set(it.id.toLowerCase(), it);
+          itemLookup.set(it.name.trim().toLowerCase(), it);
+        });
+
+        const groupLookup = new Map();
+        const combinedGroups = [...(window.state.groups || [])];
+        combinedGroups.forEach(g => {
+          groupLookup.set(g.id.toLowerCase(), g);
+          groupLookup.set(g.name.trim().toLowerCase(), g);
+        });
+
+        const existingChestByItem = new Set(
+          (window.state.participants || []).map(p => `${p.itemId}__${String(p.chestNo).trim().toUpperCase()}`)
+        );
+
+        rows.slice(1).forEach((cols, rIdx) => {
+          const lineNum = rIdx + 2;
+          const rawItem = String(cols[itemIdx] || "").trim().slice(0, 120);
+          const chestNo = sanitizeChestNo(cols[chestIdx]);
+          const partName = String(cols[nameIdx] || "").trim().slice(0, 120);
+          const school = String(cols[schoolIdx] || "").trim().slice(0, 160);
+          const rawGroup = groupIdx !== -1 ? String(cols[groupIdx] || "").trim().slice(0, 80) : "";
+
+          if (!rawItem || !chestNo || !partName || !school) {
+            warnings.push(`Row ${lineNum}: Missing Item, valid Chest No (A-Z/0-9/-), Name, or School — skipped.`);
+            return;
+          }
+
+          let itemObj = itemLookup.get(rawItem.toLowerCase());
+          if (!itemObj) {
+            if (!autoCreate) {
+              warnings.push(`Row ${lineNum}: Item "${rawItem}" does not exist in ${activeEventCode} — skipped.`);
+              return;
+            }
+            const category = catIdx !== -1 ? normalizeItemCategory(cols[catIdx]) : "General";
+            const stage = (stageIdx !== -1 ? String(cols[stageIdx] || "").trim() : "") || "Stage 1 — Nila";
+            const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").trim().slice(0, 120) : "";
+            itemObj = {
+              id: `item_csv_${baseTs}_${itemsToCreate.length}`,
+              name: rawItem,
+              malayalamName,
+              category,
+              stage: stage.slice(0, 60)
+            };
+            itemsToCreate.push(itemObj);
+            itemLookup.set(itemObj.id.toLowerCase(), itemObj);
+            itemLookup.set(itemObj.name.toLowerCase(), itemObj);
+          }
+
+          const chestKey = `${itemObj.id}__${chestNo}`;
+          if (existingChestByItem.has(chestKey)) {
+            warnings.push(`Row ${lineNum}: Chest #${chestNo} is already registered for "${itemObj.name}" — skipped.`);
+            return;
+          }
+          existingChestByItem.add(chestKey);
+
+          let groupId = "";
+          let groupName = "";
+          if (rawGroup) {
+            let grpObj = groupLookup.get(rawGroup.toLowerCase());
+            if (!grpObj && autoCreate) {
+              grpObj = {
+                id: `grp_csv_${baseTs}_${groupsToCreate.length}`,
+                name: rawGroup,
+                color: resolveGroupColor(rawGroup, combinedGroups)
+              };
+              groupsToCreate.push(grpObj);
+              combinedGroups.push(grpObj);
+              groupLookup.set(grpObj.id.toLowerCase(), grpObj);
+              groupLookup.set(grpObj.name.toLowerCase(), grpObj);
+            }
+            if (grpObj) {
+              groupId = grpObj.id;
+              groupName = grpObj.name;
+            } else {
+              warnings.push(`Row ${lineNum}: Group "${rawGroup}" not found; imported as Unassigned.`);
+            }
+          }
+
+          participantsToCreate.push({
+            id: `part_csv_${baseTs}_${participantsToCreate.length}`,
+            itemId: itemObj.id,
+            itemName: itemObj.name,
+            chestNo,
+            name: partName,
+            school,
+            groupId,
+            groupName
+          });
+        });
+
+        previewHead.innerHTML = `<tr><th class="py-2 px-3">Chest No</th><th class="py-2 px-3">Item</th><th class="py-2 px-3">Participant</th><th class="py-2 px-3">School</th><th class="py-2 px-3">Group</th></tr>`;
+        previewBody.innerHTML = participantsToCreate.slice(0, 8).map(p => `
+          <tr>
+            <td class="py-2 px-3 font-bold tabular-nums text-amber-800">#${escapeHtml(p.chestNo)}</td>
+            <td class="py-2 px-3 font-medium text-stone-800">${escapeHtml(p.itemName)}</td>
+            <td class="py-2 px-3 font-semibold text-stone-900">${escapeHtml(p.name)}</td>
+            <td class="py-2 px-3 text-stone-600">${escapeHtml(p.school)}</td>
+            <td class="py-2 px-3 text-stone-700">${escapeHtml(p.groupName || "Unassigned")}</td>
+          </tr>
+        `).join("") || `<tr><td colspan="5" class="py-4 px-3 text-center text-stone-500">No new participants to import.</td></tr>`;
+
+        const extras = [
+          itemsToCreate.length ? `${itemsToCreate.length} new items` : "",
+          groupsToCreate.length ? `${groupsToCreate.length} new groups` : ""
+        ].filter(Boolean).join(", ");
+        previewSummary.textContent = `${pendingCsvState.fileName}: ${participantsToCreate.length} participants ready${extras ? ` (+ ${extras})` : ""}${warnings.length ? ` · ${warnings.length} notes` : ""}`;
+        submitBtn.disabled = participantsToCreate.length === 0;
+        submitBtn.textContent = `Import ${participantsToCreate.length} ${participantsToCreate.length === 1 ? "Entry" : "Entries"} to ${activeEventCode}`;
+      }
+
+      if (warnings.length > 0) {
+        const shown = warnings.slice(0, 5).map(w => `<div>• ${escapeHtml(w)}</div>`).join("");
+        const extraMsg = warnings.length > 5 ? `<div>… and ${warnings.length - 5} more rows skipped/noted.</div>` : "";
+        previewWarnings.innerHTML = shown + extraMsg;
+        previewWarnings.classList.remove("hidden");
+      } else {
+        previewWarnings.classList.add("hidden");
+      }
+
+      pendingCsvState.mode = mode;
+      pendingCsvState.itemsToCreate = itemsToCreate;
+      pendingCsvState.groupsToCreate = groupsToCreate;
+      pendingCsvState.participantsToCreate = participantsToCreate;
+      pendingCsvState.warnings = warnings;
+      previewBox?.classList.remove("hidden");
+    };
+
+    async function commitBatchOperations(ops) {
+      const CHUNK_SIZE = 400;
+      for (let i = 0; i < ops.length; i += CHUNK_SIZE) {
+        const chunk = ops.slice(i, i + CHUNK_SIZE);
+        const batch = writeBatch(db);
+        chunk.forEach(op => batch.set(op.ref, op.data));
+        await batch.commit();
+      }
+    }
+
+    window.executeCsvImport = async () => {
+      if (!activeEventCode) return;
+      const { itemsToCreate, groupsToCreate, participantsToCreate } = pendingCsvState;
+      if (itemsToCreate.length === 0 && participantsToCreate.length === 0) return;
+
+      const submitBtn = document.getElementById("csv-import-submit-btn");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Importing...";
+      }
+
+      const cleanParticipants = participantsToCreate.map(({ itemName, ...rest }) => rest);
+
+      // Update local state immediately scoped to activeEventCode
+      window.state.groups = [...(window.state.groups || []), ...groupsToCreate];
+      window.state.items = [...(window.state.items || []), ...itemsToCreate];
+      window.state.participants = [...(window.state.participants || []), ...cleanParticipants];
+      saveLocalState();
+      window.refreshAllSelects();
+
+      if (currentUser) {
+        try {
+          // Phase 1: Commit prerequisite groups and competition items first so Firestore rules exists() checks succeed
+          const prereqOps = [
+            ...groupsToCreate.map(g => ({
+              ref: eventDocument("groups", g.id),
+              data: { ...g, authorId: currentUser.uid, createdAt: serverTimestamp() }
+            })),
+            ...itemsToCreate.map(it => ({
+              ref: eventDocument("items", it.id),
+              data: { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() }
+            }))
+          ];
+          if (prereqOps.length > 0) {
+            await commitBatchOperations(prereqOps);
+          }
+
+          // Phase 2: Commit participants
+          const participantOps = cleanParticipants.map(p => ({
+            ref: eventDocument("participants", p.id),
+            data: { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() }
+          }));
+          if (participantOps.length > 0) {
+            await commitBatchOperations(participantOps);
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${activeEventCode}/csv-import`);
+        }
+      }
+
+      const summaryParts = [];
+      if (itemsToCreate.length) summaryParts.push(`${itemsToCreate.length} ${itemsToCreate.length === 1 ? "item" : "items"}`);
+      if (groupsToCreate.length) summaryParts.push(`${groupsToCreate.length} ${groupsToCreate.length === 1 ? "group" : "groups"}`);
+      if (cleanParticipants.length) summaryParts.push(`${cleanParticipants.length} ${cleanParticipants.length === 1 ? "participant" : "participants"}`);
+      const summaryText = `Imported ${summaryParts.join(", ")} into ${activeEventCode}.`;
+
+      window.clearCsvImport();
+      const resEl = document.getElementById("csv-result-banner");
+      if (resEl) {
+        resEl.textContent = summaryText;
+        resEl.classList.remove("hidden");
+      }
+      window.showToast(summaryText);
+    };
+
+    window.handleAdminItemsSearch = () => {
+      window.renderAdminLists();
+    };
+
+    window.clearAdminItemsSearch = () => {
+      const searchEl = document.getElementById("admin-items-search");
+      if (searchEl) searchEl.value = "";
+      window.renderAdminLists();
+      if (searchEl) searchEl.focus();
+    };
+
+    window.resetAdminItemsFilterAndEdit = () => {
+      editingAdminItemId = null;
+      const searchEl = document.getElementById("admin-items-search");
+      if (searchEl) searchEl.value = "";
+    };
+
+    window.startEditItem = (itemId) => {
+      editingAdminItemId = itemId;
+      window.renderAdminLists();
+      const input = document.getElementById(`edit-item-name-${itemId}`);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    };
+
+    window.cancelEditItem = () => {
+      editingAdminItemId = null;
+      window.renderAdminLists();
+    };
+
+    window.handleSaveEditItem = async (e, itemId) => {
+      e.preventDefault();
+      if (!activeEventCode) return;
+      const existingItem = window.state.items.find(it => it.id === itemId);
+      if (!existingItem) return;
+
+      const name = (document.getElementById(`edit-item-name-${itemId}`)?.value || "").trim().slice(0, 120);
+      const malayalamName = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim().slice(0, 120);
+      const category = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || existingItem.category);
+      const stage = ((document.getElementById(`edit-item-stage-${itemId}`)?.value || "").trim() || existingItem.stage || "Stage 1 — Nila").slice(0, 60);
+
+      if (!name || !stage) {
+        window.showToast("Item name and stage are required");
+        return;
+      }
+
+      const updatedItem = { ...existingItem, name, malayalamName, category, stage };
+      window.state.items = window.state.items.map(it => it.id === itemId ? updatedItem : it);
+      editingAdminItemId = null;
+      saveLocalState();
+      window.refreshAllSelects();
+      window.showToast(`Updated "${name}"`);
+
+      if (currentUser) {
+        try {
+          if (existingItem.authorId) {
+            await updateDoc(eventDocument("items", itemId), {
+              name,
+              malayalamName,
+              category,
+              stage
+            });
+          } else {
+            await setDoc(eventDocument("items", itemId), {
+              id: itemId,
+              name,
+              malayalamName,
+              category,
+              stage,
+              maxMarks: 100,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp()
+            });
+          }
+        } catch (err) {
+          handleFirestoreError(err, "update", `events/${activeEventCode}/items/${itemId}`);
+        }
+      }
+    };
+
     window.handleDeleteItem = async (itemId) => {
       if (!activeEventCode) return;
+      if (editingAdminItemId === itemId) editingAdminItemId = null;
       const removedScores = window.state.scores.filter(s => s.itemId === itemId);
       const removedParts = window.state.participants.filter(p => p.itemId === itemId);
       window.state.items = window.state.items.filter(it => it.id !== itemId);
