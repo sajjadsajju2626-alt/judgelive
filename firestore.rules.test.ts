@@ -356,20 +356,39 @@ function evaluateCreateEventConfig(
   incoming: Record<string, unknown>
 ): 'ALLOW' | 'PERMISSION_DENIED' {
   const reqKeys = ['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt'];
+  const allowedKeys = [...reqKeys, 'chartType'];
   if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
   if (!isValidEventCode(eventCode) || !isValidId(settingId)) return 'PERMISSION_DENIED';
-  if (!hasExactKeys(incoming, reqKeys, reqKeys)) return 'PERMISSION_DENIED';
+  if (!hasExactKeys(incoming, reqKeys, allowedKeys)) return 'PERMISSION_DENIED';
   if (incoming.id !== 'config' || incoming.id !== settingId) return 'PERMISSION_DENIED';
   if (incoming.eventCode !== eventCode) return 'PERMISSION_DENIED';
   if (typeof incoming.title !== 'string' || incoming.title.length < 1 || incoming.title.length > 120) return 'PERMISSION_DENIED';
   if (typeof incoming.subtitle !== 'string' || incoming.subtitle.length > 160) return 'PERMISSION_DENIED';
   if (typeof incoming.adminPin !== 'string' || incoming.adminPin.length < 4 || incoming.adminPin.length > 16 || !/^[a-zA-Z0-9_\-]+$/.test(incoming.adminPin)) return 'PERMISSION_DENIED';
+  if ('chartType' in incoming && !['bar', 'horizontal', 'doughnut'].includes(String(incoming.chartType))) return 'PERMISSION_DENIED';
   if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
   if (incoming.createdAt !== REQUEST_TIME || incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
   return 'ALLOW';
 }
 
-test('EventConfig rule enforces custom adminPin length, pattern, and eventCode match', () => {
+function evaluateCreateGroup(
+  auth: AuthContext | null,
+  groupId: string,
+  incoming: Record<string, unknown>
+): 'ALLOW' | 'PERMISSION_DENIED' {
+  const reqKeys = ['id', 'name', 'color', 'authorId', 'createdAt'];
+  if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
+  if (!isValidId(groupId)) return 'PERMISSION_DENIED';
+  if (!hasExactKeys(incoming, reqKeys, reqKeys)) return 'PERMISSION_DENIED';
+  if (incoming.id !== groupId || typeof incoming.id !== 'string' || incoming.id.length > 64) return 'PERMISSION_DENIED';
+  if (typeof incoming.name !== 'string' || incoming.name.length < 1 || incoming.name.length > 80) return 'PERMISSION_DENIED';
+  if (typeof incoming.color !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(incoming.color)) return 'PERMISSION_DENIED';
+  if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
+  if (incoming.createdAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
+  return 'ALLOW';
+}
+
+test('EventConfig rule enforces custom adminPin and chartType enum', () => {
   const shortPin = evaluateCreateEventConfig(verifiedUserA, 'CAMPUS02', 'config', {
     id: 'config',
     eventCode: 'CAMPUS02',
@@ -382,12 +401,26 @@ test('EventConfig rule enforces custom adminPin length, pattern, and eventCode m
   });
   assert.equal(shortPin, 'PERMISSION_DENIED');
 
+  const invalidChart = evaluateCreateEventConfig(verifiedUserA, 'CAMPUS02', 'config', {
+    id: 'config',
+    eventCode: 'CAMPUS02',
+    title: 'Markaz Arts Fest 2026',
+    subtitle: 'Campus Auditorium',
+    adminPin: '2026',
+    chartType: 'radar',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+    updatedAt: REQUEST_TIME,
+  });
+  assert.equal(invalidChart, 'PERMISSION_DENIED');
+
   const validConfig = evaluateCreateEventConfig(verifiedUserA, 'CAMPUS02', 'config', {
     id: 'config',
     eventCode: 'CAMPUS02',
     title: 'Markaz Arts Fest 2026',
     subtitle: 'Campus Auditorium',
-    adminPin: '4521',
+    adminPin: '2026',
+    chartType: 'horizontal',
     authorId: 'user_A',
     createdAt: REQUEST_TIME,
     updatedAt: REQUEST_TIME,
@@ -395,4 +428,22 @@ test('EventConfig rule enforces custom adminPin length, pattern, and eventCode m
   assert.equal(validConfig, 'ALLOW');
 });
 
+test('Group rule validates hex color, name length, and rejects shadow keys', () => {
+  const badColor = evaluateCreateGroup(verifiedUserA, 'grp_red', {
+    id: 'grp_red',
+    name: 'Red House',
+    color: 'red',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+  });
+  assert.equal(badColor, 'PERMISSION_DENIED');
 
+  const validGroup = evaluateCreateGroup(verifiedUserA, 'grp_red', {
+    id: 'grp_red',
+    name: 'Red House',
+    color: '#DC2626',
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+  });
+  assert.equal(validGroup, 'ALLOW');
+});

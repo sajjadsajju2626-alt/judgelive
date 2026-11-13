@@ -37,6 +37,12 @@
           "pattern": "^[a-zA-Z0-9_\\-]+$",
           "description": "Custom event-specific Admin PIN for unlocking the campus Admin Panel."
         },
+        "chartType": {
+          "type": "string",
+          "enum": ["bar", "horizontal", "doughnut"],
+          "maxLength": 24,
+          "description": "Admin-selected visualization chart type for Group Points & Standings."
+        },
         "authorId": {
           "type": "string",
           "maxLength": 128,
@@ -54,6 +60,43 @@
         }
       },
       "required": ["id", "eventCode", "title", "subtitle", "adminPin", "authorId", "createdAt", "updatedAt"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "A house, team, or group registered within a specific eventCode for team standings calculation.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique identifier for the group/house."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Display name of the group or house (e.g., Red House)."
+        },
+        "color": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 7,
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Hex color code used for badges and standings charts."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "UID of the user who created the group."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the group was created."
+        }
+      },
+      "required": ["id", "name", "color", "authorId", "createdAt"]
     },
     "EventBranding": {
       "title": "EventBranding",
@@ -191,6 +234,17 @@
           "maxLength": 160,
           "description": "School, college, or house represented."
         },
+        "groupId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^([a-zA-Z0-9_\\-]+)?$",
+          "description": "Optional linked Group document ID."
+        },
+        "groupName": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Optional linked Group display name."
+        },
         "authorId": {
           "type": "string",
           "maxLength": 128,
@@ -307,8 +361,12 @@
   },
   "firestore": {
     "/events/{eventCode}/settings/{settingId}": {
-      "schema": { "$ref": "#/entities/EventBranding" },
-      "description": "Stores isolated institution branding (festivalName, subtitle) for a specific eventCode."
+      "schema": { "$ref": "#/entities/EventConfig" },
+      "description": "Stores isolated institution config (title, subtitle, adminPin, chartType) for a specific eventCode."
+    },
+    "/events/{eventCode}/groups/{groupId}": {
+      "schema": { "$ref": "#/entities/Group" },
+      "description": "Stores registered houses/teams/groups isolated to eventCode."
     },
     "/events/{eventCode}/items/{itemId}": {
       "schema": { "$ref": "#/entities/CompetitionItem" },

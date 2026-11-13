@@ -66,7 +66,7 @@
       <button type="button" onclick="switchView('tabulation')" id="nav-tabulation" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Live Tabulation</button>
       <button type="button" onclick="switchView('admin')" id="nav-admin" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Admin Panel</button>
     </nav>
-    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 min-w-0 max-w-full">
       <span id="header-mode-label" class="hidden text-xs font-medium text-stone-500 whitespace-nowrap shrink-0">Judge Scoring Mode</span>
       <span id="header-event-badge" class="hidden px-2.5 py-1 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded-md tabular-nums whitespace-nowrap shrink-0">
         Event: <span id="header-event-code">—</span>
@@ -250,7 +250,7 @@
     </section>
 
     <!-- VIEW 2: LIVE TABULATION (Hidden unless unlocked via triple-tap + PIN 2026) -->
-    <section id="view-tabulation" class="hidden space-y-6">
+    <section id="view-tabulation" class="hidden space-y-8">
       <!-- Official Print Header (Only visible when printing) -->
       <div class="hidden print-only pb-4 mb-4 border-b-2 border-stone-900">
         <div id="print-festival-name" class="text-xs font-semibold uppercase tracking-wider text-stone-600">Kerala School Kalolsavam — Official Tabulation Sheet</div>
@@ -260,8 +260,8 @@
 
       <div class="no-print flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Live Tabulation & Leaderboard</h1>
-          <p class="text-sm text-stone-600 mt-1">Real-time average scores, grades (A / B / C), and ordinal ranks (1st, 2nd, 3rd).</p>
+          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Live Tabulation &amp; Leaderboard</h1>
+          <p class="text-sm text-stone-600 mt-1">Real-time average scores, grades (A / B / C), ordinal ranks, and group championship standings.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
@@ -274,23 +274,83 @@
         </div>
       </div>
 
-      <div class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
-                <th class="py-3 px-4">Rank</th>
-                <th class="py-3 px-4">Chest No</th>
-                <th class="py-3 px-4">Participant Name & School</th>
-                <th class="py-3 px-4 text-right">Judge 1</th>
-                <th class="py-3 px-4 text-right">Judge 2</th>
-                <th class="py-3 px-4 text-right">Judge 3</th>
-                <th class="py-3 px-4 text-right">Average</th>
-                <th class="py-3 px-4 text-right">Grade</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboard-body" class="divide-y divide-stone-200 text-sm"></tbody>
-          </table>
+      <!-- Group Points & Standings Dashboard (Included in Print / Save as PDF) -->
+      <div id="tab-group-standings-section" class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-stone-900 font-display">Group Points &amp; Standings</h2>
+            <p class="text-xs text-stone-500 mt-0.5">1st Place = 5 pts · 2nd Place = 3 pts · 3rd Place = 1 pt · Tie-breaker: Total Raw Judge Marks</p>
+          </div>
+          <div id="tab-chart-selector" role="group" aria-label="Group Chart Type Selector" class="no-print inline-flex flex-wrap items-center gap-1 p-1 bg-stone-100 border border-stone-200 rounded-lg self-start sm:self-auto">
+            <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
+              Vertical Bar
+            </button>
+            <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
+              Horizontal Progress
+            </button>
+            <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
+              Doughnut Chart
+            </button>
+          </div>
+        </div>
+
+        <!-- Leading Group Banner -->
+        <div id="leading-group-banner" class="bg-white border border-amber-200 rounded-xl p-4 sm:p-5 print-surface"></div>
+
+        <!-- Chart + Ranked Group Standings Table -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+          <div class="lg:col-span-3 bg-white border border-stone-200 rounded-xl p-5 flex flex-col justify-between print-surface">
+            <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-100">
+              <h3 class="text-sm font-bold text-stone-900">Standings Visualization</h3>
+              <span id="tab-chart-mode-label" class="text-xs font-medium text-stone-500">Vertical Bar Chart</span>
+            </div>
+            <div id="tab-group-chart-container" class="flex-1 flex items-center justify-center min-h-[220px]"></div>
+          </div>
+
+          <div class="lg:col-span-2 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col print-surface">
+            <div class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+              <h3 class="text-sm font-bold text-stone-900">Ranked Group Standings</h3>
+              <span id="tab-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
+            </div>
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-stone-200 bg-stone-50/70 text-xs font-semibold text-stone-600">
+                    <th class="py-2.5 px-3">Rank</th>
+                    <th class="py-2.5 px-3">Group</th>
+                    <th class="py-2.5 px-3 text-right">1st/2nd/3rd</th>
+                    <th class="py-2.5 px-3 text-right">Raw Marks</th>
+                    <th class="py-2.5 px-3 text-right">Points</th>
+                  </tr>
+                </thead>
+                <tbody id="group-standings-body" class="divide-y divide-stone-200 text-xs sm:text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item-wise Leaderboard -->
+      <div class="space-y-3">
+        <h2 class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
+                  <th class="py-3 px-4">Rank</th>
+                  <th class="py-3 px-4">Chest No</th>
+                  <th class="py-3 px-4">Participant Name &amp; School</th>
+                  <th class="py-3 px-4 text-right">Judge 1</th>
+                  <th class="py-3 px-4 text-right">Judge 2</th>
+                  <th class="py-3 px-4 text-right">Judge 3</th>
+                  <th class="py-3 px-4 text-right">Average</th>
+                  <th class="py-3 px-4 text-right">Grade</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-body" class="divide-y divide-stone-200 text-sm"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -368,6 +428,70 @@
         </div>
       </form>
 
+      <!-- Manage Groups / Houses & Live Chart Preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Manage Groups / Houses</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Add teams or houses for automatic championship points calculation. Hidden from Judges during blind scoring.</p>
+          </div>
+          <form id="admin-group-form" onsubmit="handleAddGroup(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div class="sm:col-span-2">
+              <label for="admin-group-name" class="block text-xs font-semibold text-stone-700 mb-1">Group / House Name</label>
+              <input id="admin-group-name" type="text" required maxlength="80" placeholder="e.g. Red House" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            </div>
+            <div>
+              <label for="admin-group-color" class="block text-xs font-semibold text-stone-700 mb-1">Color</label>
+              <select id="admin-group-color" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <option value="AUTO">Auto Color</option>
+                <option value="#DC2626">Red</option>
+                <option value="#2563EB">Blue</option>
+                <option value="#059669">Green</option>
+                <option value="#D97706">Yellow / Gold</option>
+                <option value="#7C3AED">Violet</option>
+                <option value="#0891B2">Teal</option>
+                <option value="#DB2777">Rose</option>
+                <option value="#4F46E5">Indigo</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3">
+              <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Add Group / House</button>
+            </div>
+          </form>
+          <div class="border-t border-stone-200 pt-4">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">Registered Groups</h3>
+              <span id="admin-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
+            </div>
+            <div id="admin-groups-list" class="divide-y divide-stone-200 border border-stone-200 rounded-lg max-h-56 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-lg font-bold text-stone-900">Group Standings Chart Style</h2>
+                <p class="text-xs text-stone-500 mt-0.5">Select the chart style saved for this Festival Code in Live Tabulation.</p>
+              </div>
+            </div>
+            <div id="admin-chart-selector" role="group" aria-label="Admin Group Chart Style Selector" class="grid grid-cols-3 gap-2">
+              <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                Vertical Bar
+              </button>
+              <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                Horizontal Progress
+              </button>
+              <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                Doughnut / Pie
+              </button>
+            </div>
+            <div id="admin-leading-group-pill" class="rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-xs text-stone-800"></div>
+          </div>
+          <div id="admin-group-chart-preview" class="pt-2 min-h-[190px] flex items-center justify-center"></div>
+        </div>
+      </div>
+
       <!-- Create Forms -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <form onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
@@ -399,9 +523,15 @@
 
         <form onsubmit="handleAddParticipant(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <h2 class="text-lg font-bold text-stone-900">2. Register Participant Chest No</h2>
-          <div>
-            <label for="admin-part-item" class="block text-xs font-semibold text-stone-700 mb-1">Select Item</label>
-            <select id="admin-part-item" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="admin-part-item" class="block text-xs font-semibold text-stone-700 mb-1">Select Item</label>
+              <select id="admin-part-item" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+            </div>
+            <div>
+              <label for="admin-part-group" class="block text-xs font-semibold text-stone-700 mb-1">Select Group</label>
+              <select id="admin-part-group" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+            </div>
           </div>
           <div class="grid grid-cols-3 gap-3">
             <div>
@@ -510,6 +640,7 @@
 
     let currentUser = null;
     let unsubBranding = null;
+    let unsubGroups = null;
     let unsubItems = null;
     let unsubParticipants = null;
     let unsubScores = null;
@@ -565,17 +696,47 @@
       return `kalolsavam_judge_session_${code}_v1`;
     }
 
+    const GROUP_COLOR_PALETTE = [
+      "#DC2626",
+      "#2563EB",
+      "#059669",
+      "#D97706",
+      "#7C3AED",
+      "#0891B2",
+      "#DB2777",
+      "#4F46E5"
+    ];
+
+    function normalizeChartType(type) {
+      return ["bar", "horizontal", "doughnut"].includes(type) ? type : "bar";
+    }
+
+    function resolveGroupColor(name, existingGroups = []) {
+      const lower = String(name || "").toLowerCase();
+      if (lower.includes("red") || lower.includes("crimson") || lower.includes("ruby")) return "#DC2626";
+      if (lower.includes("blue") || lower.includes("sapphire") || lower.includes("navy")) return "#2563EB";
+      if (lower.includes("green") || lower.includes("emerald")) return "#059669";
+      if (lower.includes("yellow") || lower.includes("gold") || lower.includes("amber")) return "#D97706";
+      if (lower.includes("purple") || lower.includes("violet")) return "#7C3AED";
+      if (lower.includes("teal") || lower.includes("cyan")) return "#0891B2";
+      if (lower.includes("pink") || lower.includes("rose")) return "#DB2777";
+      if (lower.includes("indigo")) return "#4F46E5";
+      return GROUP_COLOR_PALETTE[existingGroups.length % GROUP_COLOR_PALETTE.length];
+    }
+
     function getDefaultConfig(defaultTitle = DEFAULT_HEADER_TITLE) {
       return {
         title: defaultTitle,
         subtitle: DEFAULT_SUBTITLE,
-        adminPin: MASTER_PIN
+        adminPin: MASTER_PIN,
+        chartType: "bar"
       };
     }
 
     function getEmptyEventState(defaultTitle = DEFAULT_HEADER_TITLE) {
       return {
         config: getDefaultConfig(defaultTitle),
+        groups: [],
         items: [],
         participants: [],
         scores: []
@@ -615,20 +776,31 @@
 
     function getSampleData(currentConfig) {
       return {
-        config: currentConfig || getDefaultConfig(),
+        config: {
+          ...(currentConfig || getDefaultConfig()),
+          chartType: normalizeChartType(currentConfig?.chartType)
+        },
+        groups: [
+          { id: "grp_red", name: "Red House", color: "#DC2626" },
+          { id: "grp_blue", name: "Blue House", color: "#2563EB" },
+          { id: "grp_green", name: "Green House", color: "#059669" },
+          { id: "grp_yellow", name: "Yellow House", color: "#D97706" }
+        ],
         items: [
           { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila" },
           { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar" }
         ],
         participants: [
-          { id: "p_101", itemId: "item_1", chestNo: "101", name: "Meenakshi S. Nair", school: "Providence Girls HSS, Kozhikode" },
-          { id: "p_102", itemId: "item_1", chestNo: "102", name: "Devika R. Menon", school: "Sacred Heart CGHSS, Thrissur" },
-          { id: "p_105", itemId: "item_1", chestNo: "105", name: "Gouri Nandana V.", school: "BSS Gurukulam HSS, Alathur" },
-          { id: "p_201", itemId: "item_2", chestNo: "201", name: "Parvathy Warrier", school: "St. Teresa’s CGHSS, Ernakulam" }
+          { id: "p_101", itemId: "item_1", chestNo: "101", name: "Meenakshi S. Nair", school: "Providence Girls HSS, Kozhikode", groupId: "grp_red", groupName: "Red House" },
+          { id: "p_102", itemId: "item_1", chestNo: "102", name: "Devika R. Menon", school: "Sacred Heart CGHSS, Thrissur", groupId: "grp_blue", groupName: "Blue House" },
+          { id: "p_105", itemId: "item_1", chestNo: "105", name: "Gouri Nandana V.", school: "BSS Gurukulam HSS, Alathur", groupId: "grp_green", groupName: "Green House" },
+          { id: "p_201", itemId: "item_2", chestNo: "201", name: "Parvathy Warrier", school: "St. Teresa’s CGHSS, Ernakulam", groupId: "grp_yellow", groupName: "Yellow House" }
         ],
         scores: [
           { id: "item_1_p_101_J1", itemId: "item_1", participantId: "p_101", chestNo: "101", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 24, expression: 23, perfection: 23, overall: 24, total: 94 },
-          { id: "item_1_p_102_J1", itemId: "item_1", participantId: "p_102", chestNo: "102", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 22, perfection: 21, overall: 22, total: 87 }
+          { id: "item_1_p_102_J1", itemId: "item_1", participantId: "p_102", chestNo: "102", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 22, perfection: 21, overall: 22, total: 87 },
+          { id: "item_1_p_105_J1", itemId: "item_1", participantId: "p_105", chestNo: "105", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 21, expression: 21, perfection: 20, overall: 20, total: 82 },
+          { id: "item_2_p_201_J1", itemId: "item_2", participantId: "p_201", chestNo: "201", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 23, expression: 23, perfection: 22, overall: 22, total: 90 }
         ]
       };
     }
@@ -651,14 +823,17 @@
             const legacyTitle = saved.config?.title || saved.branding?.festivalName || DEFAULT_HEADER_TITLE;
             const legacySub = saved.config?.subtitle ?? saved.branding?.subtitle ?? DEFAULT_SUBTITLE;
             const legacyPin = saved.config?.adminPin || MASTER_PIN;
+            const legacyChart = normalizeChartType(saved.config?.chartType);
             const legacyAuthor = saved.config?.authorId || saved.branding?.authorId || null;
             return {
               config: {
                 title: legacyTitle,
                 subtitle: legacySub,
                 adminPin: legacyPin,
+                chartType: legacyChart,
                 authorId: legacyAuthor
               },
+              groups: Array.isArray(saved.groups) ? saved.groups : [],
               items: saved.items,
               participants: saved.participants,
               scores: saved.scores
@@ -734,6 +909,7 @@
 
     function detachListeners() {
       if (unsubBranding) { unsubBranding(); unsubBranding = null; }
+      if (unsubGroups) { unsubGroups(); unsubGroups = null; }
       if (unsubItems) { unsubItems(); unsubItems = null; }
       if (unsubParticipants) { unsubParticipants(); unsubParticipants = null; }
       if (unsubScores) { unsubScores(); unsubScores = null; }
@@ -750,19 +926,30 @@
             title: d.title || DEFAULT_HEADER_TITLE,
             subtitle: d.subtitle || "",
             adminPin: d.adminPin || MASTER_PIN,
+            chartType: normalizeChartType(d.chartType),
             authorId: d.authorId || null
           };
           saveLocalState();
           applyBrandingUI();
           window.renderTabulation();
+          window.renderGroupStandings();
         }
       }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`));
+
+      unsubGroups = onSnapshot(query(eventCollection("groups"), where("name", ">", "")), (snap) => {
+        window.state.groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        saveLocalState();
+        window.refreshAllSelects();
+        window.renderAdminLists();
+        window.renderGroupStandings();
+      }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/groups`));
 
       unsubItems = onSnapshot(query(eventCollection("items"), where("maxMarks", "==", 100)), (snap) => {
         window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.refreshAllSelects();
         window.renderAdminLists();
+        window.renderGroupStandings();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/items`));
 
       unsubParticipants = onSnapshot(query(eventCollection("participants"), where("chestNo", ">", "")), (snap) => {
@@ -771,6 +958,7 @@
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
+        window.renderGroupStandings();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/participants`));
 
       unsubScores = onSnapshot(query(eventCollection("scores"), where("total", "<=", 100)), (snap) => {
@@ -779,6 +967,7 @@
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
+        window.renderGroupStandings();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/scores`));
     }
 
@@ -810,6 +999,7 @@
               title: d.title || DEFAULT_HEADER_TITLE,
               subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
               adminPin: d.adminPin || MASTER_PIN,
+              chartType: normalizeChartType(d.chartType),
               authorId: d.authorId || null
             };
             localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(existingLocal));
@@ -822,6 +1012,7 @@
               title: DEFAULT_HEADER_TITLE,
               subtitle: DEFAULT_SUBTITLE,
               adminPin: MASTER_PIN,
+              chartType: "bar",
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -856,6 +1047,7 @@
                   title: window.state.config.title || activeEventCode,
                   subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
                   adminPin: MASTER_PIN,
+                  chartType: normalizeChartType(window.state.config.chartType),
                   authorId: user.uid,
                   createdAt: serverTimestamp(),
                   updatedAt: serverTimestamp()
@@ -1046,6 +1238,7 @@
                 title: d.title || DEFAULT_HEADER_TITLE,
                 subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
                 adminPin: d.adminPin || MASTER_PIN,
+                chartType: normalizeChartType(d.chartType),
                 authorId: d.authorId || null
               };
               localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
@@ -1195,6 +1388,7 @@
       const currentJudgeItem = document.getElementById("judge-item").value;
       const currentTabItem = document.getElementById("tab-item-select").value;
       const currentAdminPartItem = document.getElementById("admin-part-item").value;
+      const currentAdminPartGroup = document.getElementById("admin-part-group").value;
 
       const opts = window.state.items.length
         ? window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)})</option>`).join("")
@@ -1203,6 +1397,11 @@
       document.getElementById("tab-item-select").innerHTML = opts;
       document.getElementById("judge-item").innerHTML = opts;
       document.getElementById("admin-part-item").innerHTML = opts;
+
+      const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
+      const groupOpts = `<option value="">No Group / Unassigned</option>` +
+        groups.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join("");
+      document.getElementById("admin-part-group").innerHTML = groupOpts;
 
       if (currentJudgeItem && window.state.items.some(i => i.id === currentJudgeItem)) {
         document.getElementById("judge-item").value = currentJudgeItem;
@@ -1213,10 +1412,14 @@
       if (currentAdminPartItem && window.state.items.some(i => i.id === currentAdminPartItem)) {
         document.getElementById("admin-part-item").value = currentAdminPartItem;
       }
+      if (currentAdminPartGroup && groups.some(g => g.id === currentAdminPartGroup)) {
+        document.getElementById("admin-part-group").value = currentAdminPartGroup;
+      }
 
       window.populateJudgeParticipants();
       window.renderTabulation();
       window.renderAdminLists();
+      window.renderGroupStandings();
     };
 
     // Blind Judging: Only show Chest Number and (Scored ✓) status
@@ -1281,10 +1484,444 @@
       }
     };
 
+    window.computeGroupStandings = () => {
+      const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
+      const items = Array.isArray(window.state.items) ? window.state.items : [];
+      const participants = Array.isArray(window.state.participants) ? window.state.participants : [];
+      const scores = Array.isArray(window.state.scores) ? window.state.scores : [];
+
+      const map = new Map();
+      groups.forEach((g, idx) => {
+        map.set(g.id, {
+          id: g.id,
+          name: g.name,
+          color: g.color || resolveGroupColor(g.name, groups.slice(0, idx)),
+          points: 0,
+          rawMarks: 0,
+          firsts: 0,
+          seconds: 0,
+          thirds: 0,
+          entriesCount: 0,
+          rank: 0
+        });
+      });
+
+      const partGroupMap = new Map();
+      participants.forEach(p => {
+        let entry = p.groupId ? map.get(p.groupId) : null;
+        if (!entry && p.groupName) {
+          entry = Array.from(map.values()).find(g => g.name.toLowerCase() === String(p.groupName).toLowerCase()) || null;
+        }
+        if (entry) {
+          entry.entriesCount += 1;
+          partGroupMap.set(p.id, entry);
+        }
+      });
+
+      items.forEach(it => {
+        const itemParts = participants.filter(p => p.itemId === it.id);
+        const scoredEntries = [];
+
+        itemParts.forEach(p => {
+          const sc = scores.filter(s => s.itemId === it.id && s.participantId === p.id);
+          const vals = sc.map(s => Number(s.total)).filter(v => !Number.isNaN(v));
+          if (vals.length === 0) return;
+
+          const rawSum = vals.reduce((a, b) => a + b, 0);
+          const avg = rawSum / vals.length;
+          const groupEntry = partGroupMap.get(p.id) || null;
+          if (groupEntry) {
+            groupEntry.rawMarks += rawSum;
+          }
+          scoredEntries.push({ participant: p, groupEntry, avg, rawSum });
+        });
+
+        scoredEntries.sort((a, b) => (b.avg - a.avg) || (b.rawSum - a.rawSum));
+
+        let currentRank = 1;
+        let prevAvg = null;
+        scoredEntries.forEach((entry, idx) => {
+          if (idx > 0 && prevAvg !== null && Math.abs(entry.avg - prevAvg) > 1e-6) {
+            currentRank = idx + 1;
+          }
+          prevAvg = entry.avg;
+
+          const pts = currentRank === 1 ? 5 : currentRank === 2 ? 3 : currentRank === 3 ? 1 : 0;
+          if (entry.groupEntry && pts > 0) {
+            entry.groupEntry.points += pts;
+            if (currentRank === 1) entry.groupEntry.firsts += 1;
+            else if (currentRank === 2) entry.groupEntry.seconds += 1;
+            else if (currentRank === 3) entry.groupEntry.thirds += 1;
+          }
+        });
+      });
+
+      const standings = Array.from(map.values()).sort((a, b) =>
+        (b.points - a.points) ||
+        (b.rawMarks - a.rawMarks) ||
+        (b.firsts - a.firsts) ||
+        a.name.localeCompare(b.name)
+      );
+
+      let rank = 1;
+      standings.forEach((g, idx) => {
+        if (idx > 0) {
+          const prev = standings[idx - 1];
+          if (prev.points !== g.points || Math.abs(prev.rawMarks - g.rawMarks) > 1e-6) {
+            rank = idx + 1;
+          }
+        }
+        g.rank = rank;
+      });
+
+      return standings;
+    };
+
+    function buildGroupChartMarkup(standings, chartType, compact = false) {
+      if (!standings.length) {
+        return `
+          <div class="w-full py-8 px-4 text-center text-xs sm:text-sm text-stone-500 border border-dashed border-stone-200 rounded-lg">
+            Add Groups / Houses in the Admin Panel and link Chest Numbers to display live standings charts.
+          </div>
+        `;
+      }
+
+      const maxPts = Math.max(1, ...standings.map(g => g.points));
+      const totalPts = standings.reduce((sum, g) => sum + g.points, 0);
+
+      if (chartType === "horizontal") {
+        return `
+          <div class="w-full space-y-3">
+            ${standings.map(g => {
+              const pct = g.points > 0 ? Math.max(4, Math.round((g.points / maxPts) * 100)) : 0;
+              return `
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between gap-3 text-xs sm:text-sm">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="inline-flex items-center justify-center w-6 h-5 rounded bg-stone-100 text-[11px] font-bold text-stone-700 tabular-nums shrink-0">#${g.rank}</span>
+                      <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
+                      <span class="font-semibold text-stone-900 truncate">${escapeHtml(g.name)}</span>
+                      ${compact ? "" : `<span class="hidden sm:inline text-xs text-stone-400 tabular-nums shrink-0">(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)</span>`}
+                    </div>
+                    <div class="flex items-baseline gap-2.5 shrink-0 tabular-nums">
+                      <span class="text-[11px] text-stone-500">${g.rawMarks.toFixed(1)} raw</span>
+                      <span class="font-bold text-stone-900">${g.points} pts</span>
+                    </div>
+                  </div>
+                  <div class="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${escapeHtml(g.color)};"></div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      if (chartType === "doughnut") {
+        const size = compact ? 148 : 176;
+        const cx = size / 2;
+        const cy = size / 2;
+        const r = compact ? 48 : 58;
+        const strokeW = compact ? 22 : 26;
+        const circ = 2 * Math.PI * r;
+        let offset = 0;
+
+        const slicesMarkup = totalPts > 0
+          ? standings.filter(g => g.points > 0).map(g => {
+              const segLen = (g.points / totalPts) * circ;
+              const segDash = `${segLen.toFixed(2)} ${(circ - segLen).toFixed(2)}`;
+              const segOffset = (-offset).toFixed(2);
+              offset += segLen;
+              return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${escapeHtml(g.color)}" stroke-width="${strokeW}" stroke-dasharray="${segDash}" stroke-dashoffset="${segOffset}" transform="rotate(-90 ${cx} ${cy})"><title>${escapeHtml(g.name)}: ${g.points} pts (${Math.round((g.points / totalPts) * 100)}%)</title></circle>`;
+            }).join("")
+          : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E7E5E4" stroke-width="${strokeW}" />`;
+
+        return `
+          <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-6">
+            <div class="shrink-0 flex items-center justify-center">
+              <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Group Points Doughnut Chart">
+                ${slicesMarkup}
+                <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="${compact ? 18 : 22}" font-weight="700" fill="#1C1917" class="tabular-nums">${totalPts}</text>
+                <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" font-weight="600" fill="#78716C">TOTAL PTS</text>
+              </svg>
+            </div>
+            <div class="w-full max-w-xs space-y-2">
+              ${standings.map(g => {
+                const share = totalPts > 0 ? Math.round((g.points / totalPts) * 100) : 0;
+                return `
+                  <div class="flex items-center justify-between gap-3 text-xs py-1 border-b border-stone-100 last:border-b-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="font-bold text-stone-500 tabular-nums w-5 shrink-0">#${g.rank}</span>
+                      <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
+                      <span class="font-semibold text-stone-900 truncate">${escapeHtml(g.name)}</span>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0 tabular-nums">
+                      <span class="text-stone-400">${share}%</span>
+                      <span class="font-bold text-stone-900">${g.points} pts</span>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      // Default: Vertical Bar Chart ("bar")
+      const width = 560;
+      const height = compact ? 190 : 230;
+      const padLeft = 36;
+      const padRight = 18;
+      const padTop = 30;
+      const padBottom = 46;
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+      const step = plotW / standings.length;
+      const barW = Math.min(54, Math.max(18, step * 0.56));
+      const tickSteps = [0, 0.5, 1];
+
+      const gridLines = tickSteps.map(ratio => {
+        const y = padTop + plotH - (ratio * plotH);
+        const val = Math.round(maxPts * ratio);
+        return `
+          <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${width - padRight}" y2="${y.toFixed(1)}" stroke="#E7E5E4" stroke-dasharray="3 3" />
+          <text x="${padLeft - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="10" fill="#78716C" class="tabular-nums">${val}</text>
+        `;
+      }).join("");
+
+      const bars = standings.map((g, idx) => {
+        const cx = padLeft + step * idx + step / 2;
+        const barH = g.points > 0 ? Math.max(6, (g.points / maxPts) * plotH) : 3;
+        const x = cx - barW / 2;
+        const y = padTop + plotH - barH;
+        const shortName = g.name.length > 13 ? g.name.slice(0, 12) + "…" : g.name;
+        return `
+          <g>
+            <title>${escapeHtml(g.name)} — Rank #${g.rank}: ${g.points} pts (${g.rawMarks.toFixed(1)} raw marks)</title>
+            <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="5" fill="${escapeHtml(g.color)}" />
+            <text x="${cx.toFixed(1)}" y="${(y - 7).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="700" fill="#1C1917" class="tabular-nums">${g.points}p</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 16).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="#1C1917">${escapeHtml(shortName)}</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 31).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="#78716C" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
+          </g>
+        `;
+      }).join("");
+
+      return `
+        <div class="w-full">
+          <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto max-h-64" role="img" aria-label="Group Points Vertical Bar Chart">
+            ${gridLines}
+            <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="#D6D3D1" />
+            ${bars}
+          </svg>
+        </div>
+      `;
+    }
+
+    function updateChartSelectorButtons(chartType) {
+      const labels = {
+        bar: "Vertical Bar Chart",
+        horizontal: "Horizontal Progress Leaderboard",
+        doughnut: "Doughnut / Pie Chart"
+      };
+      const modeLabel = document.getElementById("tab-chart-mode-label");
+      if (modeLabel) modeLabel.textContent = labels[chartType] || "Vertical Bar Chart";
+
+      document.querySelectorAll("#tab-chart-selector [data-chart-btn]").forEach(btn => {
+        const active = btn.getAttribute("data-chart-btn") === chartType;
+        btn.classList.toggle("bg-white", active);
+        btn.classList.toggle("text-stone-900", active);
+        btn.classList.toggle("shadow-sm", active);
+        btn.classList.toggle("text-stone-600", !active);
+      });
+
+      document.querySelectorAll("#admin-chart-selector [data-chart-btn]").forEach(btn => {
+        const active = btn.getAttribute("data-chart-btn") === chartType;
+        btn.classList.toggle("bg-stone-900", active);
+        btn.classList.toggle("text-white", active);
+        btn.classList.toggle("border-stone-900", active);
+        btn.classList.toggle("bg-white", !active);
+        btn.classList.toggle("text-stone-700", !active);
+        btn.classList.toggle("border-stone-300", !active);
+      });
+    }
+
+    window.renderGroupStandings = () => {
+      const standings = window.computeGroupStandings();
+      const chartType = normalizeChartType(window.state.config?.chartType);
+      updateChartSelectorButtons(chartType);
+
+      const bannerEl = document.getElementById("leading-group-banner");
+      const adminPillEl = document.getElementById("admin-leading-group-pill");
+      const countEl = document.getElementById("tab-groups-count");
+      const bodyEl = document.getElementById("group-standings-body");
+      const tabChartEl = document.getElementById("tab-group-chart-container");
+      const adminPreviewEl = document.getElementById("admin-group-chart-preview");
+
+      if (countEl) {
+        countEl.textContent = `${standings.length} ${standings.length === 1 ? "group" : "groups"}`;
+      }
+
+      const leader = standings[0] || null;
+      const hasAnyPoints = standings.some(g => g.points > 0 || g.rawMarks > 0);
+      if (bannerEl) {
+        if (!leader) {
+          bannerEl.innerHTML = `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">Leading Group</div>
+                <div class="text-sm font-semibold text-stone-700 mt-0.5">No groups registered yet. Add Groups / Houses in the Admin Panel to track championship points.</div>
+              </div>
+            </div>
+          `;
+        } else if (!hasAnyPoints) {
+          bannerEl.innerHTML = `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${escapeHtml(leader.color)}"></span>
+                <div>
+                  <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">Leading Group</div>
+                  <div class="text-base font-bold text-stone-900 font-display">Awaiting judge score submissions (${standings.length} groups registered)</div>
+                </div>
+              </div>
+              <div class="text-xs font-medium text-stone-500 tabular-nums">0 pts · 0.0 raw marks</div>
+            </div>
+          `;
+        } else {
+          const tiedLeaders = standings.filter(g => g.rank === 1);
+          const leaderTitle = tiedLeaders.length > 1
+            ? tiedLeaders.map(g => escapeHtml(g.name)).join(" &amp; ")
+            : escapeHtml(leader.name);
+          bannerEl.innerHTML = `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-3.5">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white font-bold text-sm tabular-nums shrink-0" style="background-color: ${escapeHtml(leader.color)}">#1</span>
+                <div>
+                  <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
+                  <div class="text-xl font-bold text-stone-900 font-display">${leaderTitle}</div>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-4 sm:gap-6 tabular-nums">
+                <div>
+                  <div class="text-[11px] font-medium text-stone-500">Championship Points</div>
+                  <div class="text-xl font-bold text-stone-900">${leader.points} pts</div>
+                </div>
+                <div>
+                  <div class="text-[11px] font-medium text-stone-500">Raw Judge Marks</div>
+                  <div class="text-base font-semibold text-stone-700">${leader.rawMarks.toFixed(1)}</div>
+                </div>
+                <div>
+                  <div class="text-[11px] font-medium text-stone-500">Placements (1st/2nd/3rd)</div>
+                  <div class="text-sm font-semibold text-stone-700">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      if (adminPillEl) {
+        if (!leader) {
+          adminPillEl.innerHTML = `<span class="font-semibold text-stone-700">Leading Group:</span> Add a group on the left to preview live standings.`;
+        } else if (!hasAnyPoints) {
+          adminPillEl.innerHTML = `<span class="font-semibold text-amber-900">Leading Group:</span> Awaiting first scored item (${standings.length} groups ready).`;
+        } else {
+          adminPillEl.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(leader.color)}"></span>
+                <span><strong class="text-stone-900">Leading Group:</strong> ${escapeHtml(leader.name)}</span>
+              </div>
+              <span class="font-bold text-amber-900 tabular-nums">${leader.points} pts · ${leader.rawMarks.toFixed(1)} raw marks</span>
+            </div>
+          `;
+        }
+      }
+
+      if (bodyEl) {
+        if (standings.length === 0) {
+          bodyEl.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-8 px-4 text-center text-xs sm:text-sm text-stone-500">No groups registered for this festival yet.</td>
+            </tr>
+          `;
+        } else {
+          bodyEl.innerHTML = standings.map(g => `
+            <tr class="${g.rank === 1 && hasAnyPoints ? "bg-amber-50/40" : "hover:bg-stone-50"}">
+              <td class="py-2.5 px-3 font-bold tabular-nums whitespace-nowrap">#${g.rank}</td>
+              <td class="py-2.5 px-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
+                  <span class="font-semibold text-stone-900">${escapeHtml(g.name)}</span>
+                </div>
+              </td>
+              <td class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap">${g.firsts} / ${g.seconds} / ${g.thirds}</td>
+              <td class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap">${g.rawMarks.toFixed(1)}</td>
+              <td class="py-2.5 px-3 text-right font-bold text-stone-900 tabular-nums whitespace-nowrap">${g.points} pts</td>
+            </tr>
+          `).join("");
+        }
+      }
+
+      if (tabChartEl) {
+        tabChartEl.innerHTML = buildGroupChartMarkup(standings, chartType, false);
+      }
+      if (adminPreviewEl) {
+        adminPreviewEl.innerHTML = buildGroupChartMarkup(standings, chartType, true);
+      }
+    };
+
+    window.setGroupChartType = async (type) => {
+      if (!activeEventCode) return;
+      const chartType = normalizeChartType(type);
+      const existingAuthorId = window.state.config?.authorId || null;
+      window.state.config = {
+        ...(window.state.config || getDefaultConfig(activeEventCode)),
+        chartType
+      };
+      saveLocalState();
+      window.renderGroupStandings();
+
+      const labelMap = {
+        bar: "Vertical Bar Chart",
+        horizontal: "Horizontal Progress Leaderboard",
+        doughnut: "Doughnut / Pie Chart"
+      };
+      window.showToast(`Chart style set to ${labelMap[chartType]}`);
+
+      if (currentUser) {
+        try {
+          if (existingAuthorId) {
+            await updateDoc(eventDocument("settings", "config"), {
+              chartType,
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(eventDocument("settings", "config"), {
+              id: "config",
+              eventCode: activeEventCode,
+              title: window.state.config.title || activeEventCode,
+              subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
+              adminPin: MASTER_PIN,
+              chartType,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            window.state.config.authorId = currentUser.uid;
+            saveLocalState();
+          }
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
+        }
+      }
+    };
+
     window.renderTabulation = () => {
       const itemId = document.getElementById("tab-item-select").value;
       const selectedItem = window.state.items.find(it => it.id === itemId);
       const parts = window.state.participants.filter(p => p.itemId === itemId);
+      const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
 
       // Update Print Header details
       document.getElementById("print-event-title").textContent = selectedItem
@@ -1300,6 +1937,7 @@
             <td colspan="8" class="py-8 px-4 text-center text-sm text-stone-500">No participants registered for this event yet.</td>
           </tr>
         `;
+        window.renderGroupStandings();
         return;
       }
 
@@ -1311,31 +1949,72 @@
         const vals = [j1, j2, j3].filter(v => v !== null);
         const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
         const grade = avg === null ? "Pending" : avg >= 80 ? "A Grade" : avg >= 70 ? "B Grade" : avg >= 60 ? "C Grade" : "No Grade";
-        return { p, j1, j2, j3, avg, grade };
+        const groupObj = p.groupId ? groups.find(g => g.id === p.groupId) : null;
+        return { p, groupObj, j1, j2, j3, avg, grade };
       }).sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1));
 
       const labels = ["1st", "2nd", "3rd"];
-      document.getElementById("leaderboard-body").innerHTML = rows.map((r, i) => `
+      document.getElementById("leaderboard-body").innerHTML = rows.map((r, i) => {
+        const groupLabel = r.groupObj?.name || r.p.groupName || "";
+        const groupColor = r.groupObj?.color || "#78716C";
+        return `
         <tr class="hover:bg-stone-50">
           <td class="py-3 px-4 font-bold tabular-nums whitespace-nowrap">${r.avg !== null ? (labels[i] || (i + 1) + "th") : "Pending"}</td>
           <td class="py-3 px-4 font-semibold tabular-nums whitespace-nowrap">#${escapeHtml(r.p.chestNo)}</td>
-          <td class="py-3 px-4"><div class="font-semibold text-stone-900">${escapeHtml(r.p.name)}</div><div class="text-xs text-stone-500">${escapeHtml(r.p.school)}</div></td>
+          <td class="py-3 px-4">
+            <div class="font-semibold text-stone-900">${escapeHtml(r.p.name)}</div>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
+              <span>${escapeHtml(r.p.school)}</span>
+              ${groupLabel ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(groupColor)}"></span>${escapeHtml(groupLabel)}</span>` : ""}
+            </div>
+          </td>
           <td class="py-3 px-4 text-right tabular-nums whitespace-nowrap">${r.j1 ?? "—"}</td>
           <td class="py-3 px-4 text-right tabular-nums whitespace-nowrap">${r.j2 ?? "—"}</td>
           <td class="py-3 px-4 text-right tabular-nums whitespace-nowrap">${r.j3 ?? "—"}</td>
           <td class="py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap">${r.avg !== null ? r.avg.toFixed(2) : "—"}</td>
           <td class="py-3 px-4 text-right text-xs font-medium text-stone-700 whitespace-nowrap">${escapeHtml(r.grade)}</td>
         </tr>
-      `).join("");
+      `;
+      }).join("");
+
+      window.renderGroupStandings();
     };
 
     window.renderAdminLists = () => {
+      const groupsCount = document.getElementById("admin-groups-count");
+      const groupsList = document.getElementById("admin-groups-list");
       const itemsCount = document.getElementById("admin-items-count");
       const itemsList = document.getElementById("admin-items-list");
       const partsCount = document.getElementById("admin-participants-count");
       const partsList = document.getElementById("admin-participants-list");
       const scoresCount = document.getElementById("admin-scores-count");
       const scoresBody = document.getElementById("admin-scores-body");
+
+      const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
+      if (groupsCount && groupsList) {
+        groupsCount.textContent = `${groups.length} ${groups.length === 1 ? "group" : "groups"}`;
+        if (groups.length === 0) {
+          groupsList.innerHTML = `<div class="p-4 text-xs sm:text-sm text-stone-500">No groups added yet (e.g., Red House, Blue House).</div>`;
+        } else {
+          groupsList.innerHTML = groups.map(g => {
+            const linkedCount = window.state.participants.filter(p => p.groupId === g.id).length;
+            return `
+              <div class="px-4 py-2.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color || "#78716C")}"></span>
+                  <div class="min-w-0">
+                    <div class="text-sm font-semibold text-stone-900 truncate">${escapeHtml(g.name)}</div>
+                    <div class="text-xs text-stone-500 tabular-nums">${linkedCount} ${linkedCount === 1 ? "chest entry" : "chest entries"}</div>
+                  </div>
+                </div>
+                <button type="button" onclick="handleDeleteGroup('${escapeHtml(g.id)}')" class="px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors whitespace-nowrap shrink-0">
+                  Delete
+                </button>
+              </div>
+            `;
+          }).join("");
+        }
+      }
 
       itemsCount.textContent = `${window.state.items.length} ${window.state.items.length === 1 ? "item" : "items"}`;
       if (window.state.items.length === 0) {
@@ -1360,13 +2039,19 @@
       } else {
         partsList.innerHTML = window.state.participants.map(p => {
           const item = window.state.items.find(it => it.id === p.itemId);
+          const grp = p.groupId ? groups.find(g => g.id === p.groupId) : null;
+          const groupLabel = grp?.name || p.groupName || "";
+          const groupColor = grp?.color || "#78716C";
           return `
             <div class="px-5 py-3 flex items-center justify-between gap-3">
               <div class="min-w-0">
                 <div class="text-sm font-semibold text-stone-900 truncate">
                   <span class="tabular-nums text-amber-800">#${escapeHtml(p.chestNo)}</span> — ${escapeHtml(p.name)}
                 </div>
-                <div class="text-xs text-stone-500 truncate">${escapeHtml(item ? item.name : "Event")} · ${escapeHtml(p.school)}</div>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
+                  <span class="truncate">${escapeHtml(item ? item.name : "Event")} · ${escapeHtml(p.school)}</span>
+                  ${groupLabel ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700 shrink-0"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(groupColor)}"></span>${escapeHtml(groupLabel)}</span>` : ""}
+                </div>
               </div>
               <button type="button" onclick="handleDeleteParticipant('${escapeHtml(p.id)}')" class="px-2.5 py-1 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition-colors whitespace-nowrap shrink-0">
                 Delete
@@ -1548,8 +2233,10 @@
           title: newCode,
           subtitle: DEFAULT_SUBTITLE,
           adminPin: MASTER_PIN,
+          chartType: "bar",
           authorId: currentUser?.uid || null
         },
+        groups: [],
         items: [],
         participants: [],
         scores: []
@@ -1566,6 +2253,7 @@
             title: newCode,
             subtitle: DEFAULT_SUBTITLE,
             adminPin: MASTER_PIN,
+            chartType: "bar",
             authorId: currentUser.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -1577,7 +2265,7 @@
 
       e.target.reset();
       enterEventWorkspace(newCode, { keepAdminUnlocked: true, targetView: "admin" });
-      window.showToast(`Created ${newCode}! Add items & chest numbers below.`);
+      window.showToast(`Created ${newCode}! Add groups, items & chest numbers below.`);
     };
 
     window.handleSaveEventConfig = async (e) => {
@@ -1586,12 +2274,14 @@
       const rawTitle = document.getElementById("admin-brand-name").value.trim();
       const title = rawTitle || activeEventCode;
       const subtitle = document.getElementById("admin-brand-subtitle").value.trim();
+      const chartType = normalizeChartType(window.state.config?.chartType);
 
       const existingAuthorId = window.state.config?.authorId || null;
       window.state.config = {
         title,
         subtitle,
         adminPin: MASTER_PIN,
+        chartType,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
@@ -1606,6 +2296,7 @@
               title,
               subtitle,
               adminPin: MASTER_PIN,
+              chartType,
               updatedAt: serverTimestamp()
             });
           } else {
@@ -1615,6 +2306,7 @@
               title,
               subtitle,
               adminPin: MASTER_PIN,
+              chartType,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -1622,6 +2314,74 @@
           }
         } catch (err) {
           handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
+        }
+      }
+    };
+
+    window.handleAddGroup = async (e) => {
+      e.preventDefault();
+      if (!activeEventCode) return;
+      const nameInput = document.getElementById("admin-group-name");
+      const colorSelect = document.getElementById("admin-group-color");
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+
+      const existingGroups = Array.isArray(window.state.groups) ? window.state.groups : [];
+      if (existingGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+        window.showToast(`Group "${name}" already exists`);
+        nameInput.focus();
+        return;
+      }
+
+      const id = "grp_" + Date.now();
+      const chosenColor = colorSelect.value === "AUTO"
+        ? resolveGroupColor(name, existingGroups)
+        : colorSelect.value;
+
+      const group = { id, name, color: chosenColor };
+      window.state.groups = [...existingGroups, group];
+      saveLocalState();
+      window.refreshAllSelects();
+      e.target.reset();
+      window.showToast(`Added Group "${name}"`);
+
+      if (currentUser) {
+        try {
+          await setDoc(eventDocument("groups", id), {
+            ...group,
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+        } catch (err) {
+          handleFirestoreError(err, "create", `events/${activeEventCode}/groups/${id}`);
+        }
+      }
+    };
+
+    window.handleDeleteGroup = async (groupId) => {
+      if (!activeEventCode) return;
+      const affectedParts = window.state.participants.filter(p => p.groupId === groupId);
+      window.state.groups = (window.state.groups || []).filter(g => g.id !== groupId);
+      window.state.participants = window.state.participants.map(p =>
+        p.groupId === groupId ? { ...p, groupId: "", groupName: "" } : p
+      );
+      saveLocalState();
+      window.refreshAllSelects();
+      window.showToast("Group deleted");
+
+      if (currentUser) {
+        try {
+          const batch = writeBatch(db);
+          affectedParts.forEach(p => {
+            batch.update(eventDocument("participants", p.id), { groupId: "", groupName: "" });
+          });
+          batch.delete(eventDocument("groups", groupId));
+          await batch.commit();
+        } catch (err) {
+          handleFirestoreError(err, "delete", `events/${activeEventCode}/groups/${groupId}`);
         }
       }
     };
@@ -1664,13 +2424,19 @@
         window.showToast("Please add a competition item first");
         return;
       }
+      const groupId = document.getElementById("admin-part-group").value || "";
+      const groupObj = groupId ? (window.state.groups || []).find(g => g.id === groupId) : null;
+      const groupName = groupObj ? groupObj.name : "";
+
       const id = "part_" + Date.now();
       const part = {
         id,
         itemId,
         chestNo: document.getElementById("admin-part-chest").value.trim().toUpperCase(),
         name: document.getElementById("admin-part-name").value.trim(),
-        school: document.getElementById("admin-part-school").value.trim()
+        school: document.getElementById("admin-part-school").value.trim(),
+        groupId,
+        groupName
       };
       window.state.participants.push(part);
       saveLocalState();
@@ -1678,7 +2444,7 @@
       window.renderTabulation();
       window.renderAdminLists();
       e.target.reset();
-      window.showToast(`Registered Chest ${part.chestNo}`);
+      window.showToast(`Registered Chest ${part.chestNo}${groupName ? " (" + groupName + ")" : ""}`);
       if (currentUser) {
         try {
           await setDoc(eventDocument("participants", id), {
@@ -1767,6 +2533,9 @@
 
       if (currentUser) {
         try {
+          for (const g of sample.groups) {
+            await setDoc(eventDocument("groups", g.id), { ...g, authorId: currentUser.uid, createdAt: serverTimestamp() });
+          }
           for (const it of sample.items) {
             await setDoc(eventDocument("items", it.id), { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() });
           }
@@ -1797,6 +2566,7 @@
       if (!activeEventCode) return;
       window.state = {
         config: window.state.config || getDefaultConfig(),
+        groups: [],
         items: [],
         participants: [],
         scores: []
@@ -1807,15 +2577,17 @@
 
       if (currentUser) {
         try {
-          const [scoresSnap, partsSnap, itemsSnap] = await Promise.all([
+          const [scoresSnap, partsSnap, itemsSnap, groupsSnap] = await Promise.all([
             getDocs(query(eventCollection("scores"), where("total", "<=", 100))),
             getDocs(query(eventCollection("participants"), where("chestNo", ">", ""))),
-            getDocs(query(eventCollection("items"), where("maxMarks", "==", 100)))
+            getDocs(query(eventCollection("items"), where("maxMarks", "==", 100))),
+            getDocs(query(eventCollection("groups"), where("name", ">", "")))
           ]);
           const batch = writeBatch(db);
           scoresSnap.forEach(d => batch.delete(d.ref));
           partsSnap.forEach(d => batch.delete(d.ref));
           itemsSnap.forEach(d => batch.delete(d.ref));
+          groupsSnap.forEach(d => batch.delete(d.ref));
           await batch.commit();
         } catch (err) {
           handleFirestoreError(err, "delete", `events/${activeEventCode}/clear-all-data`);
