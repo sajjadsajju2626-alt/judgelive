@@ -28,6 +28,10 @@ service cloud.firestore {
       return resource.data;
     }
 
+    function isVerifiedAdminEmail() {
+      return isVerifiedUser() && request.auth.token.email == 'sajjadsajju2626@gmail.com';
+    }
+
     function isAdmin() {
       return isVerifiedUser() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
@@ -108,8 +112,8 @@ service cloud.firestore {
 
     // Competition Items Collection
     match /items/{itemId} {
-      allow get: if isSignedIn() && isValidId(itemId) && existing().maxMarks == 100;
-      allow list: if isSignedIn() && existing().maxMarks == 100;
+      allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidId(itemId) && existing().maxMarks == 100);
+      allow list: if isVerifiedAdminEmail() || (isSignedIn() && existing().maxMarks == 100);
 
       allow create: if isVerifiedUser() &&
         isValidId(itemId) &&
@@ -134,8 +138,8 @@ service cloud.firestore {
 
     // Participants Collection
     match /participants/{participantId} {
-      allow get: if isSignedIn() && isValidId(participantId) && existing().chestNo.size() <= 20;
-      allow list: if isSignedIn() && existing().chestNo.size() <= 20;
+      allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidId(participantId) && existing().chestNo.size() <= 20);
+      allow list: if isVerifiedAdminEmail() || (isSignedIn() && existing().chestNo is string && existing().chestNo > '');
 
       allow create: if isVerifiedUser() &&
         isValidId(participantId) &&
@@ -162,8 +166,8 @@ service cloud.firestore {
 
     // Judge Scores Collection
     match /scores/{scoreId} {
-      allow get: if isSignedIn() && isValidId(scoreId) && existing().total <= 100;
-      allow list: if isSignedIn() && existing().total <= 100;
+      allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidId(scoreId) && existing().total <= 100);
+      allow list: if isVerifiedAdminEmail() || (isSignedIn() && existing().total <= 100);
 
       allow create: if isVerifiedUser() &&
         isValidId(scoreId) &&
