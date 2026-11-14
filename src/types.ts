@@ -1,4 +1,13 @@
-export type CategoryType = 'High School' | 'Higher Secondary' | 'General' | 'Sub-Junior';
+export type CategoryType =
+  | 'High School'
+  | 'Higher Secondary'
+  | 'Junior'
+  | 'Senior'
+  | 'Sub-Junior'
+  | 'HS'
+  | 'HSS'
+  | 'General'
+  | (string & {});
 
 export type JudgeSlot = 'J1' | 'J2' | 'J3';
 

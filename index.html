@@ -1084,12 +1084,18 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label for="admin-item-cat" class="block text-xs font-semibold text-stone-700 mb-1">Category</label>
-              <select id="admin-item-cat" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+              <select id="admin-item-cat" onchange="handleAddItemCategoryChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
                 <option value="High School">High School</option>
                 <option value="Higher Secondary">Higher Secondary</option>
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
                 <option value="Sub-Junior">Sub-Junior</option>
+                <option value="HS">HS</option>
+                <option value="HSS">HSS</option>
                 <option value="General">General</option>
+                <option value="__custom__">+ Custom Category...</option>
               </select>
+              <input id="admin-item-cat-custom" type="text" maxlength="60" placeholder="Enter custom category (e.g. Degree)" class="hidden mt-2 w-full px-3 py-1.5 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
             </div>
             <div>
               <label for="admin-item-stage" class="block text-xs font-semibold text-stone-700 mb-1">Stage</label>
@@ -1248,7 +1254,11 @@
                   <option value="all">All Categories</option>
                   <option value="High School">High School</option>
                   <option value="Higher Secondary">Higher Secondary</option>
+                  <option value="Junior">Junior</option>
+                  <option value="Senior">Senior</option>
                   <option value="Sub-Junior">Sub-Junior</option>
+                  <option value="HS">HS</option>
+                  <option value="HSS">HSS</option>
                   <option value="General">General</option>
                 </select>
                 <button type="button" id="admin-items-search-clear" onclick="clearAdminItemsSearch()" class="hidden px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors whitespace-nowrap shrink-0">
@@ -2973,6 +2983,35 @@
       document.getElementById("judge-item").innerHTML = opts;
       document.getElementById("admin-part-item").innerHTML = opts;
 
+      const addItemCatEl = document.getElementById("admin-item-cat");
+      if (addItemCatEl) {
+        const currentAddCat = addItemCatEl.value || "High School";
+        const allCats = getAllItemCategoryOptions();
+        addItemCatEl.innerHTML =
+          allCats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("") +
+          `<option value="__custom__">+ Custom Category...</option>`;
+        if (currentAddCat === "__custom__") {
+          addItemCatEl.value = "__custom__";
+        } else {
+          const matchedAdd = allCats.find(c => c.toLowerCase() === currentAddCat.toLowerCase());
+          addItemCatEl.value = matchedAdd || allCats[0] || "General";
+        }
+      }
+
+      const itemsCatFilterEl = document.getElementById("admin-items-category-filter");
+      if (itemsCatFilterEl) {
+        const currentCatFilter = itemsCatFilterEl.value || "all";
+        const allCats = getAllItemCategoryOptions();
+        itemsCatFilterEl.innerHTML = `<option value="all">All Categories</option>` +
+          allCats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+        if (currentCatFilter === "all") {
+          itemsCatFilterEl.value = "all";
+        } else {
+          const matchedFilter = allCats.find(c => c.toLowerCase() === currentCatFilter.toLowerCase());
+          itemsCatFilterEl.value = matchedFilter || "all";
+        }
+      }
+
       const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
       const groupOpts = `<option value="">No Group / Unassigned</option>` +
         groups.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join("");
@@ -4291,7 +4330,7 @@
 
       const totalItems = window.state.items.length;
       const filteredItems = window.state.items.filter(it => {
-        if (itemCategoryFilter !== "all" && it.category !== itemCategoryFilter) return false;
+        if (itemCategoryFilter !== "all" && String(it.category || "").trim().toLowerCase() !== itemCategoryFilter.toLowerCase()) return false;
         if (!searchLower) return true;
         return (
           String(it.name || "").toLowerCase().includes(searchLower) ||
@@ -4340,10 +4379,10 @@
                   <div>
                     <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Category</label>
                     <select id="edit-item-cat-${escapeHtml(it.id)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600">
-                      <option value="High School" ${it.category === "High School" ? "selected" : ""}>High School</option>
-                      <option value="Higher Secondary" ${it.category === "Higher Secondary" ? "selected" : ""}>Higher Secondary</option>
-                      <option value="Sub-Junior" ${it.category === "Sub-Junior" ? "selected" : ""}>Sub-Junior</option>
-                      <option value="General" ${it.category === "General" ? "selected" : ""}>General</option>
+                      ${getAllItemCategoryOptions(it.category).map(catOpt => {
+                        const isSelected = catOpt.toLowerCase() === String(it.category || "").trim().toLowerCase();
+                        return `<option value="${escapeHtml(catOpt)}" ${isSelected ? "selected" : ""}>${escapeHtml(catOpt)}</option>`;
+                      }).join("")}
                     </select>
                   </div>
                   <div>
@@ -5372,6 +5411,16 @@
       presetEl.value = detectCriteriaPresetKey(vals);
     };
 
+    window.handleAddItemCategoryChange = () => {
+      const catSelect = document.getElementById("admin-item-cat");
+      const customInp = document.getElementById("admin-item-cat-custom");
+      if (!catSelect || !customInp) return;
+      const isCustom = catSelect.value === "__custom__";
+      customInp.classList.toggle("hidden", !isCustom);
+      customInp.required = isCustom;
+      if (isCustom) customInp.focus();
+    };
+
     window.handleAddItem = async (e) => {
       e.preventDefault();
       if (!activeEventCode) return;
@@ -5380,12 +5429,27 @@
         window.showToast("Please provide all 4 judging criterion labels");
         return;
       }
+      const catSelect = document.getElementById("admin-item-cat");
+      const customCatInput = document.getElementById("admin-item-cat-custom");
+      let resolvedCategory = catSelect?.value || "General";
+      if (resolvedCategory === "__custom__") {
+        const customRaw = (customCatInput?.value || "").trim();
+        if (!customRaw) {
+          window.showToast("Please enter a custom category name");
+          customCatInput?.focus();
+          return;
+        }
+        resolvedCategory = normalizeItemCategory(customRaw);
+      } else {
+        resolvedCategory = normalizeItemCategory(resolvedCategory);
+      }
+
       const id = "item_" + Date.now();
       const item = {
         id,
         name: document.getElementById("admin-item-name").value.trim(),
         malayalamName: document.getElementById("admin-item-ml").value.trim(),
-        category: document.getElementById("admin-item-cat").value,
+        category: resolvedCategory,
         stage: document.getElementById("admin-item-stage").value.trim(),
         criteria: rawCriteria
       };
@@ -5393,6 +5457,11 @@
       saveLocalState();
       window.refreshAllSelects();
       e.target.reset();
+      if (customCatInput) {
+        customCatInput.value = "";
+        customCatInput.required = false;
+        customCatInput.classList.add("hidden");
+      }
       addItemCriteriaTouched = false;
       const presetEl = document.getElementById("admin-item-criteria-preset");
       if (presetEl) presetEl.value = "dance";
@@ -5511,12 +5580,54 @@
       return String(header || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     }
 
+    const STANDARD_ITEM_CATEGORIES = [
+      "High School",
+      "Higher Secondary",
+      "Junior",
+      "Senior",
+      "Sub-Junior",
+      "HS",
+      "HSS",
+      "General"
+    ];
+
+    function toTitleCaseCategory(str) {
+      return str
+        .toLowerCase()
+        .replace(/(^|[\s\-_/(&.])([a-z])/g, (_, sep, ch) => sep + ch.toUpperCase())
+        .slice(0, 60);
+    }
+
     function normalizeItemCategory(raw) {
-      const val = String(raw || "").trim().toLowerCase();
-      if (val === "high school" || val === "hs") return "High School";
-      if (val === "higher secondary" || val === "hss") return "Higher Secondary";
+      const cleaned = String(raw || "").trim().replace(/\s+/g, " ");
+      if (!cleaned) return "General";
+      const val = cleaned.toLowerCase();
+      if (val === "junior") return "Junior";
+      if (val === "senior") return "Senior";
       if (val === "sub-junior" || val === "sub junior" || val === "subjunior" || val === "sj") return "Sub-Junior";
-      return "General";
+      if (val === "hs") return "HS";
+      if (val === "hss") return "HSS";
+      if (val === "high school") return "High School";
+      if (val === "higher secondary") return "Higher Secondary";
+      if (val === "general") return "General";
+      return toTitleCaseCategory(cleaned);
+    }
+
+    function getAllItemCategoryOptions(extraCategory = "") {
+      const seen = new Set();
+      const result = [];
+      const pushCat = (raw) => {
+        const trimmed = String(raw || "").trim();
+        if (!trimmed) return;
+        const key = trimmed.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        result.push(trimmed);
+      };
+      STANDARD_ITEM_CATEGORIES.forEach(pushCat);
+      (Array.isArray(window.state?.items) ? window.state.items : []).forEach(it => pushCat(it?.category));
+      if (extraCategory) pushCat(extraCategory);
+      return result;
     }
 
     function sanitizeChestNo(raw) {
@@ -5551,7 +5662,7 @@
       const autoWrap = document.getElementById("csv-auto-create-wrap");
       if (hintEl) {
         hintEl.innerHTML = mode === "items"
-          ? `Expected columns: <span class="font-semibold text-stone-900">Item Name, Malayalam Name, Category, Stage</span> (Category: High School, Higher Secondary, Sub-Junior, or General).`
+          ? `Expected columns: <span class="font-semibold text-stone-900">Item Name, Malayalam Name, Category, Stage</span> (supports Junior, Senior, Sub-Junior, HS, HSS, High School, Higher Secondary, General, or custom categories; blank defaults to General).`
           : `Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name, School</span> (optional: <span class="font-medium text-stone-800">Group, Category, Stage, Malayalam Name</span>).`;
       }
       if (autoWrap) {
@@ -5568,7 +5679,8 @@
             "Item Name,Malayalam Name,Category,Stage",
             "Bharatanatyam,ഭരതനാട്യം,High School,Stage 1 — Nila",
             "Mohiniyattam,മോഹിനിയാട്ടം,Higher Secondary,Stage 2 — Periyar",
-            "Mappilappattu,മാപ്പിളപ്പാട്ട്,General,Stage 3 — Kabani"
+            "Elocution,പ്രസംഗം,Junior,Stage 3 — Kabani",
+            "Mappilappattu,മാപ്പിളപ്പാട്ട്,Senior,Stage 3 — Kabani"
           ].join("\n")
         : [
             "Item Name,Chest No,Participant Name,School,Group,Category,Stage",
@@ -5733,7 +5845,10 @@
         const itemLookup = new Map();
         (window.state.items || []).forEach(it => {
           itemLookup.set(it.id.toLowerCase(), it);
-          itemLookup.set(it.name.trim().toLowerCase(), it);
+          const normName = it.name.trim().toLowerCase();
+          const normCat = String(it.category || "General").trim().toLowerCase();
+          if (!itemLookup.has(normName)) itemLookup.set(normName, it);
+          itemLookup.set(`${normName}__${normCat}`, it);
         });
 
         const groupLookup = new Map();
@@ -5760,13 +5875,21 @@
             return;
           }
 
-          let itemObj = itemLookup.get(rawItem.toLowerCase());
+          const rawRowCat = catIdx !== -1 ? String(cols[catIdx] || "").trim() : "";
+          const rowCat = rawRowCat ? normalizeItemCategory(rawRowCat) : "";
+          let itemObj = rowCat
+            ? (itemLookup.get(`${rawItem.toLowerCase()}__${rowCat.toLowerCase()}`) || itemLookup.get(rawItem.toLowerCase()))
+            : itemLookup.get(rawItem.toLowerCase());
+          if (itemObj && rowCat && String(itemObj.category || "").trim().toLowerCase() !== rowCat.toLowerCase()) {
+            const exactCatMatch = itemLookup.get(`${rawItem.toLowerCase()}__${rowCat.toLowerCase()}`);
+            itemObj = exactCatMatch || null;
+          }
           if (!itemObj) {
             if (!autoCreate) {
-              warnings.push(`Row ${lineNum}: Item "${rawItem}" does not exist in ${activeEventCode} — skipped.`);
+              warnings.push(`Row ${lineNum}: Item "${rawItem}"${rowCat ? ` (${rowCat})` : ""} does not exist in ${activeEventCode} — skipped.`);
               return;
             }
-            const category = catIdx !== -1 ? normalizeItemCategory(cols[catIdx]) : "General";
+            const category = rowCat || "General";
             const stage = (stageIdx !== -1 ? String(cols[stageIdx] || "").trim() : "") || "Stage 1 — Nila";
             const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").trim().slice(0, 120) : "";
             itemObj = {
@@ -5779,7 +5902,8 @@
             };
             itemsToCreate.push(itemObj);
             itemLookup.set(itemObj.id.toLowerCase(), itemObj);
-            itemLookup.set(itemObj.name.toLowerCase(), itemObj);
+            if (!itemLookup.has(itemObj.name.toLowerCase())) itemLookup.set(itemObj.name.toLowerCase(), itemObj);
+            itemLookup.set(`${itemObj.name.toLowerCase()}__${category.toLowerCase()}`, itemObj);
           }
 
           const chestKey = `${itemObj.id}__${chestNo}`;

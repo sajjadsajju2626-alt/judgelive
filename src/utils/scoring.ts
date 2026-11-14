@@ -11,9 +11,33 @@ import {
 export const ALLOWED_CATEGORIES: CategoryType[] = [
   'High School',
   'Higher Secondary',
-  'General',
+  'Junior',
+  'Senior',
   'Sub-Junior',
+  'HS',
+  'HSS',
+  'General',
 ];
+
+export function normalizeItemCategory(raw: string | undefined | null): string {
+  const cleaned = String(raw ?? '').trim().replace(/\s+/g, ' ');
+  if (!cleaned) return 'General';
+  const val = cleaned.toLowerCase();
+  if (val === 'junior') return 'Junior';
+  if (val === 'senior') return 'Senior';
+  if (val === 'sub-junior' || val === 'sub junior' || val === 'subjunior' || val === 'sj') {
+    return 'Sub-Junior';
+  }
+  if (val === 'hs') return 'HS';
+  if (val === 'hss') return 'HSS';
+  if (val === 'high school') return 'High School';
+  if (val === 'higher secondary') return 'Higher Secondary';
+  if (val === 'general') return 'General';
+  return cleaned
+    .toLowerCase()
+    .replace(/(^|[\s\-_/(&.])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
+    .slice(0, 60);
+}
 
 export const ALLOWED_JUDGE_SLOTS: JudgeSlot[] = ['J1', 'J2', 'J3'];
 
@@ -220,7 +244,8 @@ export function validateItemInput(input: {
   if (malayalamName.length > 120) {
     return { valid: false, error: 'Malayalam name must be under 120 characters.' };
   }
-  if (!ALLOWED_CATEGORIES.includes(input.category as CategoryType)) {
+  const normalizedCat = normalizeItemCategory(input.category);
+  if (normalizedCat.length < 1 || normalizedCat.length > 60) {
     return { valid: false, error: 'Please select a valid competition category.' };
   }
   if (stage.length < 1 || stage.length > 60) {

@@ -4,6 +4,7 @@ import {
   calculateCriterionTotal,
   calculateGrade,
   distributeTotalToCriteria,
+  normalizeItemCategory,
   tabulateItemLeaderboard,
   validateItemInput,
   validateParticipantInput,
@@ -224,5 +225,21 @@ test('URL access control and Admin PIN verification work accurately', async () =
     formatChestDropdownLabel({ chestNo: '105', name: 'Meenakshi' }, false),
     'Chest 105 — Meenakshi'
   );
+});
+
+test('normalizeItemCategory preserves junior, senior, sub-junior, hs, hss, and custom categories', () => {
+  assert.equal(normalizeItemCategory('junior'), 'Junior');
+  assert.equal(normalizeItemCategory('  SENIOR  '), 'Senior');
+  assert.equal(normalizeItemCategory('sub-junior'), 'Sub-Junior');
+  assert.equal(normalizeItemCategory('subjunior'), 'Sub-Junior');
+  assert.equal(normalizeItemCategory('hs'), 'HS');
+  assert.equal(normalizeItemCategory('HSS'), 'HSS');
+  assert.equal(normalizeItemCategory('high school'), 'High School');
+  assert.equal(normalizeItemCategory('higher secondary'), 'Higher Secondary');
+  assert.equal(normalizeItemCategory('general'), 'General');
+  assert.equal(normalizeItemCategory('   '), 'General');
+  assert.equal(normalizeItemCategory(''), 'General');
+  assert.equal(normalizeItemCategory('upper primary'), 'Upper Primary');
+  assert.equal(normalizeItemCategory('SUPER-SENIOR boys'), 'Super-Senior Boys');
 });
 
