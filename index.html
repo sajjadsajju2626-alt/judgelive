@@ -96,20 +96,20 @@
     }
     body.stage-tv-mode #app-main {
       max-width: 100%;
-      padding: 1.5rem 2.25rem 2.5rem;
+      padding: 1rem 1.25rem 2rem;
     }
     body.stage-tv-mode #view-tabulation {
-      gap: 1.5rem;
+      gap: 1rem;
     }
     body.stage-tv-mode #tab-group-standings-section h2,
     body.stage-tv-mode #tab-item-results-heading {
       color: #FAFAF9;
-      font-size: 1.5rem;
+      font-size: 1.25rem;
     }
     body.stage-tv-mode #tab-group-standings-section p,
     body.stage-tv-mode #tab-grade-rules-badge {
       color: #A8A29E;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
     body.stage-tv-mode #leading-group-banner {
       background-color: #1C1917;
@@ -131,7 +131,7 @@
     body.stage-tv-mode #tab-chart-card-header h3,
     body.stage-tv-mode #tab-standings-card-header h3 {
       color: #FAFAF9;
-      font-size: 1.05rem;
+      font-size: 0.95rem;
     }
     body.stage-tv-mode #tab-chart-mode-label,
     body.stage-tv-mode #tab-groups-count {
@@ -142,11 +142,11 @@
       background-color: #171412;
       border-color: #292524;
       color: #D6D3D1;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
     body.stage-tv-mode #group-standings-body,
     body.stage-tv-mode #leaderboard-body {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
     }
     body.stage-tv-mode #group-standings-body tr,
     body.stage-tv-mode #leaderboard-body tr {
@@ -154,11 +154,173 @@
     }
     body.stage-tv-mode #group-standings-body td,
     body.stage-tv-mode #leaderboard-body td {
-      padding-top: 0.9rem;
-      padding-bottom: 0.9rem;
+      padding-top: 0.65rem;
+      padding-bottom: 0.65rem;
+    }
+    @media (min-width: 1024px) {
+      body.stage-tv-mode {
+        height: 100vh;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #app-main {
+        width: 100%;
+        flex: 1 1 0%;
+        min-height: 0;
+        padding: 0.875rem 1.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #view-tabulation {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+      body.stage-tv-mode #view-tabulation > :not([hidden]) ~ :not([hidden]),
+      body.stage-tv-mode #tab-dashboard-grid > :not([hidden]) ~ :not([hidden]),
+      body.stage-tv-mode #tab-group-standings-section > :not([hidden]) ~ :not([hidden]),
+      body.stage-tv-mode #tab-item-results-section > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0 !important;
+      }
+      body.stage-tv-mode #stage-tv-header {
+        flex-shrink: 0;
+        padding-bottom: 0.625rem;
+        gap: 0.75rem;
+      }
+      body.stage-tv-mode #tv-current-item-title {
+        font-size: clamp(1.35rem, 2.1vw, 1.95rem);
+        line-height: 1.15;
+      }
+      body.stage-tv-mode #live-results-ticker {
+        flex-shrink: 0;
+      }
+      body.stage-tv-mode #tab-dashboard-grid {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1rem;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-group-standings-section {
+        grid-column: span 5 / span 5;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-group-standings-section h2 {
+        font-size: 1.1rem;
+        line-height: 1.25;
+      }
+      body.stage-tv-mode #tab-group-standings-section p {
+        font-size: 0.72rem;
+      }
+      body.stage-tv-mode #leading-group-banner {
+        flex-shrink: 0;
+        padding: 0.75rem 1rem;
+      }
+      body.stage-tv-mode #tab-standings-inner-grid {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+      body.stage-tv-mode #tab-chart-card {
+        flex: 0 0 auto;
+        padding: 0.75rem 1rem;
+      }
+      body.stage-tv-mode #tab-chart-card-header {
+        padding-bottom: 0.4rem;
+        margin-bottom: 0.45rem;
+      }
+      body.stage-tv-mode #tab-group-chart-container {
+        min-height: 0;
+      }
+      body.stage-tv-mode #tab-standings-card {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-standings-card-header {
+        flex-shrink: 0;
+        padding: 0.5rem 0.875rem;
+      }
+      body.stage-tv-mode #tab-standings-table-scroll {
+        flex: 1 1 0%;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+      }
+      body.stage-tv-mode #tab-standings-card thead th,
+      body.stage-tv-mode #tab-leaderboard-card thead th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background-color: #171412;
+      }
+      body.stage-tv-mode #tab-standings-card thead th {
+        padding: 0.45rem 0.65rem;
+      }
+      body.stage-tv-mode #group-standings-body td {
+        padding: 0.45rem 0.65rem;
+        font-size: 0.85rem;
+      }
+      body.stage-tv-mode #tab-item-results-section {
+        grid-column: span 7 / span 7;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-item-results-heading {
+        font-size: 1.15rem;
+        line-height: 1.25;
+      }
+      body.stage-tv-mode #tab-leaderboard-card {
+        flex: 1 1 0%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-leaderboard-scroll {
+        flex: 1 1 0%;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+      }
+      body.stage-tv-mode #tab-leaderboard-card thead th {
+        padding: 0.55rem 0.75rem;
+      }
+      body.stage-tv-mode #leaderboard-body td {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+      }
     }
     @media print {
-      body.stage-tv-mode { background-color: #FFFFFF !important; color: #000000 !important; }
+      body.stage-tv-mode { background-color: #FFFFFF !important; color: #000000 !important; height: auto !important; overflow: visible !important; }
+      body.stage-tv-mode #app-main,
+      body.stage-tv-mode #view-tabulation,
+      body.stage-tv-mode #tab-dashboard-grid,
+      body.stage-tv-mode #tab-group-standings-section,
+      body.stage-tv-mode #tab-standings-inner-grid,
+      body.stage-tv-mode #tab-item-results-section,
+      body.stage-tv-mode #tab-standings-card,
+      body.stage-tv-mode #tab-standings-table-scroll,
+      body.stage-tv-mode #tab-leaderboard-card,
+      body.stage-tv-mode #tab-leaderboard-scroll {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
       @page { size: A4 portrait; margin: 14mm; }
       body { background-color: #FFFFFF !important; color: #000000 !important; }
       .no-print { display: none !important; }
@@ -495,14 +657,9 @@
 
     <!-- VIEW 2: LIVE TABULATION (Hidden unless unlocked via triple-tap + PIN 2026) -->
     <section id="view-tabulation" class="hidden space-y-8">
-      <!-- Subtle Corner Exit Button (Visible only in Stage / TV Mode) -->
-      <button type="button" id="exit-tv-mode-btn" onclick="exitStageTvMode()" class="no-print hidden fixed top-4 right-5 z-40 items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-stone-200 bg-stone-900/90 hover:bg-stone-800 border border-stone-700 rounded-lg shadow-lg backdrop-blur-sm transition-colors whitespace-nowrap">
-        Exit TV Mode
-      </button>
-
       <!-- Stage / TV Broadcast Header (Visible only in Stage / TV Mode) -->
-      <div id="stage-tv-header" class="no-print hidden flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 pr-36 border-b border-stone-800">
-        <div class="space-y-1">
+      <div id="stage-tv-header" class="no-print hidden flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 border-b border-stone-800">
+        <div class="space-y-1 min-w-0">
           <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs sm:text-sm font-semibold text-amber-400">
             <span id="tv-festival-title">Arts Fest Digital Judging</span>
             <span aria-hidden="true" class="text-stone-600">·</span>
@@ -510,7 +667,7 @@
             <span aria-hidden="true" class="text-stone-600">·</span>
             <span id="tv-event-code" class="tabular-nums text-stone-400">—</span>
           </div>
-          <h1 id="tv-current-item-title" class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight">Official Results</h1>
+          <h1 id="tv-current-item-title" class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight truncate">Official Results</h1>
           <div id="tv-current-item-meta" class="text-xs sm:text-sm font-medium text-stone-300">—</div>
         </div>
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -523,6 +680,9 @@
           </button>
           <button type="button" id="tv-auto-rotate-btn" role="switch" aria-checked="false" onclick="toggleAutoRotateItems()" class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-100 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded-lg transition-colors whitespace-nowrap">
             <span id="tv-auto-rotate-label">Auto-Rotate (10s): OFF</span>
+          </button>
+          <button type="button" id="exit-tv-mode-btn" onclick="exitStageTvMode()" class="hidden items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-stone-100 bg-stone-800 hover:bg-stone-700 border border-stone-600 rounded-lg transition-colors whitespace-nowrap">
+            Exit TV Mode
           </button>
         </div>
       </div>
@@ -571,85 +731,88 @@
         </div>
       </div>
 
-      <!-- Group Points & Standings Dashboard (Included in Print / Save as PDF) -->
-      <div id="tab-group-standings-section" class="space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 class="text-lg sm:text-xl font-bold text-stone-900 font-display">Group Points &amp; Standings</h2>
-            <p class="text-xs text-stone-500 mt-0.5">1st Place = 5 pts · 2nd Place = 3 pts · 3rd Place = 1 pt · Tie-breaker: Total Raw Judge Marks</p>
+      <!-- Widescreen Broadcast Grid (Vertical stack in standard/mobile, 5+7 side-by-side in Stage / TV Mode lg+) -->
+      <div id="tab-dashboard-grid" class="space-y-8">
+        <!-- Group Points & Standings Dashboard (Included in Print / Save as PDF) -->
+        <div id="tab-group-standings-section" class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold text-stone-900 font-display">Group Points &amp; Standings</h2>
+              <p class="text-xs text-stone-500 mt-0.5">1st Place = 5 pts · 2nd Place = 3 pts · 3rd Place = 1 pt · Tie-breaker: Total Raw Judge Marks</p>
+            </div>
+            <div id="tab-chart-selector" role="group" aria-label="Group Chart Type Selector" class="no-print inline-flex flex-wrap items-center gap-1 p-1 bg-stone-100 border border-stone-200 rounded-lg self-start sm:self-auto">
+              <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
+                Vertical Bar
+              </button>
+              <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
+                Horizontal Progress
+              </button>
+              <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
+                Doughnut Chart
+              </button>
+            </div>
           </div>
-          <div id="tab-chart-selector" role="group" aria-label="Group Chart Type Selector" class="no-print inline-flex flex-wrap items-center gap-1 p-1 bg-stone-100 border border-stone-200 rounded-lg self-start sm:self-auto">
-            <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
-              Vertical Bar
-            </button>
-            <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
-              Horizontal Progress
-            </button>
-            <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
-              Doughnut Chart
-            </button>
+
+          <!-- Leading Group Banner -->
+          <div id="leading-group-banner" class="bg-white border border-amber-200 rounded-xl p-4 sm:p-5 print-surface"></div>
+
+          <!-- Chart + Ranked Group Standings Table -->
+          <div id="tab-standings-inner-grid" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+            <div id="tab-chart-card" class="lg:col-span-3 bg-white border border-stone-200 rounded-xl p-5 flex flex-col justify-between print-surface">
+              <div id="tab-chart-card-header" class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-100">
+                <h3 class="text-sm font-bold text-stone-900">Standings Visualization</h3>
+                <span id="tab-chart-mode-label" class="text-xs font-medium text-stone-500">Vertical Bar Chart</span>
+              </div>
+              <div id="tab-group-chart-container" class="flex-1 flex items-center justify-center min-h-[220px]"></div>
+            </div>
+
+            <div id="tab-standings-card" class="lg:col-span-2 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col print-surface">
+              <div id="tab-standings-card-header" class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+                <h3 class="text-sm font-bold text-stone-900">Ranked Group Standings</h3>
+                <span id="tab-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
+              </div>
+              <div id="tab-standings-table-scroll" class="overflow-x-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="border-b border-stone-200 bg-stone-50/70 text-xs font-semibold text-stone-600">
+                      <th class="py-2.5 px-3">Rank</th>
+                      <th class="py-2.5 px-3">Group</th>
+                      <th class="py-2.5 px-3 text-right">1st/2nd/3rd</th>
+                      <th class="py-2.5 px-3 text-right">Raw Marks</th>
+                      <th class="py-2.5 px-3 text-right">Points</th>
+                    </tr>
+                  </thead>
+                  <tbody id="group-standings-body" class="divide-y divide-stone-200 text-xs sm:text-sm"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Leading Group Banner -->
-        <div id="leading-group-banner" class="bg-white border border-amber-200 rounded-xl p-4 sm:p-5 print-surface"></div>
-
-        <!-- Chart + Ranked Group Standings Table -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-          <div id="tab-chart-card" class="lg:col-span-3 bg-white border border-stone-200 rounded-xl p-5 flex flex-col justify-between print-surface">
-            <div id="tab-chart-card-header" class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-100">
-              <h3 class="text-sm font-bold text-stone-900">Standings Visualization</h3>
-              <span id="tab-chart-mode-label" class="text-xs font-medium text-stone-500">Vertical Bar Chart</span>
-            </div>
-            <div id="tab-group-chart-container" class="flex-1 flex items-center justify-center min-h-[220px]"></div>
+        <!-- Item-wise Leaderboard -->
+        <div id="tab-item-results-section" class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 shrink-0">
+            <h2 id="tab-item-results-heading" class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+            <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
           </div>
-
-          <div id="tab-standings-card" class="lg:col-span-2 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col print-surface">
-            <div id="tab-standings-card-header" class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
-              <h3 class="text-sm font-bold text-stone-900">Ranked Group Standings</h3>
-              <span id="tab-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
-            </div>
-            <div class="overflow-x-auto flex-1">
+          <div id="tab-leaderboard-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
+            <div id="tab-leaderboard-scroll" class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="border-b border-stone-200 bg-stone-50/70 text-xs font-semibold text-stone-600">
-                    <th class="py-2.5 px-3">Rank</th>
-                    <th class="py-2.5 px-3">Group</th>
-                    <th class="py-2.5 px-3 text-right">1st/2nd/3rd</th>
-                    <th class="py-2.5 px-3 text-right">Raw Marks</th>
-                    <th class="py-2.5 px-3 text-right">Points</th>
+                  <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
+                    <th class="py-3 px-4">Rank</th>
+                    <th class="py-3 px-4">Chest No</th>
+                    <th class="py-3 px-4">Participant Name &amp; School</th>
+                    <th class="py-3 px-4 text-right">Judge 1</th>
+                    <th class="py-3 px-4 text-right">Judge 2</th>
+                    <th class="py-3 px-4 text-right">Judge 3</th>
+                    <th class="py-3 px-4 text-right">Average</th>
+                    <th class="py-3 px-4 text-right">Grade</th>
                   </tr>
                 </thead>
-                <tbody id="group-standings-body" class="divide-y divide-stone-200 text-xs sm:text-sm"></tbody>
+                <tbody id="leaderboard-body" class="divide-y divide-stone-200 text-sm"></tbody>
               </table>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Item-wise Leaderboard -->
-      <div class="space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="tab-item-results-heading" class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
-          <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
-        </div>
-        <div id="tab-leaderboard-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
-                  <th class="py-3 px-4">Rank</th>
-                  <th class="py-3 px-4">Chest No</th>
-                  <th class="py-3 px-4">Participant Name &amp; School</th>
-                  <th class="py-3 px-4 text-right">Judge 1</th>
-                  <th class="py-3 px-4 text-right">Judge 2</th>
-                  <th class="py-3 px-4 text-right">Judge 3</th>
-                  <th class="py-3 px-4 text-right">Average</th>
-                  <th class="py-3 px-4 text-right">Grade</th>
-                </tr>
-              </thead>
-              <tbody id="leaderboard-body" class="divide-y divide-stone-200 text-sm"></tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -2577,11 +2740,11 @@
       }
 
       if (chartType === "doughnut") {
-        const size = compact ? 148 : (dark ? 196 : 176);
+        const size = compact ? 148 : (dark ? 156 : 176);
         const cx = size / 2;
         const cy = size / 2;
-        const r = compact ? 48 : (dark ? 66 : 58);
-        const strokeW = compact ? 22 : (dark ? 28 : 26);
+        const r = compact ? 48 : (dark ? 52 : 58);
+        const strokeW = compact ? 22 : (dark ? 22 : 26);
         const circ = 2 * Math.PI * r;
         let offset = 0;
 
@@ -2596,19 +2759,19 @@
           : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${dark ? "#292524" : "#E7E5E4"}" stroke-width="${strokeW}" />`;
 
         return `
-          <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-6">
+          <div class="w-full flex flex-col sm:flex-row items-center justify-center ${dark ? "gap-4" : "gap-6"}">
             <div class="shrink-0 flex items-center justify-center">
               <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Group Points Doughnut Chart">
                 ${slicesMarkup}
-                <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="${compact ? 18 : (dark ? 26 : 22)}" font-weight="700" fill="${dark ? "#FAFAF9" : "#1C1917"}" class="tabular-nums">${totalPts}</text>
+                <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="${compact ? 18 : (dark ? 20 : 22)}" font-weight="700" fill="${dark ? "#FAFAF9" : "#1C1917"}" class="tabular-nums">${totalPts}</text>
                 <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" font-weight="600" fill="${dark ? "#A8A29E" : "#78716C"}">TOTAL PTS</text>
               </svg>
             </div>
-            <div class="w-full max-w-xs space-y-2">
+            <div class="w-full max-w-xs ${dark ? "space-y-1" : "space-y-2"}">
               ${standings.map(g => {
                 const share = totalPts > 0 ? Math.round((g.points / totalPts) * 100) : 0;
                 return `
-                  <div class="flex items-center justify-between gap-3 ${dark ? "text-sm border-stone-800" : "text-xs border-stone-100"} py-1 border-b last:border-b-0">
+                  <div class="flex items-center justify-between gap-3 ${dark ? "text-xs sm:text-sm border-stone-800 py-0.5" : "text-xs border-stone-100 py-1"} border-b last:border-b-0">
                     <div class="flex items-center gap-2 min-w-0">
                       <span class="font-bold ${dark ? "text-stone-400" : "text-stone-500"} tabular-nums w-5 shrink-0">#${g.rank}</span>
                       <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
@@ -2628,11 +2791,11 @@
 
       // Default: Vertical Bar Chart ("bar")
       const width = 560;
-      const height = compact ? 190 : 230;
+      const height = compact ? 190 : (dark ? 190 : 230);
       const padLeft = 36;
       const padRight = 18;
-      const padTop = 30;
-      const padBottom = 46;
+      const padTop = 26;
+      const padBottom = 42;
       const plotW = width - padLeft - padRight;
       const plotH = height - padTop - padBottom;
       const step = plotW / standings.length;
@@ -2660,14 +2823,14 @@
             <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="5" fill="${escapeHtml(g.color)}" />
             <text x="${cx.toFixed(1)}" y="${(y - 7).toFixed(1)}" text-anchor="middle" font-size="${dark ? 13 : 11}" font-weight="700" fill="${dark ? "#FCD34D" : "#1C1917"}" class="tabular-nums">${g.points}p</text>
             <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 16).toFixed(1)}" text-anchor="middle" font-size="${dark ? 12 : 11}" font-weight="600" fill="${dark ? "#FAFAF9" : "#1C1917"}">${escapeHtml(shortName)}</text>
-            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 31).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="${dark ? "#A8A29E" : "#78716C"}" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 30).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="${dark ? "#A8A29E" : "#78716C"}" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
           </g>
         `;
       }).join("");
 
       return `
         <div class="w-full">
-          <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto ${dark ? "max-h-72" : "max-h-64"}" role="img" aria-label="Group Points Vertical Bar Chart">
+          <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto ${dark ? "max-h-40 xl:max-h-48" : "max-h-64"}" role="img" aria-label="Group Points Vertical Bar Chart">
             ${gridLines}
             <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="${dark ? "#44403C" : "#D6D3D1"}" />
             ${bars}
@@ -2852,8 +3015,10 @@
       const maxPts = Math.max(1, ...standings.map(g => g.points));
       let wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
       if (!wrapper) {
-        containerEl.innerHTML = `<div data-horizontal-bars-wrap class="w-full space-y-3"></div>`;
+        containerEl.innerHTML = `<div data-horizontal-bars-wrap class="w-full ${dark ? "space-y-2" : "space-y-3"}"></div>`;
         wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
+      } else {
+        wrapper.className = `w-full ${dark ? "space-y-2" : "space-y-3"}`;
       }
 
       const sectionEl = containerEl.closest("section");
@@ -2880,7 +3045,7 @@
         if (!rowEl) {
           rowEl = document.createElement("div");
           rowEl.setAttribute("data-group-bar-key", key);
-          rowEl.className = "space-y-1.5 tab-animated-row";
+          rowEl.className = "space-y-1 tab-animated-row";
           rowEl.innerHTML = `
             <div data-col="row-header" class="flex items-center justify-between gap-3 text-xs sm:text-sm">
               <div class="flex items-center gap-2 min-w-0">
@@ -2899,9 +3064,10 @@
             </div>
           `;
         }
+        rowEl.className = `${dark ? "space-y-1" : "space-y-1.5"} tab-animated-row`;
         const rowHeader = rowEl.querySelector('[data-col="row-header"]');
         if (rowHeader) {
-          rowHeader.className = `flex items-center justify-between gap-3 ${dark ? "text-sm sm:text-base" : "text-xs sm:text-sm"}`;
+          rowHeader.className = `flex items-center justify-between gap-3 ${dark ? "text-xs sm:text-sm" : "text-xs sm:text-sm"}`;
         }
         const rankEl = rowEl.querySelector('[data-col="rank"]');
         rankEl.className = `inline-flex items-center justify-center w-6 h-5 rounded ${dark ? "bg-stone-800 text-amber-300" : "bg-stone-100 text-stone-700"} text-[11px] font-bold tabular-nums shrink-0 rank-pill-transition`;
@@ -2920,7 +3086,7 @@
         animateNumericCell(ptsEl, g.points, 0, " pts");
         const trackEl = rowEl.querySelector('[data-col="track"]');
         if (trackEl) {
-          trackEl.className = `w-full ${dark ? "h-3.5 bg-stone-800" : "h-3 bg-stone-100"} rounded-full overflow-hidden`;
+          trackEl.className = `w-full ${dark ? "h-2.5 bg-stone-800" : "h-3 bg-stone-100"} rounded-full overflow-hidden`;
         }
         const fillEl = rowEl.querySelector('[data-col="fill"]');
         fillEl.style.backgroundColor = g.color;
@@ -3013,26 +3179,26 @@
             ? tiedLeaders.map(g => escapeHtml(g.name)).join(" &amp; ")
             : escapeHtml(leader.name);
           bannerEl.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 tab-row-enter">
-              <div class="flex items-center gap-3.5">
-                <span class="inline-flex items-center justify-center ${dark ? "w-12 h-12 text-base" : "w-10 h-10 text-sm"} rounded-xl text-white font-bold tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
-                <div>
-                  <div class="text-xs font-semibold uppercase tracking-wider ${dark ? "text-amber-400" : "text-amber-800"}">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
-                  <div class="${dark ? "text-2xl sm:text-3xl text-white" : "text-xl text-stone-900"} font-bold font-display">${leaderTitle}</div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 tab-row-enter">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex items-center justify-center ${dark ? "w-10 h-10 text-sm" : "w-10 h-10 text-sm"} rounded-xl text-white font-bold tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
+                <div class="min-w-0">
+                  <div class="text-[11px] font-semibold uppercase tracking-wider ${dark ? "text-amber-400" : "text-amber-800"}">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
+                  <div class="${dark ? "text-lg xl:text-2xl text-white truncate" : "text-xl text-stone-900"} font-bold font-display">${leaderTitle}</div>
                 </div>
               </div>
-              <div class="flex flex-wrap items-center gap-4 sm:gap-7 tabular-nums">
+              <div class="flex flex-wrap items-center gap-4 ${dark ? "xl:gap-5" : "sm:gap-7"} tabular-nums shrink-0">
                 <div>
-                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Championship Points</div>
-                  <div class="${dark ? "text-2xl sm:text-3xl text-amber-300" : "text-xl text-stone-900"} font-bold">${leader.points} pts</div>
+                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Points</div>
+                  <div class="${dark ? "text-lg xl:text-2xl text-amber-300" : "text-xl text-stone-900"} font-bold">${leader.points} pts</div>
                 </div>
                 <div>
-                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Raw Judge Marks</div>
-                  <div class="${dark ? "text-lg text-stone-200" : "text-base text-stone-700"} font-semibold">${leader.rawMarks.toFixed(1)}</div>
+                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Raw Marks</div>
+                  <div class="${dark ? "text-sm xl:text-base text-stone-200" : "text-base text-stone-700"} font-semibold">${leader.rawMarks.toFixed(1)}</div>
                 </div>
                 <div>
-                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Placements (1st/2nd/3rd)</div>
-                  <div class="${dark ? "text-base text-stone-200" : "text-sm text-stone-700"} font-semibold">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
+                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">1st/2nd/3rd</div>
+                  <div class="${dark ? "text-sm xl:text-base text-stone-200" : "text-sm text-stone-700"} font-semibold">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
                 </div>
               </div>
             </div>
