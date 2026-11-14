@@ -208,6 +208,10 @@
           "type": "number",
           "description": "Maximum marks possible for this item (always 100)."
         },
+        "criteria": {
+          "type": "array",
+          "description": "4 item-specific judging criterion labels (25 marks each)."
+        },
         "authorId": {
           "type": "string",
           "maxLength": 128,

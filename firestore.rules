@@ -109,7 +109,7 @@ service cloud.firestore {
     // Validation Blueprint: CompetitionItem
     function isValidCompetitionItem(data, docId) {
       return data.keys().hasAll(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'authorId', 'createdAt']) &&
-        data.keys().hasOnly(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'authorId', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'criteria', 'authorId', 'createdAt']) &&
         data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
         data.id == docId &&
         data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
@@ -118,6 +118,14 @@ service cloud.firestore {
         data.category in ['High School', 'Higher Secondary', 'General', 'Sub-Junior'] &&
         data.stage is string && data.stage.size() >= 1 && data.stage.size() <= 60 &&
         data.maxMarks is int && data.maxMarks == 100 &&
+        (!('criteria' in data) || (
+          data.criteria is list &&
+          data.criteria.size() == 4 &&
+          data.criteria[0] is string && data.criteria[0].size() >= 1 && data.criteria[0].size() <= 80 &&
+          data.criteria[1] is string && data.criteria[1].size() >= 1 && data.criteria[1].size() <= 80 &&
+          data.criteria[2] is string && data.criteria[2].size() >= 1 && data.criteria[2].size() <= 80 &&
+          data.criteria[3] is string && data.criteria[3].size() >= 1 && data.criteria[3].size() <= 80
+        )) &&
         data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
         data.authorId == request.auth.uid &&
         data.createdAt is timestamp;
@@ -282,9 +290,9 @@ service cloud.firestore {
           incoming().id == existing().id &&
           incoming().authorId == existing().authorId &&
           incoming().createdAt == existing().createdAt && (
-            isAdmin() ||
+          isAdmin() ||
             (existing().authorId == request.auth.uid &&
-              incoming().diff(existing()).affectedKeys().hasOnly(['name', 'malayalamName', 'category', 'stage']))
+              incoming().diff(existing()).affectedKeys().hasOnly(['name', 'malayalamName', 'category', 'stage', 'criteria']))
           );
 
         allow delete: if isVerifiedUser() &&

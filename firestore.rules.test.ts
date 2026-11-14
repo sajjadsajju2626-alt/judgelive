@@ -36,15 +36,20 @@ function evaluateCreateItem(
   incoming: Record<string, unknown>
 ): 'ALLOW' | 'PERMISSION_DENIED' {
   const reqKeys = ['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'authorId', 'createdAt'];
+  const allowedKeys = [...reqKeys, 'criteria'];
   if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
   if (!isValidId(itemId)) return 'PERMISSION_DENIED';
-  if (!hasExactKeys(incoming, reqKeys, reqKeys)) return 'PERMISSION_DENIED';
+  if (!hasExactKeys(incoming, reqKeys, allowedKeys)) return 'PERMISSION_DENIED';
   if (incoming.id !== itemId || typeof incoming.id !== 'string' || incoming.id.length > 64) return 'PERMISSION_DENIED';
   if (typeof incoming.name !== 'string' || incoming.name.length < 1 || incoming.name.length > 120) return 'PERMISSION_DENIED';
   if (typeof incoming.malayalamName !== 'string' || incoming.malayalamName.length > 120) return 'PERMISSION_DENIED';
   if (!['High School', 'Higher Secondary', 'General', 'Sub-Junior'].includes(String(incoming.category))) return 'PERMISSION_DENIED';
   if (typeof incoming.stage !== 'string' || incoming.stage.length < 1 || incoming.stage.length > 60) return 'PERMISSION_DENIED';
   if (incoming.maxMarks !== 100) return 'PERMISSION_DENIED';
+  if ('criteria' in incoming) {
+    if (!Array.isArray(incoming.criteria) || incoming.criteria.length !== 4) return 'PERMISSION_DENIED';
+    if (!incoming.criteria.every((c) => typeof c === 'string' && c.length >= 1 && c.length <= 80)) return 'PERMISSION_DENIED';
+  }
   if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
   if (incoming.createdAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
   return 'ALLOW';
@@ -658,6 +663,52 @@ test('EventConfig license fields (isActive, expiresAt) are validated and restric
     }),
     'PERMISSION_DENIED'
   );
+});
+
+test('CompetitionItem validates 4-element criteria array and blocks malformed or oversized criteria', () => {
+  const validItem = evaluateCreateItem(verifiedUserA, 'item_speech_1', {
+    id: 'item_speech_1',
+    name: 'Elocution - Malayalam',
+    malayalamName: 'പ്രസംഗം - മലയാളം',
+    category: 'Higher Secondary',
+    stage: 'Stage 2',
+    maxMarks: 100,
+    criteria: [
+      'Content & Clarity / ഉള്ളടക്കം (0-25)',
+      'Language & Diction / ഭാഷാശുദ്ധി (0-25)',
+      'Voice & Modulation / ശബ്ദനിയന്ത്രണം (0-25)',
+      'Presentation / അവതരണം (0-25)',
+    ],
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+  });
+  assert.equal(validItem, 'ALLOW');
+
+  const wrongCount = evaluateCreateItem(verifiedUserA, 'item_speech_2', {
+    id: 'item_speech_2',
+    name: 'Elocution',
+    malayalamName: '',
+    category: 'General',
+    stage: 'Stage 1',
+    maxMarks: 100,
+    criteria: ['Content', 'Language', 'Voice'],
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+  });
+  assert.equal(wrongCount, 'PERMISSION_DENIED');
+
+  const emptyLabel = evaluateCreateItem(verifiedUserA, 'item_speech_3', {
+    id: 'item_speech_3',
+    name: 'Elocution',
+    malayalamName: '',
+    category: 'General',
+    stage: 'Stage 1',
+    maxMarks: 100,
+    criteria: ['Content', '', 'Voice', 'Presentation'],
+    authorId: 'user_A',
+    createdAt: REQUEST_TIME,
+  });
+  assert.equal(emptyLabel, 'PERMISSION_DENIED');
 });
 
 
