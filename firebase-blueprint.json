@@ -1,8 +1,81 @@
 {
   "entities": {
+    "CampusRegistry": {
+      "title": "CampusRegistry",
+      "description": "Top-level cross-device registry record for each registered campus/festival workspace stored at campus_registry/{festivalCode}.",
+      "type": "object",
+      "properties": {
+        "festivalCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9_\\-]+$",
+          "description": "Normalized uppercase festival/campus code."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Institution or festival display title."
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 160,
+          "description": "Subtitle or venue description."
+        },
+        "adminPin": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 16,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Per-event Admin PIN assigned to unlock the campus Admin Panel."
+        },
+        "chartType": {
+          "type": "string",
+          "enum": ["bar", "horizontal", "doughnut"],
+          "maxLength": 24,
+          "description": "Selected visualization chart type for Group Points & Standings."
+        },
+        "gradeA": {
+          "type": "number",
+          "description": "Minimum percentage threshold for Grade A."
+        },
+        "gradeB": {
+          "type": "number",
+          "description": "Minimum percentage threshold for Grade B."
+        },
+        "gradeC": {
+          "type": "number",
+          "description": "Minimum percentage threshold for Grade C."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Commercial license activation status (true = active, false = suspended)."
+        },
+        "expiresAt": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 32,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Inclusive event license expiry date in YYYY-MM-DD format."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the event was registered."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest registry update."
+        }
+      },
+      "required": ["festivalCode", "title", "adminPin", "isActive", "expiresAt"]
+    },
     "EventConfig": {
       "title": "EventConfig",
-      "description": "Isolated campus or festival configuration including display title, subtitle, and custom event admin PIN stored at events/{eventCode}/settings/config.",
+      "description": "Isolated campus or festival configuration including display title, subtitle, and custom event admin PIN stored at events/{festivalCode}/settings/config.",
       "type": "object",
       "properties": {
         "id": {
@@ -69,7 +142,7 @@
         "authorId": {
           "type": "string",
           "maxLength": 128,
-          "description": "UID of the user who created the event config."
+          "description": "Optional device or creator identifier."
         },
         "createdAt": {
           "type": "string",
@@ -82,11 +155,11 @@
           "description": "Server timestamp of latest config update."
         }
       },
-      "required": ["id", "eventCode", "title", "subtitle", "adminPin", "authorId", "createdAt", "updatedAt"]
+      "required": ["id", "eventCode", "title", "subtitle", "adminPin", "createdAt", "updatedAt"]
     },
     "Group": {
       "title": "Group",
-      "description": "A house, team, or group registered within a specific eventCode for team standings calculation.",
+      "description": "A house, team, or group registered within a specific festivalCode for team standings calculation.",
       "type": "object",
       "properties": {
         "id": {
@@ -111,7 +184,7 @@
         "authorId": {
           "type": "string",
           "maxLength": 128,
-          "description": "UID of the user who created the group."
+          "description": "Optional device or creator identifier."
         },
         "createdAt": {
           "type": "string",
@@ -119,59 +192,11 @@
           "description": "Server timestamp when the group was created."
         }
       },
-      "required": ["id", "name", "color", "authorId", "createdAt"]
-    },
-    "EventBranding": {
-      "title": "EventBranding",
-      "description": "Isolated institution or festival display title and subtitle stored per eventCode.",
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "maxLength": 32,
-          "pattern": "^branding$",
-          "description": "Fixed document identifier ('branding')."
-        },
-        "eventCode": {
-          "type": "string",
-          "minLength": 2,
-          "maxLength": 32,
-          "pattern": "^[A-Z0-9_\\-]+$",
-          "description": "Normalized uppercase event/institution code."
-        },
-        "festivalName": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 120,
-          "description": "Display name of the institution or arts festival."
-        },
-        "subtitle": {
-          "type": "string",
-          "minLength": 0,
-          "maxLength": 160,
-          "description": "Subtitle or venue description shown in status bar and PDF sheets."
-        },
-        "authorId": {
-          "type": "string",
-          "maxLength": 128,
-          "description": "UID of the user who created the event branding."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server timestamp when branding was created."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Server timestamp of latest branding update."
-        }
-      },
-      "required": ["id", "eventCode", "festivalName", "subtitle", "authorId", "createdAt", "updatedAt"]
+      "required": ["id", "name", "color", "createdAt"]
     },
     "CompetitionItem": {
       "title": "CompetitionItem",
-      "description": "An arts festival competition event or item scoped to a specific eventCode.",
+      "description": "An arts festival competition event or item scoped to a specific festivalCode.",
       "type": "object",
       "properties": {
         "id": {
@@ -215,7 +240,7 @@
         "authorId": {
           "type": "string",
           "maxLength": 128,
-          "description": "UID of the user who created the item."
+          "description": "Optional device or creator identifier."
         },
         "createdAt": {
           "type": "string",
@@ -223,11 +248,11 @@
           "description": "Server timestamp when the item was created."
         }
       },
-      "required": ["id", "name", "malayalamName", "category", "stage", "maxMarks", "authorId", "createdAt"]
+      "required": ["id", "name", "malayalamName", "category", "stage", "maxMarks", "createdAt"]
     },
     "Participant": {
       "title": "Participant",
-      "description": "A registered contestant with a chest number assigned to a competition item within an eventCode.",
+      "description": "A registered contestant with a chest number assigned to a competition item within a festivalCode.",
       "type": "object",
       "properties": {
         "id": {
@@ -275,7 +300,7 @@
         "authorId": {
           "type": "string",
           "maxLength": 128,
-          "description": "UID of the user who registered the participant."
+          "description": "Optional device or creator identifier."
         },
         "createdAt": {
           "type": "string",
@@ -283,11 +308,11 @@
           "description": "Server timestamp when registered."
         }
       },
-      "required": ["id", "itemId", "chestNo", "name", "school", "authorId", "createdAt"]
+      "required": ["id", "itemId", "chestNo", "name", "school", "createdAt"]
     },
     "JudgeScore": {
       "title": "JudgeScore",
-      "description": "Score entry submitted by a judge for a specific participant in an eventCode.",
+      "description": "Score entry submitted by a judge for a specific participant in a festivalCode.",
       "type": "object",
       "properties": {
         "id": {
@@ -328,19 +353,19 @@
         },
         "rhythm": {
           "type": "number",
-          "description": "Criterion 1: Rhythm / Thalam (0-25)."
+          "description": "Criterion 1 score (0-25)."
         },
         "expression": {
           "type": "number",
-          "description": "Criterion 2: Expression / Bhavam (0-25)."
+          "description": "Criterion 2 score (0-25)."
         },
         "perfection": {
           "type": "number",
-          "description": "Criterion 3: Perfection / Technique (0-25)."
+          "description": "Criterion 3 score (0-25)."
         },
         "overall": {
           "type": "number",
-          "description": "Criterion 4: Overall Presentation (0-25)."
+          "description": "Criterion 4 score (0-25)."
         },
         "total": {
           "type": "number",
@@ -354,7 +379,7 @@
         "authorId": {
           "type": "string",
           "maxLength": 128,
-          "description": "UID of the authenticated judge/user who submitted the score."
+          "description": "Optional device or judge identifier."
         },
         "createdAt": {
           "type": "string",
@@ -380,32 +405,35 @@
         "overall",
         "total",
         "remarks",
-        "authorId",
         "createdAt",
         "updatedAt"
       ]
     }
   },
   "firestore": {
-    "/events/{eventCode}/settings/{settingId}": {
+    "/campus_registry/{festivalCode}": {
+      "schema": { "$ref": "#/entities/CampusRegistry" },
+      "description": "Top-level real-time synchronized directory of registered campus/festival workspaces, PINs, and license metadata."
+    },
+    "/events/{festivalCode}/settings/{settingId}": {
       "schema": { "$ref": "#/entities/EventConfig" },
-      "description": "Stores isolated institution config (title, subtitle, adminPin, chartType) for a specific eventCode."
+      "description": "Stores isolated institution config (title, subtitle, adminPin, chartType, grading rules, license) for a specific festivalCode."
     },
-    "/events/{eventCode}/groups/{groupId}": {
+    "/events/{festivalCode}/groups/{groupId}": {
       "schema": { "$ref": "#/entities/Group" },
-      "description": "Stores registered houses/teams/groups isolated to eventCode."
+      "description": "Stores registered houses/teams/groups isolated to festivalCode."
     },
-    "/events/{eventCode}/items/{itemId}": {
+    "/events/{festivalCode}/items/{itemId}": {
       "schema": { "$ref": "#/entities/CompetitionItem" },
-      "description": "Stores competition events and items isolated to eventCode."
+      "description": "Stores competition events and items isolated to festivalCode."
     },
-    "/events/{eventCode}/participants/{participantId}": {
+    "/events/{festivalCode}/participants/{participantId}": {
       "schema": { "$ref": "#/entities/Participant" },
-      "description": "Stores registered participants and chest numbers isolated to eventCode."
+      "description": "Stores registered participants and chest numbers isolated to festivalCode."
     },
-    "/events/{eventCode}/scores/{scoreId}": {
+    "/events/{festivalCode}/scores/{scoreId}": {
       "schema": { "$ref": "#/entities/JudgeScore" },
-      "description": "Stores real-time judge score submissions isolated to eventCode."
+      "description": "Stores real-time judge score submissions isolated to festivalCode."
     }
   }
 }

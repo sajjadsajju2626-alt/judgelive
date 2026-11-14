@@ -2,18 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Pillar 1: Global Safety Net (Default Deny)
+    // Global Safety Net (Default Deny)
     match /{document=**} {
       allow read, write: if false;
-    }
-
-    // Phase 3: Reusable Hardened Global Helpers
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isVerifiedUser() {
-      return isSignedIn() && request.auth.token.email_verified == true;
     }
 
     function isValidId(id) {
@@ -28,33 +19,30 @@ service cloud.firestore {
       return request.resource.data;
     }
 
-    function existing() {
-      return resource.data;
-    }
-
-    function isVerifiedAdminEmail() {
-      return isVerifiedUser() && request.auth.token.email == 'sajjadsajju2626@gmail.com';
-    }
-
-    function isAdmin() {
-      return isVerifiedUser() && (
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == 'sajjadsajju2626@gmail.com'
-      );
-    }
-
-    // Validation Blueprint: EventConfig
-    function isValidEventConfig(data, eventCode, settingId) {
-      return data.keys().hasAll(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt']) &&
-        data.keys().hasOnly(['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'chartType', 'gradeA', 'gradeB', 'gradeC', 'isActive', 'expiresAt', 'authorId', 'createdAt', 'updatedAt']) &&
-        data.id is string && data.id.size() <= 32 && data.id == 'config' &&
-        data.id == settingId &&
-        data.eventCode is string && data.eventCode.size() >= 2 && data.eventCode.size() <= 32 &&
-        data.eventCode == eventCode &&
-        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
-        data.subtitle is string && data.subtitle.size() <= 160 &&
-        data.adminPin is string && data.adminPin.size() >= 4 && data.adminPin.size() <= 16 &&
+    // Validation Blueprint: CampusRegistry (/campus_registry/{festivalCode})
+    function isValidCampusRegistry(data, festivalCode) {
+      return data.keys().hasAll(['festivalCode', 'title', 'adminPin', 'isActive', 'expiresAt']) &&
+        data.keys().hasOnly([
+          'festivalCode', 'title', 'subtitle', 'adminPin',
+          'chartType', 'gradeA', 'gradeB', 'gradeC',
+          'isActive', 'expiresAt', 'createdAt', 'updatedAt'
+        ]) &&
+        data.festivalCode is string &&
+        data.festivalCode.size() >= 2 &&
+        data.festivalCode.size() <= 32 &&
+        data.festivalCode == festivalCode &&
+        data.title is string &&
+        data.title.size() >= 1 &&
+        data.title.size() <= 120 &&
+        (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 160)) &&
+        data.adminPin is string &&
+        data.adminPin.size() >= 4 &&
+        data.adminPin.size() <= 16 &&
         data.adminPin.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.isActive is bool &&
+        data.expiresAt is string &&
+        data.expiresAt.size() == 10 &&
+        data.expiresAt.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
         (!('chartType' in data) || (
           data.chartType is string &&
           data.chartType.size() <= 24 &&
@@ -66,319 +54,27 @@ service cloud.firestore {
         (!('gradeA' in data && 'gradeB' in data) || data.gradeA > data.gradeB) &&
         (!('gradeB' in data && 'gradeC' in data) || data.gradeB > data.gradeC) &&
         (!('gradeA' in data && 'gradeC' in data) || data.gradeA > data.gradeC) &&
-        (!('isActive' in data) || data.isActive is bool) &&
-        (!('expiresAt' in data) || (
-          data.expiresAt is string &&
-          data.expiresAt.size() == 10 &&
-          data.expiresAt.matches('^\\d{4}-\\d{2}-\\d{2}$')
-        )) &&
-        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
-        data.createdAt is timestamp &&
-        data.updatedAt is timestamp;
+        (!('createdAt' in data) || data.createdAt is timestamp) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp);
     }
 
-    // Validation Blueprint: EventBranding
-    function isValidEventBranding(data, eventCode, settingId) {
-      return data.keys().hasAll(['id', 'eventCode', 'festivalName', 'subtitle', 'authorId', 'createdAt', 'updatedAt']) &&
-        data.keys().hasOnly(['id', 'eventCode', 'festivalName', 'subtitle', 'authorId', 'createdAt', 'updatedAt']) &&
-        data.id is string && data.id.size() <= 32 && data.id == 'branding' &&
-        data.id == settingId &&
-        data.eventCode is string && data.eventCode.size() >= 2 && data.eventCode.size() <= 32 &&
-        data.eventCode == eventCode &&
-        data.festivalName is string && data.festivalName.size() >= 1 && data.festivalName.size() <= 120 &&
-        data.subtitle is string && data.subtitle.size() <= 160 &&
-        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
-        data.authorId == request.auth.uid &&
-        data.createdAt is timestamp &&
-        data.updatedAt is timestamp;
+    // Cross-Device Campus Registry Collection
+    match /campus_registry/{festivalCode} {
+      allow get: if isValidEventCode(festivalCode);
+      allow list: if request.time != null;
+      allow create, update: if isValidEventCode(festivalCode) && isValidCampusRegistry(incoming(), festivalCode);
+      allow delete: if isValidEventCode(festivalCode);
     }
 
-    // Validation Blueprint: Group
-    function isValidGroup(data, docId) {
-      return data.keys().hasAll(['id', 'name', 'color', 'authorId', 'createdAt']) &&
-        data.keys().hasOnly(['id', 'name', 'color', 'authorId', 'createdAt']) &&
-        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.id == docId &&
-        data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
-        data.color is string && data.color.size() == 7 && data.color.matches('^#[0-9a-fA-F]{6}$') &&
-        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
-        data.authorId == request.auth.uid &&
-        data.createdAt is timestamp;
+    // Multi-Event Workspace Scope (Cross-Device Judging, Tabulation, Admin & Demo Sync)
+    match /events/{festivalCode}/{document=**} {
+      allow read, write: if isValidEventCode(festivalCode);
     }
 
-    // Validation Blueprint: CompetitionItem
-    function isValidCompetitionItem(data, docId) {
-      return data.keys().hasAll(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'authorId', 'createdAt']) &&
-        data.keys().hasOnly(['id', 'name', 'malayalamName', 'category', 'stage', 'maxMarks', 'criteria', 'authorId', 'createdAt']) &&
-        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.id == docId &&
-        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
-        data.malayalamName is string && data.malayalamName.size() <= 120 &&
-        data.category is string && data.category.size() <= 40 &&
-        data.category in ['High School', 'Higher Secondary', 'General', 'Sub-Junior'] &&
-        data.stage is string && data.stage.size() >= 1 && data.stage.size() <= 60 &&
-        data.maxMarks is int && data.maxMarks == 100 &&
-        (!('criteria' in data) || (
-          data.criteria is list &&
-          data.criteria.size() == 4 &&
-          data.criteria[0] is string && data.criteria[0].size() >= 1 && data.criteria[0].size() <= 80 &&
-          data.criteria[1] is string && data.criteria[1].size() >= 1 && data.criteria[1].size() <= 80 &&
-          data.criteria[2] is string && data.criteria[2].size() >= 1 && data.criteria[2].size() <= 80 &&
-          data.criteria[3] is string && data.criteria[3].size() >= 1 && data.criteria[3].size() <= 80
-        )) &&
-        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
-        data.authorId == request.auth.uid &&
-        data.createdAt is timestamp;
-    }
-
-    // Validation Blueprint: Participant
-    function isValidParticipant(data, docId) {
-      return data.keys().hasAll(['id', 'itemId', 'chestNo', 'name', 'school', 'authorId', 'createdAt']) &&
-        data.keys().hasOnly(['id', 'itemId', 'chestNo', 'name', 'school', 'groupId', 'groupName', 'authorId', 'createdAt']) &&
-        data.id is string && data.id.size() >= 1 && data.id.size() <= 64 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.id == docId &&
-        data.itemId is string && data.itemId.size() >= 1 && data.itemId.size() <= 64 && data.itemId.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.chestNo is string && data.chestNo.size() >= 1 && data.chestNo.size() <= 20 && data.chestNo.matches('^[A-Z0-9\\-]+$') &&
-        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
-        data.school is string && data.school.size() >= 1 && data.school.size() <= 160 &&
-        (!('groupId' in data) || (
-          data.groupId is string &&
-          data.groupId.size() <= 64 &&
-          (data.groupId == '' || data.groupId.matches('^[a-zA-Z0-9_\\-]+$'))
-        )) &&
-        (!('groupName' in data) || (
-          data.groupName is string &&
-          data.groupName.size() <= 80
-        )) &&
-        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
-        data.authorId == request.auth.uid &&
-        data.createdAt is timestamp;
-    }
-
-    // Validation Blueprint: JudgeScore
-    function isValidJudgeScore(data, docId) {
-      return data.keys().hasAll([
-          'id', 'itemId', 'participantId', 'chestNo', 'judgeSlot', 'judgeName',
-          'rhythm', 'expression', 'perfection', 'overall', 'total', 'remarks',
-          'authorId', 'createdAt', 'updatedAt'
-        ]) &&
-        data.keys().hasOnly([
-          'id', 'itemId', 'participantId', 'chestNo', 'judgeSlot', 'judgeName',
-          'rhythm', 'expression', 'perfection', 'overall', 'total', 'remarks',
-          'authorId', 'createdAt', 'updatedAt'
-        ]) &&
-        data.id is string && data.id.size() >= 1 && data.id.size() <= 128 && data.id.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.id == docId &&
-        data.itemId is string && data.itemId.size() >= 1 && data.itemId.size() <= 64 && data.itemId.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.participantId is string && data.participantId.size() >= 1 && data.participantId.size() <= 64 && data.participantId.matches('^[a-zA-Z0-9_\\-]+$') &&
-        data.chestNo is string && data.chestNo.size() >= 1 && data.chestNo.size() <= 20 &&
-        data.judgeSlot is string && data.judgeSlot.size() <= 10 && data.judgeSlot in ['J1', 'J2', 'J3'] &&
-        data.judgeName is string && data.judgeName.size() >= 1 && data.judgeName.size() <= 100 &&
-        data.rhythm is number && data.rhythm >= 0 && data.rhythm <= 25 &&
-        data.expression is number && data.expression >= 0 && data.expression <= 25 &&
-        data.perfection is number && data.perfection >= 0 && data.perfection <= 25 &&
-        data.overall is number && data.overall >= 0 && data.overall <= 25 &&
-        data.total is number && data.total >= 0 && data.total <= 100 &&
-        data.total == data.rhythm + data.expression + data.perfection + data.overall &&
-        data.remarks is string && data.remarks.size() <= 300 &&
-        data.authorId is string && data.authorId.size() >= 1 && data.authorId.size() <= 128 &&
-        data.authorId == request.auth.uid &&
-        data.createdAt is timestamp &&
-        data.updatedAt is timestamp;
-    }
-
-    // Admins Collection (System-managed, never writable by clients)
-    match /admins/{adminId} {
-      allow get: if isVerifiedUser() && isValidId(adminId) && request.auth.uid == adminId;
-      allow list: if false;
-      allow create, update, delete: if false;
-    }
-
-    // Multi-Tenant Event Scope: /events/{eventCode}/...
-    match /events/{eventCode} {
-      // Isolated Settings, Config & Branding
-      match /settings/{settingId} {
-        allow get: if isVerifiedAdminEmail() || (
-          isSignedIn() && isValidEventCode(eventCode) &&
-          (settingId == 'config' || settingId == 'branding') &&
-          (resource == null || existing().eventCode == eventCode)
-        );
-        allow list: if isVerifiedAdminEmail() || (
-          isSignedIn() && isValidEventCode(eventCode) && existing().eventCode == eventCode
-        );
-
-        allow create: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(settingId) &&
-          incoming().authorId == request.auth.uid &&
-          incoming().createdAt == request.time &&
-          incoming().updatedAt == request.time && (
-            (settingId == 'config' && isValidEventConfig(incoming(), eventCode, settingId)) ||
-            (settingId == 'branding' && isValidEventBranding(incoming(), eventCode, settingId))
-          );
-
-        allow update: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(settingId) &&
-          incoming().id == existing().id &&
-          incoming().eventCode == existing().eventCode &&
-          incoming().authorId == existing().authorId &&
-          incoming().createdAt == existing().createdAt &&
-          incoming().updatedAt == request.time && (
-            (settingId == 'config' && isValidEventConfig(incoming(), eventCode, settingId) && (
-              isAdmin() ||
-              (existing().authorId == request.auth.uid &&
-                incoming().diff(existing()).affectedKeys().hasOnly(['title', 'subtitle', 'adminPin', 'chartType', 'gradeA', 'gradeB', 'gradeC', 'updatedAt']))
-            )) ||
-            (settingId == 'branding' && isValidEventBranding(incoming(), eventCode, settingId) && (
-              isAdmin() ||
-              (existing().authorId == request.auth.uid &&
-                incoming().diff(existing()).affectedKeys().hasOnly(['festivalName', 'subtitle', 'updatedAt']))
-            ))
-          );
-
-        allow delete: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(settingId) &&
-          (existing().authorId == request.auth.uid || isAdmin());
-      }
-
-      // Isolated Groups / Houses Collection
-      match /groups/{groupId} {
-        allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && isValidId(groupId) && existing().name.size() >= 1);
-        allow list: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && existing().name is string && existing().name > '');
-
-        allow create: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(groupId) &&
-          isValidGroup(incoming(), groupId) &&
-          incoming().createdAt == request.time;
-
-        allow update: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(groupId) &&
-          isValidGroup(incoming(), groupId) &&
-          incoming().id == existing().id &&
-          incoming().authorId == existing().authorId &&
-          incoming().createdAt == existing().createdAt && (
-            isAdmin() ||
-            (existing().authorId == request.auth.uid &&
-              incoming().diff(existing()).affectedKeys().hasOnly(['name', 'color']))
-          );
-
-        allow delete: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(groupId) &&
-          (existing().authorId == request.auth.uid || isAdmin());
-      }
-
-      // Isolated Competition Items Collection
-      match /items/{itemId} {
-        allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && isValidId(itemId) && existing().maxMarks == 100);
-        allow list: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && existing().maxMarks == 100);
-
-        allow create: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(itemId) &&
-          isValidCompetitionItem(incoming(), itemId) &&
-          incoming().createdAt == request.time;
-
-        allow update: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(itemId) &&
-          isValidCompetitionItem(incoming(), itemId) &&
-          incoming().id == existing().id &&
-          incoming().authorId == existing().authorId &&
-          incoming().createdAt == existing().createdAt && (
-          isAdmin() ||
-            (existing().authorId == request.auth.uid &&
-              incoming().diff(existing()).affectedKeys().hasOnly(['name', 'malayalamName', 'category', 'stage', 'criteria']))
-          );
-
-        allow delete: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(itemId) &&
-          (existing().authorId == request.auth.uid || isAdmin());
-      }
-
-      // Isolated Participants Collection
-      match /participants/{participantId} {
-        allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && isValidId(participantId) && existing().chestNo.size() <= 20);
-        allow list: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && existing().chestNo is string && existing().chestNo > '');
-
-        allow create: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(participantId) &&
-          isValidParticipant(incoming(), participantId) &&
-          incoming().createdAt == request.time &&
-          exists(/databases/$(database)/documents/events/$(eventCode)/items/$(incoming().itemId)) &&
-          (!('groupId' in incoming()) || incoming().groupId == '' || exists(/databases/$(database)/documents/events/$(eventCode)/groups/$(incoming().groupId)));
-
-        allow update: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(participantId) &&
-          isValidParticipant(incoming(), participantId) &&
-          incoming().id == existing().id &&
-          incoming().itemId == existing().itemId &&
-          incoming().authorId == existing().authorId &&
-          incoming().createdAt == existing().createdAt && (
-            isAdmin() ||
-            (existing().authorId == request.auth.uid &&
-              incoming().diff(existing()).affectedKeys().hasOnly(['chestNo', 'name', 'school', 'groupId', 'groupName']))
-          );
-
-        allow delete: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(participantId) &&
-          (existing().authorId == request.auth.uid || isAdmin());
-      }
-
-      // Isolated Judge Scores Collection
-      match /scores/{scoreId} {
-        allow get: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && isValidId(scoreId) && existing().total <= 100);
-        allow list: if isVerifiedAdminEmail() || (isSignedIn() && isValidEventCode(eventCode) && existing().total <= 100);
-
-        allow create: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(scoreId) &&
-          isValidJudgeScore(incoming(), scoreId) &&
-          incoming().createdAt == request.time &&
-          incoming().updatedAt == request.time &&
-          exists(/databases/$(database)/documents/events/$(eventCode)/items/$(incoming().itemId)) &&
-          exists(/databases/$(database)/documents/events/$(eventCode)/participants/$(incoming().participantId));
-
-        allow update: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(scoreId) &&
-          isValidJudgeScore(incoming(), scoreId) &&
-          incoming().id == existing().id &&
-          incoming().itemId == existing().itemId &&
-          incoming().participantId == existing().participantId &&
-          incoming().chestNo == existing().chestNo &&
-          incoming().judgeSlot == existing().judgeSlot &&
-          incoming().authorId == existing().authorId &&
-          incoming().createdAt == existing().createdAt &&
-          incoming().updatedAt == request.time && (
-            isAdmin() ||
-            (existing().authorId == request.auth.uid &&
-              incoming().diff(existing()).affectedKeys().hasOnly([
-                'judgeName', 'rhythm', 'expression', 'perfection', 'overall', 'total', 'remarks', 'updatedAt'
-              ]))
-          );
-
-        allow delete: if isVerifiedUser() &&
-          isValidEventCode(eventCode) &&
-          isValidId(scoreId) &&
-          (existing().authorId == request.auth.uid || isAdmin());
-      }
-    }
-
-    // Collection Group access for Master Setup Registered Campus Events table
-    match /{path=**}/settings/{settingId} {
-      allow get: if isAdmin();
-      allow list: if isAdmin() || (
-        isVerifiedUser() && existing().authorId == request.auth.uid
-      );
+    // Connection health probe document
+    match /test/{docId} {
+      allow get: if isValidId(docId);
+      allow list, create, update, delete: if false;
     }
   }
 }

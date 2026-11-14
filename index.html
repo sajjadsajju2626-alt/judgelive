@@ -1335,13 +1335,13 @@
     import {
       getFirestore,
       collection,
-      collectionGroup,
       query,
       where,
       doc,
       getDoc,
       getDocFromServer,
       getDocs,
+      getDocsFromServer,
       setDoc,
       updateDoc,
       deleteDoc,
@@ -1365,8 +1365,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app, "ai-studio-0c89871c-a58f-46bc-9586-a86ffacd8fa2");
+    const CAMPUS_REGISTRY_COLLECTION = "campus_registry";
 
     let currentUser = null;
+    let unsubCampusRegistry = null;
+    let unsubActiveRegistry = null;
     let unsubBranding = null;
     let unsubGroups = null;
     let unsubItems = null;
@@ -1697,47 +1700,14 @@
       };
     }
 
-    function hasLocalEvent(code) {
-      if (!code) return false;
-      try {
-        return localStorage.getItem(getLocalStateKey(code)) !== null;
-      } catch {
-        return false;
-      }
+    function isOfflineFirestoreError(err) {
+      const msg = err instanceof Error ? err.message.toLowerCase() : String(err || "").toLowerCase();
+      return err?.code === "unavailable" || msg.includes("offline") || msg.includes("failed to get document because the client is offline");
     }
 
-    function hasAnyLocalEvents() {
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("kalolsavam_local_state_") && key.endsWith("_v1")) {
-            return true;
-          }
-        }
-      } catch {}
-      return false;
+    function getDeviceAuthorId() {
+      return currentUser?.uid || "device";
     }
-
-    const DEFAULT_EVENT_DELETED_KEY = "kalolsavam_default_event_deleted_v1";
-
-    function isDefaultEventSuppressed() {
-      try {
-        return localStorage.getItem(DEFAULT_EVENT_DELETED_KEY) === "1";
-      } catch {
-        return false;
-      }
-    }
-
-    function ensureDefaultLocalEvent() {
-      if (isDefaultEventSuppressed()) return;
-      if (!hasAnyLocalEvents()) {
-        try {
-          localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(getEmptyEventState(DEFAULT_HEADER_TITLE)));
-        } catch {}
-      }
-    }
-
-    ensureDefaultLocalEvent();
 
     const CRITERIA_PRESETS = {
       speech: [
@@ -2081,6 +2051,129 @@
       return doc(db, "events", activeEventCode, subcollectionName, docId);
     }
 
+    function hasLocalEvent(code) {
+      if (!code) return false;
+      try {
+        return localStorage.getItem(getLocalStateKey(code)) !== null;
+      } catch {
+        return false;
+      }
+    }
+
+    function buildNormalizedEventConfig(code, d = {}, fallbackCfg = null) {
+      const base = fallbackCfg || getDefaultConfig(code);
+      return {
+        title: String(d.title || base.title || code).trim() || code,
+        subtitle: d.subtitle !== undefined ? String(d.subtitle || "") : (base.subtitle ?? DEFAULT_SUBTITLE),
+        adminPin: String(d.adminPin || base.adminPin || DEFAULT_EVENT_PIN).trim() || DEFAULT_EVENT_PIN,
+        chartType: normalizeChartType(d.chartType || base.chartType),
+        ...normalizeGradeThresholds(d.gradeA !== undefined ? d : base),
+        isActive: typeof d.isActive === "boolean" ? d.isActive : (typeof base.isActive === "boolean" ? base.isActive : true),
+        expiresAt: normalizeExpiryDate(d.expiresAt) || normalizeExpiryDate(base.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS),
+        authorId: d.authorId || base.authorId || getDeviceAuthorId()
+      };
+    }
+
+    function buildCampusRegistryPayload(code, cfg, includeCreatedAt = false) {
+      const normalizedCfg = buildNormalizedEventConfig(code, cfg);
+      const grades = normalizeGradeThresholds(normalizedCfg);
+      const payload = {
+        festivalCode: code,
+        title: String(normalizedCfg.title || code).trim().slice(0, 120) || code,
+        subtitle: String(normalizedCfg.subtitle ?? "").trim().slice(0, 160),
+        adminPin: String(normalizedCfg.adminPin || DEFAULT_EVENT_PIN).trim().slice(0, 16) || DEFAULT_EVENT_PIN,
+        chartType: normalizeChartType(normalizedCfg.chartType),
+        gradeA: grades.gradeA,
+        gradeB: grades.gradeB,
+        gradeC: grades.gradeC,
+        isActive: normalizedCfg.isActive !== false,
+        expiresAt: normalizeExpiryDate(normalizedCfg.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS),
+        updatedAt: serverTimestamp()
+      };
+      if (includeCreatedAt) {
+        payload.createdAt = serverTimestamp();
+      }
+      return payload;
+    }
+
+    function buildEventConfigPayload(code, cfg, includeCreatedAt = false) {
+      const normalizedCfg = buildNormalizedEventConfig(code, cfg);
+      const grades = normalizeGradeThresholds(normalizedCfg);
+      const payload = {
+        id: "config",
+        eventCode: code,
+        title: String(normalizedCfg.title || code).trim().slice(0, 120) || code,
+        subtitle: String(normalizedCfg.subtitle ?? "").trim().slice(0, 160),
+        adminPin: String(normalizedCfg.adminPin || DEFAULT_EVENT_PIN).trim().slice(0, 16) || DEFAULT_EVENT_PIN,
+        chartType: normalizeChartType(normalizedCfg.chartType),
+        gradeA: grades.gradeA,
+        gradeB: grades.gradeB,
+        gradeC: grades.gradeC,
+        isActive: normalizedCfg.isActive !== false,
+        expiresAt: normalizeExpiryDate(normalizedCfg.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS),
+        authorId: normalizedCfg.authorId || getDeviceAuthorId(),
+        updatedAt: serverTimestamp()
+      };
+      if (includeCreatedAt) {
+        payload.createdAt = serverTimestamp();
+      }
+      return payload;
+    }
+
+    async function syncEventMetadataToCloud(code, cfg, includeCreatedAt = false) {
+      const batch = writeBatch(db);
+      const regRef = doc(db, CAMPUS_REGISTRY_COLLECTION, code);
+      const cfgRef = doc(db, "events", code, "settings", "config");
+      batch.set(regRef, buildCampusRegistryPayload(code, cfg, includeCreatedAt), { merge: true });
+      batch.set(cfgRef, buildEventConfigPayload(code, cfg, includeCreatedAt), { merge: true });
+      await batch.commit();
+    }
+
+    async function getDocPreferServer(ref) {
+      try {
+        return await getDocFromServer(ref);
+      } catch (err) {
+        if (isOfflineFirestoreError(err)) {
+          return await getDoc(ref);
+        }
+        throw err;
+      }
+    }
+
+    async function fetchCampusRegistryDoc(code) {
+      return await getDocPreferServer(doc(db, CAMPUS_REGISTRY_COLLECTION, code));
+    }
+
+    async function fetchEventConfigDoc(code) {
+      return await getDocPreferServer(doc(db, "events", code, "settings", "config"));
+    }
+
+    async function resolveCloudEventConfig(code) {
+      const regSnap = await fetchCampusRegistryDoc(code);
+      if (regSnap.exists()) {
+        return {
+          exists: true,
+          config: buildNormalizedEventConfig(code, regSnap.data()),
+          source: "campus_registry"
+        };
+      }
+
+      const cfgSnap = await fetchEventConfigDoc(code);
+      if (cfgSnap.exists()) {
+        const legacyCfg = buildNormalizedEventConfig(code, cfgSnap.data());
+        try {
+          await setDoc(doc(db, CAMPUS_REGISTRY_COLLECTION, code), buildCampusRegistryPayload(code, legacyCfg, true), { merge: true });
+        } catch {}
+        return {
+          exists: true,
+          config: legacyCfg,
+          source: "legacy_config"
+        };
+      }
+
+      return { exists: false, config: null, source: null };
+    }
+
     function revokeActiveEventAccess(message = LICENSE_BLOCKED_MESSAGE) {
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
@@ -2095,6 +2188,7 @@
     }
 
     function detachListeners() {
+      if (unsubActiveRegistry) { unsubActiveRegistry(); unsubActiveRegistry = null; }
       if (unsubBranding) { unsubBranding(); unsubBranding = null; }
       if (unsubGroups) { unsubGroups(); unsubGroups = null; }
       if (unsubItems) { unsubItems(); unsubItems = null; }
@@ -2102,42 +2196,44 @@
       if (unsubScores) { unsubScores(); unsubScores = null; }
     }
 
+    function applyCloudConfigSnapshot(rawData) {
+      if (!activeEventCode || !rawData) return;
+      const nextCfg = buildNormalizedEventConfig(activeEventCode, rawData, window.state?.config);
+      window.state.config = nextCfg;
+      saveLocalState();
+
+      if (!isMasterAdmin && !isEventLicenseValid(nextCfg)) {
+        revokeActiveEventAccess(LICENSE_BLOCKED_MESSAGE);
+        return;
+      }
+
+      applyBrandingUI();
+      applyAdminAccessUI();
+      window.renderTabulation();
+      window.renderGroupStandings();
+    }
+
     function attachListeners() {
       detachListeners();
-      if (!currentUser || !activeEventCode) return;
+      if (!activeEventCode) return;
+
+      let sawActiveRegistryDoc = false;
+      unsubActiveRegistry = onSnapshot(doc(db, CAMPUS_REGISTRY_COLLECTION, activeEventCode), (snap) => {
+        if (snap.exists()) {
+          sawActiveRegistryDoc = true;
+          applyCloudConfigSnapshot(snap.data());
+        } else if (sawActiveRegistryDoc) {
+          revokeActiveEventAccess("This Event Code has been removed by the administrator.");
+        }
+      }, (err) => handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${activeEventCode}`));
 
       unsubBranding = onSnapshot(eventDocument("settings", "config"), (snap) => {
         if (snap.exists()) {
-          const d = snap.data();
-          const nextCfg = {
-            title: d.title || DEFAULT_HEADER_TITLE,
-            subtitle: d.subtitle || "",
-            adminPin: d.adminPin || DEFAULT_EVENT_PIN,
-            chartType: normalizeChartType(d.chartType),
-            ...normalizeGradeThresholds(d),
-            isActive: typeof d.isActive === "boolean" ? d.isActive : false,
-            expiresAt: normalizeExpiryDate(d.expiresAt),
-            authorId: d.authorId || null
-          };
-          window.state.config = nextCfg;
-          saveLocalState();
-
-          if (!isMasterAdmin && !isEventLicenseValid(nextCfg)) {
-            revokeActiveEventAccess(LICENSE_BLOCKED_MESSAGE);
-            return;
-          }
-
-          applyBrandingUI();
-          applyAdminAccessUI();
-          window.renderTabulation();
-          window.renderGroupStandings();
-          if (isAdminUnlocked && isMasterAdmin) {
-            refreshRegisteredEvents(false);
-          }
+          applyCloudConfigSnapshot(snap.data());
         }
       }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`));
 
-      unsubGroups = onSnapshot(query(eventCollection("groups"), where("name", ">", "")), (snap) => {
+      unsubGroups = onSnapshot(eventCollection("groups"), (snap) => {
         window.state.groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.refreshAllSelects();
@@ -2145,7 +2241,7 @@
         window.renderGroupStandings();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/groups`));
 
-      unsubItems = onSnapshot(query(eventCollection("items"), where("maxMarks", "==", 100)), (snap) => {
+      unsubItems = onSnapshot(eventCollection("items"), (snap) => {
         window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.refreshAllSelects();
@@ -2153,7 +2249,7 @@
         window.renderGroupStandings();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/items`));
 
-      unsubParticipants = onSnapshot(query(eventCollection("participants"), where("chestNo", ">", "")), (snap) => {
+      unsubParticipants = onSnapshot(eventCollection("participants"), (snap) => {
         window.state.participants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.populateJudgeParticipants();
@@ -2162,7 +2258,7 @@
         window.renderGroupStandings();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/participants`));
 
-      unsubScores = onSnapshot(query(eventCollection("scores"), where("total", "<=", 100)), (snap) => {
+      unsubScores = onSnapshot(eventCollection("scores"), (snap) => {
         window.state.scores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveLocalState();
         window.populateJudgeParticipants();
@@ -2172,178 +2268,48 @@
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/scores`));
     }
 
-    async function fetchEventConfigDoc(code) {
-      const cfgRef = doc(db, "events", code, "settings", "config");
-      try {
-        return await getDocFromServer(cfgRef);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message.toLowerCase() : "";
-        if (err?.code === "unavailable" || msg.includes("offline")) {
-          return await getDoc(cfgRef);
-        }
-        throw err;
+    function attachCampusRegistryListener() {
+      if (unsubCampusRegistry) {
+        unsubCampusRegistry();
+        unsubCampusRegistry = null;
       }
-    }
+      unsubCampusRegistry = onSnapshot(collection(db, CAMPUS_REGISTRY_COLLECTION), (snap) => {
+        const cloudEvents = [];
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const code = normalizeEventCode(d.festivalCode || docSnap.id || "");
+          if (!isValidEventCode(code)) return;
+          const cfgObj = {
+            eventCode: code,
+            ...buildNormalizedEventConfig(code, d),
+            source: "cloud"
+          };
+          cloudEvents.push(cfgObj);
 
-    async function ensureDefaultEventInitialized() {
-      if (isDefaultEventSuppressed()) return;
-      ensureDefaultLocalEvent();
-      if (!currentUser) return;
-      if (defaultInitPromise) return defaultInitPromise;
-
-      defaultInitPromise = (async () => {
-        try {
-          const snap = await fetchEventConfigDoc(DEFAULT_EVENT_CODE);
-          if (snap.exists()) {
-            const d = snap.data();
-            let resolvedIsActive = typeof d.isActive === "boolean" ? d.isActive : undefined;
-            let resolvedExpiresAt = normalizeExpiryDate(d.expiresAt);
-
-            // Auto-migrate legacy FEST2026 doc created before license fields existed
-            if (
-              (resolvedIsActive === undefined || !resolvedExpiresAt) &&
-              currentUser.emailVerified !== false &&
-              (d.authorId === currentUser.uid || currentUser.email === "sajjadsajju2626@gmail.com")
-            ) {
-              const fallbackExpiry = resolvedExpiresAt || getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
-              const fallbackActive = resolvedIsActive !== undefined ? resolvedIsActive : true;
-              try {
-                await updateDoc(doc(db, "events", DEFAULT_EVENT_CODE, "settings", "config"), {
-                  isActive: fallbackActive,
-                  expiresAt: fallbackExpiry,
-                  updatedAt: serverTimestamp()
-                });
-                resolvedIsActive = fallbackActive;
-                resolvedExpiresAt = fallbackExpiry;
-              } catch {}
-            }
-
-            const existingLocal = loadLocalState(DEFAULT_EVENT_CODE);
-            existingLocal.config = {
-              title: d.title || DEFAULT_HEADER_TITLE,
-              subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
-              adminPin: d.adminPin || DEFAULT_EVENT_PIN,
-              chartType: normalizeChartType(d.chartType),
-              ...normalizeGradeThresholds(d),
-              isActive: resolvedIsActive === true,
-              expiresAt: resolvedExpiresAt,
-              authorId: d.authorId || null
-            };
-            localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(existingLocal));
-            return;
-          }
-          if (currentUser.emailVerified !== false) {
-            if (currentUser.email === "sajjadsajju2626@gmail.com") {
-              try {
-                const existingSettingsSnap = await getDocs(collectionGroup(db, "settings"));
-                if (!existingSettingsSnap.empty) return;
-              } catch {}
-            }
-            const seedExpiry = getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
-            await setDoc(doc(db, "events", DEFAULT_EVENT_CODE, "settings", "config"), {
-              id: "config",
-              eventCode: DEFAULT_EVENT_CODE,
-              title: DEFAULT_HEADER_TITLE,
-              subtitle: DEFAULT_SUBTITLE,
-              adminPin: DEFAULT_EVENT_PIN,
-              chartType: "bar",
-              gradeA: DEFAULT_GRADE_A,
-              gradeB: DEFAULT_GRADE_B,
-              gradeC: DEFAULT_GRADE_C,
-              isActive: true,
-              expiresAt: seedExpiry,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-            const localDefault = loadLocalState(DEFAULT_EVENT_CODE);
-            localDefault.config.isActive = true;
-            localDefault.config.expiresAt = seedExpiry;
-            localDefault.config.authorId = currentUser.uid;
-            localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(localDefault));
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${DEFAULT_EVENT_CODE}/settings/config`);
-        } finally {
-          defaultInitPromise = null;
-        }
-      })();
-
-      return defaultInitPromise;
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
-      if (user) {
-        testConnection();
-        await ensureDefaultEventInitialized();
-        if (isAdminUnlocked && isMasterAdmin) {
-          refreshRegisteredEvents(false);
-        }
-        if (activeEventCode) {
+          const existingLocal = loadLocalState(code);
+          existingLocal.config = {
+            title: cfgObj.title,
+            subtitle: cfgObj.subtitle,
+            adminPin: cfgObj.adminPin,
+            chartType: cfgObj.chartType,
+            gradeA: cfgObj.gradeA,
+            gradeB: cfgObj.gradeB,
+            gradeC: cfgObj.gradeC,
+            isActive: cfgObj.isActive,
+            expiresAt: cfgObj.expiresAt,
+            authorId: cfgObj.authorId
+          };
           try {
-            const snap = await fetchEventConfigDoc(activeEventCode);
-            if (!snap.exists()) {
-              if (window.state?.config && !window.state.config.authorId && isAdminUnlocked && isMasterAdmin && user.emailVerified !== false) {
-                const grades = normalizeGradeThresholds(window.state.config);
-                const expDate = normalizeExpiryDate(window.state.config.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
-                const activeFlag = typeof window.state.config.isActive === "boolean" ? window.state.config.isActive : true;
-                await setDoc(eventDocument("settings", "config"), {
-                  id: "config",
-                  eventCode: activeEventCode,
-                  title: window.state.config.title || activeEventCode,
-                  subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
-                  adminPin: window.state.config.adminPin || DEFAULT_EVENT_PIN,
-                  chartType: normalizeChartType(window.state.config.chartType),
-                  gradeA: grades.gradeA,
-                  gradeB: grades.gradeB,
-                  gradeC: grades.gradeC,
-                  isActive: activeFlag,
-                  expiresAt: expDate,
-                  authorId: user.uid,
-                  createdAt: serverTimestamp(),
-                  updatedAt: serverTimestamp()
-                });
-                window.state.config.authorId = user.uid;
-                window.state.config.isActive = activeFlag;
-                window.state.config.expiresAt = expDate;
-                saveLocalState();
-              } else {
-                detachListeners();
-                localStorage.removeItem(getLocalStateKey(activeEventCode));
-                activeEventCode = "";
-                window.state = getEmptyEventState();
-                showEventEntryView(false);
-                showEventCodeError("Invalid Event Code. This event has not been created by the Admin.");
-                return;
-              }
-            } else {
-              const d = snap.data();
-              const syncedCfg = {
-                title: d.title || DEFAULT_HEADER_TITLE,
-                subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
-                adminPin: d.adminPin || DEFAULT_EVENT_PIN,
-                chartType: normalizeChartType(d.chartType),
-                ...normalizeGradeThresholds(d),
-                isActive: typeof d.isActive === "boolean" ? d.isActive : false,
-                expiresAt: normalizeExpiryDate(d.expiresAt),
-                authorId: d.authorId || null
-              };
-              window.state.config = syncedCfg;
-              saveLocalState();
-              if (!isMasterAdmin && !isEventLicenseValid(syncedCfg)) {
-                revokeActiveEventAccess(LICENSE_BLOCKED_MESSAGE);
-                return;
-              }
-            }
-          } catch (err) {
-            handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`);
-          }
-          attachListeners();
-        }
-      } else {
-        detachListeners();
-      }
+            localStorage.setItem(getLocalStateKey(code), JSON.stringify(existingLocal));
+          } catch {}
+        });
+        masterRegisteredEvents = cloudEvents;
+        renderRegisteredEventsTable();
+      }, (err) => handleFirestoreError(err, "list", CAMPUS_REGISTRY_COLLECTION));
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
     });
 
     // Persistent Judge Session Management (Scoped per Event Code)
@@ -2639,9 +2605,7 @@
         ensureJudgeBase: targetView === "tabulation" || targetView === "admin"
       });
 
-      if (currentUser) {
-        attachListeners();
-      }
+      attachListeners();
     }
 
     window.handleEventCodeSubmit = async (e) => {
@@ -2665,45 +2629,27 @@
       let isVerifiedEvent = false;
       let loadedConfig = null;
       try {
-        if (currentUser) {
-          if (normalized === DEFAULT_EVENT_CODE) {
-            await ensureDefaultEventInitialized();
-          }
-          try {
-            const cfgSnap = await fetchEventConfigDoc(normalized);
-            if (cfgSnap.exists()) {
-              isVerifiedEvent = true;
-              const d = cfgSnap.data();
-              const existingLocal = loadLocalState(normalized);
-              loadedConfig = {
-                title: d.title || DEFAULT_HEADER_TITLE,
-                subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
-                adminPin: d.adminPin || DEFAULT_EVENT_PIN,
-                chartType: normalizeChartType(d.chartType),
-                ...normalizeGradeThresholds(d),
-                isActive: typeof d.isActive === "boolean" ? d.isActive : false,
-                expiresAt: normalizeExpiryDate(d.expiresAt),
-                authorId: d.authorId || null
-              };
-              existingLocal.config = loadedConfig;
+        try {
+          const resolved = await resolveCloudEventConfig(normalized);
+          if (resolved.exists && resolved.config) {
+            isVerifiedEvent = true;
+            loadedConfig = resolved.config;
+            const existingLocal = loadLocalState(normalized);
+            existingLocal.config = loadedConfig;
+            try {
               localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
-            }
-          } catch (err) {
-            const msg = err instanceof Error ? err.message.toLowerCase() : "";
-            if (err?.code === "unavailable" || msg.includes("offline")) {
-              isVerifiedEvent = hasLocalEvent(normalized);
-              if (isVerifiedEvent) {
-                loadedConfig = loadLocalState(normalized).config;
-              }
-            } else {
-              handleFirestoreError(err, "get", `events/${normalized}/settings/config`);
-            }
+            } catch {}
           }
-        } else {
-          ensureDefaultLocalEvent();
-          isVerifiedEvent = hasLocalEvent(normalized);
-          if (isVerifiedEvent) {
-            loadedConfig = loadLocalState(normalized).config;
+        } catch (err) {
+          if (isOfflineFirestoreError(err)) {
+            isVerifiedEvent = hasLocalEvent(normalized);
+            if (isVerifiedEvent) {
+              loadedConfig = loadLocalState(normalized).config;
+            }
+          } else {
+            handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${normalized}`);
+            showEventCodeError("Unable to verify Event Code right now. Please check your connection and try again.");
+            return;
           }
         }
       } finally {
@@ -2954,37 +2900,23 @@
       const submitBtn = document.getElementById("pin-verify-submit-btn");
       const hasWorkspace = Boolean(activeEventCode) && !isSwitchingEvent;
 
-      let storedEventPin = window.state?.config?.adminPin || DEFAULT_EVENT_PIN;
+      let storedEventPin = String(window.state?.config?.adminPin || DEFAULT_EVENT_PIN).trim();
 
-      if (hasWorkspace && entered !== MASTER_PIN && currentUser) {
+      if (hasWorkspace && entered !== MASTER_PIN) {
         if (submitBtn) {
           submitBtn.disabled = true;
           submitBtn.textContent = "Verifying...";
         }
         try {
-          const cfgSnap = await fetchEventConfigDoc(activeEventCode);
-          if (cfgSnap.exists()) {
-            const d = cfgSnap.data();
-            if (d.adminPin) {
-              storedEventPin = String(d.adminPin);
-              window.state.config = {
-                ...(window.state.config || getDefaultConfig(activeEventCode)),
-                title: d.title || window.state.config?.title || activeEventCode,
-                subtitle: d.subtitle ?? window.state.config?.subtitle ?? DEFAULT_SUBTITLE,
-                adminPin: storedEventPin,
-                chartType: normalizeChartType(d.chartType || window.state.config?.chartType),
-                ...normalizeGradeThresholds(d),
-                isActive: typeof d.isActive === "boolean" ? d.isActive : Boolean(window.state.config?.isActive),
-                expiresAt: normalizeExpiryDate(d.expiresAt) || normalizeExpiryDate(window.state.config?.expiresAt),
-                authorId: d.authorId || window.state.config?.authorId || null
-              };
-              saveLocalState();
-            }
+          const resolved = await resolveCloudEventConfig(activeEventCode);
+          if (resolved.exists && resolved.config) {
+            storedEventPin = String(resolved.config.adminPin || DEFAULT_EVENT_PIN).trim();
+            window.state.config = resolved.config;
+            saveLocalState();
           }
         } catch (err) {
-          const msg = err instanceof Error ? err.message.toLowerCase() : "";
-          if (!(err?.code === "unavailable" || msg.includes("offline"))) {
-            handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`);
+          if (!isOfflineFirestoreError(err)) {
+            handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${activeEventCode}`);
           }
         } finally {
           if (submitBtn) {
@@ -3012,6 +2944,7 @@
         applyAdminAccessUI();
         window.switchView("admin");
         if (isMasterAdmin && !hasWorkspace) {
+          attachCampusRegistryListener();
           refreshRegisteredEvents(false);
         }
         window.showToast(isMasterAdmin && !hasWorkspace ? "Master Setup Unlocked" : `Admin Unlocked for ${activeEventCode}`);
@@ -3845,7 +3778,6 @@
     window.setGroupChartType = async (type) => {
       if (!activeEventCode) return;
       const chartType = normalizeChartType(type);
-      const existingAuthorId = window.state.config?.authorId || null;
       window.state.config = {
         ...(window.state.config || getDefaultConfig(activeEventCode)),
         chartType
@@ -3860,39 +3792,10 @@
       };
       window.showToast(`Chart style set to ${labelMap[chartType]}`);
 
-      if (currentUser) {
-        try {
-          if (existingAuthorId) {
-            await updateDoc(eventDocument("settings", "config"), {
-              chartType,
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            const grades = normalizeGradeThresholds(window.state.config);
-            const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
-            const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
-            await setDoc(eventDocument("settings", "config"), {
-              id: "config",
-              eventCode: activeEventCode,
-              title: window.state.config.title || activeEventCode,
-              subtitle: window.state.config.subtitle ?? DEFAULT_SUBTITLE,
-              adminPin: window.state.config.adminPin || DEFAULT_EVENT_PIN,
-              chartType,
-              gradeA: grades.gradeA,
-              gradeB: grades.gradeB,
-              gradeC: grades.gradeC,
-              isActive,
-              expiresAt,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-            window.state.config.authorId = currentUser.uid;
-            saveLocalState();
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
-        }
+      try {
+        await syncEventMetadataToCloud(activeEventCode, window.state.config, false);
+      } catch (err) {
+        handleFirestoreError(err, "write", `${CAMPUS_REGISTRY_COLLECTION}/${activeEventCode}`);
       }
     };
 
@@ -4660,61 +4563,20 @@
       }
       window.resetScoreInputs();
 
-      if (currentUser) {
-        try {
-          if (existingScore && existingScore.authorId) {
-            await updateDoc(eventDocument("scores", id), {
-              judgeName,
-              rhythm,
-              expression,
-              perfection,
-              overall,
-              total,
-              remarks: "",
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            await setDoc(eventDocument("scores", id), {
-              ...docData,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/scores/${id}`);
+      try {
+        const payload = {
+          ...docData,
+          authorId: existingScore?.authorId || getDeviceAuthorId(),
+          updatedAt: serverTimestamp()
+        };
+        if (!existingScore) {
+          payload.createdAt = serverTimestamp();
         }
+        await setDoc(eventDocument("scores", id), payload, { merge: true });
+      } catch (err) {
+        handleFirestoreError(err, "write", `events/${activeEventCode}/scores/${id}`);
       }
     };
-
-    function collectLocalEventConfigs() {
-      const found = [];
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("kalolsavam_local_state_") && key.endsWith("_v1")) {
-            const code = key.slice("kalolsavam_local_state_".length, -"_v1".length);
-            if (!isValidEventCode(code)) continue;
-            const parsed = JSON.parse(localStorage.getItem(key) || "null");
-            if (parsed && parsed.config) {
-              found.push({
-                eventCode: code,
-                title: parsed.config.title || code,
-                subtitle: parsed.config.subtitle || "",
-                adminPin: parsed.config.adminPin || DEFAULT_EVENT_PIN,
-                chartType: normalizeChartType(parsed.config.chartType),
-                ...normalizeGradeThresholds(parsed.config),
-                isActive: parsed.config.isActive === true,
-                expiresAt: normalizeExpiryDate(parsed.config.expiresAt),
-                authorId: parsed.config.authorId || null,
-                source: "local"
-              });
-            }
-          }
-        }
-      } catch {}
-      return found;
-    }
 
     function renderRegisteredEventsTable() {
       const tbody = document.getElementById("admin-registered-events-body");
@@ -4789,54 +4651,48 @@
 
     async function refreshRegisteredEvents(showToastOnDone = false) {
       const mergedMap = new Map();
-      collectLocalEventConfigs().forEach(ev => mergedMap.set(ev.eventCode, ev));
-
-      if (currentUser) {
+      try {
+        let snap;
         try {
-          const snap = await getDocs(collectionGroup(db, "settings"));
-          snap.forEach(docSnap => {
-            if (docSnap.id !== "config") return;
-            const d = docSnap.data();
-            const code = normalizeEventCode(d.eventCode || docSnap.ref.parent?.parent?.id || "");
-            if (!isValidEventCode(code)) return;
-            const cfgObj = {
-              eventCode: code,
-              title: d.title || code,
-              subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
-              adminPin: d.adminPin || DEFAULT_EVENT_PIN,
-              chartType: normalizeChartType(d.chartType),
-              ...normalizeGradeThresholds(d),
-              isActive: typeof d.isActive === "boolean" ? d.isActive : false,
-              expiresAt: normalizeExpiryDate(d.expiresAt),
-              authorId: d.authorId || null,
-              source: "cloud"
-            };
-            mergedMap.set(code, cfgObj);
-
-            // Keep cached local config synchronized
-            const existingLocal = loadLocalState(code);
-            existingLocal.config = {
-              title: cfgObj.title,
-              subtitle: cfgObj.subtitle,
-              adminPin: cfgObj.adminPin,
-              chartType: cfgObj.chartType,
-              gradeA: cfgObj.gradeA,
-              gradeB: cfgObj.gradeB,
-              gradeC: cfgObj.gradeC,
-              isActive: cfgObj.isActive,
-              expiresAt: cfgObj.expiresAt,
-              authorId: cfgObj.authorId
-            };
-            try {
-              localStorage.setItem(getLocalStateKey(code), JSON.stringify(existingLocal));
-            } catch {}
-          });
+          snap = await getDocsFromServer(collection(db, CAMPUS_REGISTRY_COLLECTION));
         } catch (err) {
-          const msg = err instanceof Error ? err.message.toLowerCase() : "";
-          if (!msg.includes("permission") && err?.code !== "permission-denied") {
-            handleFirestoreError(err, "list", "settings(collectionGroup)");
+          if (isOfflineFirestoreError(err)) {
+            snap = await getDocs(collection(db, CAMPUS_REGISTRY_COLLECTION));
+          } else {
+            throw err;
           }
         }
+
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const code = normalizeEventCode(d.festivalCode || docSnap.id || "");
+          if (!isValidEventCode(code)) return;
+          const cfgObj = {
+            eventCode: code,
+            ...buildNormalizedEventConfig(code, d),
+            source: "cloud"
+          };
+          mergedMap.set(code, cfgObj);
+
+          const existingLocal = loadLocalState(code);
+          existingLocal.config = {
+            title: cfgObj.title,
+            subtitle: cfgObj.subtitle,
+            adminPin: cfgObj.adminPin,
+            chartType: cfgObj.chartType,
+            gradeA: cfgObj.gradeA,
+            gradeB: cfgObj.gradeB,
+            gradeC: cfgObj.gradeC,
+            isActive: cfgObj.isActive,
+            expiresAt: cfgObj.expiresAt,
+            authorId: cfgObj.authorId
+          };
+          try {
+            localStorage.setItem(getLocalStateKey(code), JSON.stringify(existingLocal));
+          } catch {}
+        });
+      } catch (err) {
+        handleFirestoreError(err, "list", CAMPUS_REGISTRY_COLLECTION);
       }
 
       masterRegisteredEvents = Array.from(mergedMap.values());
@@ -4868,13 +4724,15 @@
       const currentActive = existingEntry ? existingEntry.isActive === true : localEv.config?.isActive === true;
       const nextActive = !currentActive;
 
+      const updatedCfg = buildNormalizedEventConfig(code, {
+        ...(existingEntry || localEv.config || getDefaultConfig(code)),
+        isActive: nextActive
+      });
+
       if (existingEntry) {
         existingEntry.isActive = nextActive;
       }
-      localEv.config = {
-        ...(localEv.config || getDefaultConfig(code)),
-        isActive: nextActive
-      };
+      localEv.config = updatedCfg;
       try {
         localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv));
       } catch {}
@@ -4886,41 +4744,10 @@
       }
       renderRegisteredEventsTable();
 
-      if (currentUser) {
-        try {
-          const cfgRef = doc(db, "events", code, "settings", "config");
-          const existingAuthorId = existingEntry?.authorId || localEv.config?.authorId || null;
-          if (existingAuthorId) {
-            await updateDoc(cfgRef, {
-              isActive: nextActive,
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            const grades = normalizeGradeThresholds(localEv.config);
-            const expDate = normalizeExpiryDate(existingEntry?.expiresAt || localEv.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
-            await setDoc(cfgRef, {
-              id: "config",
-              eventCode: code,
-              title: existingEntry?.title || localEv.config?.title || code,
-              subtitle: existingEntry?.subtitle || localEv.config?.subtitle || DEFAULT_SUBTITLE,
-              adminPin: existingEntry?.adminPin || localEv.config?.adminPin || DEFAULT_EVENT_PIN,
-              chartType: normalizeChartType(existingEntry?.chartType || localEv.config?.chartType),
-              gradeA: grades.gradeA,
-              gradeB: grades.gradeB,
-              gradeC: grades.gradeC,
-              isActive: nextActive,
-              expiresAt: expDate,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-            localEv.config.authorId = currentUser.uid;
-            localEv.config.expiresAt = expDate;
-            try { localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv)); } catch {}
-          }
-        } catch (err) {
-          handleFirestoreError(err, "update", `events/${code}/settings/config`);
-        }
+      try {
+        await syncEventMetadataToCloud(code, updatedCfg, false);
+      } catch (err) {
+        handleFirestoreError(err, "update", `${CAMPUS_REGISTRY_COLLECTION}/${code}`);
       }
 
       window.showToast(nextActive ? `Activated ${code}` : `Suspended ${code} — access blocked`);
@@ -4985,15 +4812,17 @@
 
       const existingEntry = masterRegisteredEvents.find(ev => ev.eventCode === code);
       const localEv = loadLocalState(code);
+      const updatedCfg = buildNormalizedEventConfig(code, {
+        ...(existingEntry || localEv.config || getDefaultConfig(code)),
+        expiresAt: newExpiry,
+        isActive: true
+      });
+
       if (existingEntry) {
         existingEntry.expiresAt = newExpiry;
         existingEntry.isActive = true;
       }
-      localEv.config = {
-        ...(localEv.config || getDefaultConfig(code)),
-        expiresAt: newExpiry,
-        isActive: true
-      };
+      localEv.config = updatedCfg;
       try {
         localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv));
       } catch {}
@@ -5005,46 +4834,18 @@
         applyAdminAccessUI();
       }
 
-      if (currentUser) {
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+      }
+      try {
+        await syncEventMetadataToCloud(code, updatedCfg, false);
+      } catch (err) {
+        handleFirestoreError(err, "update", `${CAMPUS_REGISTRY_COLLECTION}/${code}`);
+      } finally {
         if (saveBtn) {
-          saveBtn.disabled = true;
-          saveBtn.textContent = "Saving...";
-        }
-        try {
-          const cfgRef = doc(db, "events", code, "settings", "config");
-          const existingAuthorId = existingEntry?.authorId || localEv.config?.authorId || null;
-          if (existingAuthorId) {
-            await updateDoc(cfgRef, {
-              expiresAt: newExpiry,
-              isActive: true,
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            const grades = normalizeGradeThresholds(localEv.config);
-            await setDoc(cfgRef, {
-              id: "config",
-              eventCode: code,
-              title: existingEntry?.title || localEv.config?.title || code,
-              subtitle: existingEntry?.subtitle || localEv.config?.subtitle || DEFAULT_SUBTITLE,
-              adminPin: existingEntry?.adminPin || localEv.config?.adminPin || DEFAULT_EVENT_PIN,
-              chartType: normalizeChartType(existingEntry?.chartType || localEv.config?.chartType),
-              gradeA: grades.gradeA,
-              gradeB: grades.gradeB,
-              gradeC: grades.gradeC,
-              isActive: true,
-              expiresAt: newExpiry,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          }
-        } catch (err) {
-          handleFirestoreError(err, "update", `events/${code}/settings/config`);
-        } finally {
-          if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = "Save Expiry Date";
-          }
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Expiry Date";
         }
       }
 
@@ -5091,45 +4892,43 @@
         return;
       }
 
-      // Duplicate check against active workspace & local storage
-      if (newCode === activeEventCode || localStorage.getItem(getLocalStateKey(newCode)) !== null) {
-        showCreateErr(`Festival Code "${newCode}" already exists. Choose a unique code to prevent overwriting.`);
-        codeInput.focus();
-        return;
-      }
-
-      // Duplicate check against Firestore cloud records
-      if (currentUser) {
-        try {
-          const [cfgSnap, itemsSnap] = await Promise.all([
-            fetchEventConfigDoc(newCode),
-            getDocs(query(collection(db, "events", newCode, "items"), where("maxMarks", "==", 100)))
-          ]);
-          if (cfgSnap.exists() || !itemsSnap.empty) {
-            showCreateErr(`Festival Code "${newCode}" already exists in the cloud database. Choose a unique code.`);
-            codeInput.focus();
-            return;
-          }
-        } catch (err) {
-          handleFirestoreError(err, "get", `events/${newCode}/settings/config`);
+      // Duplicate check against Firestore cloud records (campus_registry & events/{newCode})
+      try {
+        const [resolved, itemsSnap] = await Promise.all([
+          resolveCloudEventConfig(newCode),
+          getDocs(collection(db, "events", newCode, "items"))
+        ]);
+        if (resolved.exists || !itemsSnap.empty) {
+          showCreateErr(`Festival Code "${newCode}" already exists in the cloud database. Choose a unique code.`);
+          codeInput.focus();
+          return;
         }
+      } catch (err) {
+        if (newCode === activeEventCode || masterRegisteredEvents.some(ev => ev.eventCode === newCode)) {
+          showCreateErr(`Festival Code "${newCode}" already exists. Choose a unique code to prevent overwriting.`);
+          codeInput.focus();
+          return;
+        }
+        handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${newCode}`);
       }
 
       errEl.classList.add("hidden");
 
+      const newCfg = {
+        title: newCode,
+        subtitle: DEFAULT_SUBTITLE,
+        adminPin: initialPin,
+        chartType: "bar",
+        gradeA: DEFAULT_GRADE_A,
+        gradeB: DEFAULT_GRADE_B,
+        gradeC: DEFAULT_GRADE_C,
+        isActive: true,
+        expiresAt,
+        authorId: getDeviceAuthorId()
+      };
+
       const newState = {
-        config: {
-          title: newCode,
-          subtitle: DEFAULT_SUBTITLE,
-          adminPin: initialPin,
-          chartType: "bar",
-          gradeA: DEFAULT_GRADE_A,
-          gradeB: DEFAULT_GRADE_B,
-          gradeC: DEFAULT_GRADE_C,
-          isActive: true,
-          expiresAt,
-          authorId: currentUser?.uid || null
-        },
+        config: newCfg,
         groups: [],
         items: [],
         participants: [],
@@ -5139,32 +4938,14 @@
         localStorage.setItem(getLocalStateKey(newCode), JSON.stringify(newState));
       } catch {}
 
-      if (currentUser) {
-        try {
-          await setDoc(doc(db, "events", newCode, "settings", "config"), {
-            id: "config",
-            eventCode: newCode,
-            title: newCode,
-            subtitle: DEFAULT_SUBTITLE,
-            adminPin: initialPin,
-            chartType: "bar",
-            gradeA: DEFAULT_GRADE_A,
-            gradeB: DEFAULT_GRADE_B,
-            gradeC: DEFAULT_GRADE_C,
-            isActive: true,
-            expiresAt,
-            authorId: currentUser.uid,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-        } catch (err) {
-          handleFirestoreError(err, "create", `events/${newCode}/settings/config`);
-        }
+      try {
+        await syncEventMetadataToCloud(newCode, newCfg, true);
+      } catch (err) {
+        handleFirestoreError(err, "create", `${CAMPUS_REGISTRY_COLLECTION}/${newCode}`);
+        showCreateErr("Unable to save new event to cloud database. Please verify connection and try again.");
+        return;
       }
 
-      if (newCode === DEFAULT_EVENT_CODE) {
-        try { localStorage.removeItem(DEFAULT_EVENT_DELETED_KEY); } catch {}
-      }
       e.target.reset();
       if (expiryInput) expiryInput.value = getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
       enterEventWorkspace(newCode, { keepAdminUnlocked: true, keepMasterAdmin: true, targetView: "admin" });
@@ -5184,7 +4965,6 @@
       const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
       const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
 
-      const existingAuthorId = window.state.config?.authorId || null;
       window.state.config = {
         title,
         subtitle,
@@ -5193,7 +4973,7 @@
         ...grades,
         isActive,
         expiresAt,
-        authorId: existingAuthorId || currentUser?.uid || null
+        authorId: window.state.config?.authorId || getDeviceAuthorId()
       };
       saveLocalState();
       applyBrandingUI();
@@ -5201,40 +4981,10 @@
       if (isMasterAdmin) refreshRegisteredEvents(false);
       window.showToast(`Saved display settings for ${activeEventCode}`);
 
-      if (currentUser) {
-        try {
-          if (existingAuthorId) {
-            await updateDoc(eventDocument("settings", "config"), {
-              title,
-              subtitle,
-              adminPin,
-              chartType,
-              gradeA: grades.gradeA,
-              gradeB: grades.gradeB,
-              gradeC: grades.gradeC,
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            await setDoc(eventDocument("settings", "config"), {
-              id: "config",
-              eventCode: activeEventCode,
-              title,
-              subtitle,
-              adminPin,
-              chartType,
-              gradeA: grades.gradeA,
-              gradeB: grades.gradeB,
-              gradeC: grades.gradeC,
-              isActive,
-              expiresAt,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
-        }
+      try {
+        await syncEventMetadataToCloud(activeEventCode, window.state.config, false);
+      } catch (err) {
+        handleFirestoreError(err, "write", `${CAMPUS_REGISTRY_COLLECTION}/${activeEventCode}`);
       }
     };
 
@@ -5285,13 +5035,15 @@
       window.hideSetEventPinError();
       const existingEntry = masterRegisteredEvents.find(ev => ev.eventCode === code);
       const localEv = loadLocalState(code);
+      const updatedCfg = buildNormalizedEventConfig(code, {
+        ...(existingEntry || localEv.config || getDefaultConfig(code, newPin)),
+        adminPin: newPin
+      });
+
       if (existingEntry) {
         existingEntry.adminPin = newPin;
       }
-      localEv.config = {
-        ...(localEv.config || getDefaultConfig(code, newPin)),
-        adminPin: newPin
-      };
+      localEv.config = updatedCfg;
       try {
         localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv));
       } catch {}
@@ -5301,46 +5053,18 @@
         saveLocalState();
       }
 
-      if (currentUser) {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving PIN...";
+      }
+      try {
+        await syncEventMetadataToCloud(code, updatedCfg, false);
+      } catch (err) {
+        handleFirestoreError(err, "update", `${CAMPUS_REGISTRY_COLLECTION}/${code}`);
+      } finally {
         if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Saving PIN...";
-        }
-        try {
-          const cfgRef = doc(db, "events", code, "settings", "config");
-          const existingAuthorId = existingEntry?.authorId || localEv.config?.authorId || null;
-          if (existingAuthorId) {
-            await updateDoc(cfgRef, {
-              adminPin: newPin,
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            const grades = normalizeGradeThresholds(localEv.config);
-            const expDate = normalizeExpiryDate(existingEntry?.expiresAt || localEv.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
-            await setDoc(cfgRef, {
-              id: "config",
-              eventCode: code,
-              title: existingEntry?.title || localEv.config?.title || code,
-              subtitle: existingEntry?.subtitle || localEv.config?.subtitle || DEFAULT_SUBTITLE,
-              adminPin: newPin,
-              chartType: normalizeChartType(existingEntry?.chartType || localEv.config?.chartType),
-              gradeA: grades.gradeA,
-              gradeB: grades.gradeB,
-              gradeC: grades.gradeC,
-              isActive: existingEntry?.isActive !== false,
-              expiresAt: expDate,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          }
-        } catch (err) {
-          handleFirestoreError(err, "update", `events/${code}/settings/config`);
-        } finally {
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Save Event PIN";
-          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Save Event PIN";
         }
       }
 
@@ -5391,69 +5115,63 @@
       const errEl = document.getElementById("delete-event-error");
       window.hideDeleteEventError();
 
-      if (currentUser) {
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Deleting Event...";
+      }
+      if (cancelBtn) cancelBtn.disabled = true;
+
+      try {
+        const colRef = (sub) => collection(db, "events", code, sub);
+        const [scoresSnap, partsSnap, itemsSnap, groupsSnap, settingsSnap] = await Promise.all([
+          getDocs(colRef("scores")),
+          getDocs(colRef("participants")),
+          getDocs(colRef("items")),
+          getDocs(colRef("groups")),
+          getDocs(colRef("settings"))
+        ]);
+
+        const subRefs = [];
+        scoresSnap.forEach(d => subRefs.push(d.ref));
+        partsSnap.forEach(d => subRefs.push(d.ref));
+        itemsSnap.forEach(d => subRefs.push(d.ref));
+        groupsSnap.forEach(d => subRefs.push(d.ref));
+
+        const topAndSettingsRefs = [doc(db, CAMPUS_REGISTRY_COLLECTION, code)];
+        settingsSnap.forEach(d => topAndSettingsRefs.push(d.ref));
+        if (!settingsSnap.docs.some(d => d.id === "config")) {
+          topAndSettingsRefs.push(doc(db, "events", code, "settings", "config"));
+        }
+
+        for (let i = 0; i < subRefs.length; i += 400) {
+          const batch = writeBatch(db);
+          subRefs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+          await batch.commit();
+        }
+
+        for (let i = 0; i < topAndSettingsRefs.length; i += 400) {
+          const batch = writeBatch(db);
+          topAndSettingsRefs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+          await batch.commit();
+        }
+      } catch (err) {
+        handleFirestoreError(err, "delete", `events/${code}`);
+        if (errEl) {
+          errEl.textContent = "Unable to delete cloud records for this event. Please check your connection and try again.";
+          errEl.classList.remove("hidden");
+        }
+        return;
+      } finally {
         if (confirmBtn) {
-          confirmBtn.disabled = true;
-          confirmBtn.textContent = "Deleting Event...";
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "Yes, Permanently Delete";
         }
-        if (cancelBtn) cancelBtn.disabled = true;
-
-        try {
-          const colRef = (sub) => collection(db, "events", code, sub);
-          const [scoresSnap, partsSnap, itemsSnap, groupsSnap, settingsSnap] = await Promise.all([
-            getDocs(query(colRef("scores"), where("total", "<=", 100))),
-            getDocs(query(colRef("participants"), where("chestNo", ">", ""))),
-            getDocs(query(colRef("items"), where("maxMarks", "==", 100))),
-            getDocs(query(colRef("groups"), where("name", ">", ""))),
-            getDocs(query(colRef("settings"), where("eventCode", "==", code)))
-          ]);
-
-          const subRefs = [];
-          scoresSnap.forEach(d => subRefs.push(d.ref));
-          partsSnap.forEach(d => subRefs.push(d.ref));
-          itemsSnap.forEach(d => subRefs.push(d.ref));
-          groupsSnap.forEach(d => subRefs.push(d.ref));
-
-          const settingsRefs = [];
-          settingsSnap.forEach(d => settingsRefs.push(d.ref));
-          if (settingsRefs.length === 0) {
-            const cfgSnap = await fetchEventConfigDoc(code);
-            if (cfgSnap.exists()) settingsRefs.push(cfgSnap.ref);
-          }
-
-          for (let i = 0; i < subRefs.length; i += 400) {
-            const batch = writeBatch(db);
-            subRefs.slice(i, i + 400).forEach(ref => batch.delete(ref));
-            await batch.commit();
-          }
-
-          for (let i = 0; i < settingsRefs.length; i += 400) {
-            const batch = writeBatch(db);
-            settingsRefs.slice(i, i + 400).forEach(ref => batch.delete(ref));
-            await batch.commit();
-          }
-        } catch (err) {
-          handleFirestoreError(err, "delete", `events/${code}`);
-          if (errEl) {
-            errEl.textContent = "Unable to delete cloud records for this event. Please verify you are signed in as an authorized administrator and try again.";
-            errEl.classList.remove("hidden");
-          }
-          return;
-        } finally {
-          if (confirmBtn) {
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = "Yes, Permanently Delete";
-          }
-          if (cancelBtn) cancelBtn.disabled = false;
-        }
+        if (cancelBtn) cancelBtn.disabled = false;
       }
 
       try {
         localStorage.removeItem(getLocalStateKey(code));
         localStorage.removeItem(getJudgeSessionKey(code));
-        if (code === DEFAULT_EVENT_CODE) {
-          localStorage.setItem(DEFAULT_EVENT_DELETED_KEY, "1");
-        }
       } catch {}
 
       masterRegisteredEvents = masterRegisteredEvents.filter(ev => ev.eventCode !== code);
@@ -5474,71 +5192,31 @@
 
     async function persistGradeThresholds(thresholds, toastMessage) {
       if (!activeEventCode) return;
-      const existingAuthorId = window.state.config?.authorId || null;
-      const title = window.state.config?.title || activeEventCode;
-      const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
-      const adminPin = window.state.config?.adminPin || DEFAULT_EVENT_PIN;
-      const chartType = normalizeChartType(window.state.config?.chartType);
-      const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
-      const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
-
-      window.state.config = {
-        title,
-        subtitle,
-        adminPin,
-        chartType,
+      const updatedCfg = buildNormalizedEventConfig(activeEventCode, {
+        ...(window.state.config || getDefaultConfig(activeEventCode)),
         gradeA: thresholds.gradeA,
         gradeB: thresholds.gradeB,
-        gradeC: thresholds.gradeC,
-        isActive,
-        expiresAt,
-        authorId: existingAuthorId || currentUser?.uid || null
-      };
+        gradeC: thresholds.gradeC
+      });
+
+      window.state.config = updatedCfg;
       saveLocalState();
       applyBrandingUI();
       window.renderTabulation();
 
-      if (currentUser) {
-        const submitBtn = document.getElementById("admin-save-grades-btn");
+      const submitBtn = document.getElementById("admin-save-grades-btn");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving...";
+      }
+      try {
+        await syncEventMetadataToCloud(activeEventCode, updatedCfg, false);
+      } catch (err) {
+        handleFirestoreError(err, "write", `${CAMPUS_REGISTRY_COLLECTION}/${activeEventCode}`);
+      } finally {
         if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Saving...";
-        }
-        try {
-          if (existingAuthorId) {
-            await updateDoc(eventDocument("settings", "config"), {
-              gradeA: thresholds.gradeA,
-              gradeB: thresholds.gradeB,
-              gradeC: thresholds.gradeC,
-              updatedAt: serverTimestamp()
-            });
-          } else {
-            await setDoc(eventDocument("settings", "config"), {
-              id: "config",
-              eventCode: activeEventCode,
-              title,
-              subtitle,
-              adminPin,
-              chartType,
-              gradeA: thresholds.gradeA,
-              gradeB: thresholds.gradeB,
-              gradeC: thresholds.gradeC,
-              isActive,
-              expiresAt,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-            window.state.config.authorId = currentUser.uid;
-            saveLocalState();
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
-        } finally {
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Save Grade Rules";
-          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Save Grade Rules";
         }
       }
 
@@ -5615,16 +5293,14 @@
       e.target.reset();
       window.showToast(`Added Group "${name}"`);
 
-      if (currentUser) {
-        try {
-          await setDoc(eventDocument("groups", id), {
-            ...group,
-            authorId: currentUser.uid,
-            createdAt: serverTimestamp()
-          });
-        } catch (err) {
-          handleFirestoreError(err, "create", `events/${activeEventCode}/groups/${id}`);
-        }
+      try {
+        await setDoc(eventDocument("groups", id), {
+          ...group,
+          authorId: getDeviceAuthorId(),
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        handleFirestoreError(err, "create", `events/${activeEventCode}/groups/${id}`);
       }
     };
 
@@ -5639,17 +5315,15 @@
       window.refreshAllSelects();
       window.showToast("Group deleted");
 
-      if (currentUser) {
-        try {
-          const batch = writeBatch(db);
-          affectedParts.forEach(p => {
-            batch.update(eventDocument("participants", p.id), { groupId: "", groupName: "" });
-          });
-          batch.delete(eventDocument("groups", groupId));
-          await batch.commit();
-        } catch (err) {
-          handleFirestoreError(err, "delete", `events/${activeEventCode}/groups/${groupId}`);
-        }
+      try {
+        const batch = writeBatch(db);
+        affectedParts.forEach(p => {
+          batch.update(eventDocument("participants", p.id), { groupId: "", groupName: "" });
+        });
+        batch.delete(eventDocument("groups", groupId));
+        await batch.commit();
+      } catch (err) {
+        handleFirestoreError(err, "delete", `events/${activeEventCode}/groups/${groupId}`);
       }
     };
 
@@ -5719,17 +5393,15 @@
       if (presetEl) presetEl.value = "dance";
       window.handleAddItemPresetChange(true);
       window.showToast(`Added "${item.name}"`);
-      if (currentUser) {
-        try {
-          await setDoc(eventDocument("items", id), {
-            ...item,
-            maxMarks: 100,
-            authorId: currentUser.uid,
-            createdAt: serverTimestamp()
-          });
-        } catch (err) {
-          handleFirestoreError(err, "create", `events/${activeEventCode}/items/${id}`);
-        }
+      try {
+        await setDoc(eventDocument("items", id), {
+          ...item,
+          maxMarks: 100,
+          authorId: getDeviceAuthorId(),
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        handleFirestoreError(err, "create", `events/${activeEventCode}/items/${id}`);
       }
     };
 
@@ -5762,16 +5434,14 @@
       window.renderAdminLists();
       e.target.reset();
       window.showToast(`Registered Chest ${part.chestNo}${groupName ? " (" + groupName + ")" : ""}`);
-      if (currentUser) {
-        try {
-          await setDoc(eventDocument("participants", id), {
-            ...part,
-            authorId: currentUser.uid,
-            createdAt: serverTimestamp()
-          });
-        } catch (err) {
-          handleFirestoreError(err, "create", `events/${activeEventCode}/participants/${id}`);
-        }
+      try {
+        await setDoc(eventDocument("participants", id), {
+          ...part,
+          authorId: getDeviceAuthorId(),
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        handleFirestoreError(err, "create", `events/${activeEventCode}/participants/${id}`);
       }
     };
 
@@ -6216,34 +5886,33 @@
       saveLocalState();
       window.refreshAllSelects();
 
-      if (currentUser) {
-        try {
-          // Phase 1: Commit prerequisite groups and competition items first so Firestore rules exists() checks succeed
-          const prereqOps = [
-            ...groupsToCreate.map(g => ({
-              ref: eventDocument("groups", g.id),
-              data: { ...g, authorId: currentUser.uid, createdAt: serverTimestamp() }
-            })),
-            ...itemsToCreate.map(it => ({
-              ref: eventDocument("items", it.id),
-              data: { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() }
-            }))
-          ];
-          if (prereqOps.length > 0) {
-            await commitBatchOperations(prereqOps);
-          }
-
-          // Phase 2: Commit participants
-          const participantOps = cleanParticipants.map(p => ({
-            ref: eventDocument("participants", p.id),
-            data: { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() }
-          }));
-          if (participantOps.length > 0) {
-            await commitBatchOperations(participantOps);
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/csv-import`);
+      try {
+        // Phase 1: Commit prerequisite groups and competition items first
+        const authorId = getDeviceAuthorId();
+        const prereqOps = [
+          ...groupsToCreate.map(g => ({
+            ref: eventDocument("groups", g.id),
+            data: { ...g, authorId, createdAt: serverTimestamp() }
+          })),
+          ...itemsToCreate.map(it => ({
+            ref: eventDocument("items", it.id),
+            data: { ...it, maxMarks: 100, authorId, createdAt: serverTimestamp() }
+          }))
+        ];
+        if (prereqOps.length > 0) {
+          await commitBatchOperations(prereqOps);
         }
+
+        // Phase 2: Commit participants
+        const participantOps = cleanParticipants.map(p => ({
+          ref: eventDocument("participants", p.id),
+          data: { ...p, authorId, createdAt: serverTimestamp() }
+        }));
+        if (participantOps.length > 0) {
+          await commitBatchOperations(participantOps);
+        }
+      } catch (err) {
+        handleFirestoreError(err, "write", `events/${activeEventCode}/csv-import`);
       }
 
       const summaryParts = [];
@@ -6367,32 +6036,20 @@
       window.refreshAllSelects();
       window.showToast(`Updated "${name}"`);
 
-      if (currentUser) {
-        try {
-          if (existingItem.authorId) {
-            await updateDoc(eventDocument("items", itemId), {
-              name,
-              malayalamName,
-              category,
-              stage,
-              criteria
-            });
-          } else {
-            await setDoc(eventDocument("items", itemId), {
-              id: itemId,
-              name,
-              malayalamName,
-              category,
-              stage,
-              criteria,
-              maxMarks: 100,
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp()
-            });
-          }
-        } catch (err) {
-          handleFirestoreError(err, "update", `events/${activeEventCode}/items/${itemId}`);
-        }
+      try {
+        await setDoc(eventDocument("items", itemId), {
+          id: itemId,
+          name,
+          malayalamName,
+          category,
+          stage,
+          criteria,
+          maxMarks: 100,
+          authorId: existingItem.authorId || getDeviceAuthorId(),
+          ...(existingItem.createdAt ? {} : { createdAt: serverTimestamp() })
+        }, { merge: true });
+      } catch (err) {
+        handleFirestoreError(err, "update", `events/${activeEventCode}/items/${itemId}`);
       }
     };
 
@@ -6408,16 +6065,14 @@
       window.refreshAllSelects();
       window.showToast("Competition item deleted");
 
-      if (currentUser) {
-        try {
-          const batch = writeBatch(db);
-          removedScores.forEach(s => batch.delete(eventDocument("scores", s.id)));
-          removedParts.forEach(p => batch.delete(eventDocument("participants", p.id)));
-          batch.delete(eventDocument("items", itemId));
-          await batch.commit();
-        } catch (err) {
-          handleFirestoreError(err, "delete", `events/${activeEventCode}/items/${itemId}`);
-        }
+      try {
+        const batch = writeBatch(db);
+        removedScores.forEach(s => batch.delete(eventDocument("scores", s.id)));
+        removedParts.forEach(p => batch.delete(eventDocument("participants", p.id)));
+        batch.delete(eventDocument("items", itemId));
+        await batch.commit();
+      } catch (err) {
+        handleFirestoreError(err, "delete", `events/${activeEventCode}/items/${itemId}`);
       }
     };
 
@@ -6432,15 +6087,13 @@
       window.renderAdminLists();
       window.showToast("Chest number entry deleted");
 
-      if (currentUser) {
-        try {
-          const batch = writeBatch(db);
-          removedScores.forEach(s => batch.delete(eventDocument("scores", s.id)));
-          batch.delete(eventDocument("participants", partId));
-          await batch.commit();
-        } catch (err) {
-          handleFirestoreError(err, "delete", `events/${activeEventCode}/participants/${partId}`);
-        }
+      try {
+        const batch = writeBatch(db);
+        removedScores.forEach(s => batch.delete(eventDocument("scores", s.id)));
+        batch.delete(eventDocument("participants", partId));
+        await batch.commit();
+      } catch (err) {
+        handleFirestoreError(err, "delete", `events/${activeEventCode}/participants/${partId}`);
       }
     };
 
@@ -6453,12 +6106,10 @@
       window.renderAdminLists();
       window.showToast("Score deleted and unlocked for re-entry");
 
-      if (currentUser) {
-        try {
-          await deleteDoc(eventDocument("scores", scoreId));
-        } catch (err) {
-          handleFirestoreError(err, "delete", `events/${activeEventCode}/scores/${scoreId}`);
-        }
+      try {
+        await deleteDoc(eventDocument("scores", scoreId));
+      } catch (err) {
+        handleFirestoreError(err, "delete", `events/${activeEventCode}/scores/${scoreId}`);
       }
     };
 
@@ -6470,23 +6121,29 @@
       window.refreshAllSelects();
       window.showToast(`Sample data loaded for ${activeEventCode}!`);
 
-      if (currentUser) {
-        try {
-          for (const g of sample.groups) {
-            await setDoc(eventDocument("groups", g.id), { ...g, authorId: currentUser.uid, createdAt: serverTimestamp() });
-          }
-          for (const it of sample.items) {
-            await setDoc(eventDocument("items", it.id), { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() });
-          }
-          for (const p of sample.participants) {
-            await setDoc(eventDocument("participants", p.id), { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() });
-          }
-          for (const s of sample.scores) {
-            await setDoc(eventDocument("scores", s.id), { ...s, remarks: "", authorId: currentUser.uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-          }
-        } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/sample-data`);
-        }
+      try {
+        const authorId = getDeviceAuthorId();
+        const phase1Ops = [
+          ...sample.groups.map(g => ({
+            ref: eventDocument("groups", g.id),
+            data: { ...g, authorId, createdAt: serverTimestamp() }
+          })),
+          ...sample.items.map(it => ({
+            ref: eventDocument("items", it.id),
+            data: { ...it, maxMarks: 100, authorId, createdAt: serverTimestamp() }
+          }))
+        ];
+        await commitBatchOperations(phase1Ops);
+        await commitBatchOperations(sample.participants.map(p => ({
+          ref: eventDocument("participants", p.id),
+          data: { ...p, authorId, createdAt: serverTimestamp() }
+        })));
+        await commitBatchOperations(sample.scores.map(s => ({
+          ref: eventDocument("scores", s.id),
+          data: { ...s, remarks: "", authorId, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }
+        })));
+      } catch (err) {
+        handleFirestoreError(err, "write", `events/${activeEventCode}/sample-data`);
       }
     };
 
@@ -6514,82 +6171,56 @@
       window.refreshAllSelects();
       window.showToast(`Cleared all data for ${activeEventCode}`);
 
-      if (currentUser) {
-        try {
-          const [scoresSnap, partsSnap, itemsSnap, groupsSnap] = await Promise.all([
-            getDocs(query(eventCollection("scores"), where("total", "<=", 100))),
-            getDocs(query(eventCollection("participants"), where("chestNo", ">", ""))),
-            getDocs(query(eventCollection("items"), where("maxMarks", "==", 100))),
-            getDocs(query(eventCollection("groups"), where("name", ">", "")))
-          ]);
+      try {
+        const [scoresSnap, partsSnap, itemsSnap, groupsSnap] = await Promise.all([
+          getDocs(eventCollection("scores")),
+          getDocs(eventCollection("participants")),
+          getDocs(eventCollection("items")),
+          getDocs(eventCollection("groups"))
+        ]);
+        const refs = [];
+        scoresSnap.forEach(d => refs.push(d.ref));
+        partsSnap.forEach(d => refs.push(d.ref));
+        itemsSnap.forEach(d => refs.push(d.ref));
+        groupsSnap.forEach(d => refs.push(d.ref));
+        for (let i = 0; i < refs.length; i += 400) {
           const batch = writeBatch(db);
-          scoresSnap.forEach(d => batch.delete(d.ref));
-          partsSnap.forEach(d => batch.delete(d.ref));
-          itemsSnap.forEach(d => batch.delete(d.ref));
-          groupsSnap.forEach(d => batch.delete(d.ref));
+          refs.slice(i, i + 400).forEach(ref => batch.delete(ref));
           await batch.commit();
-        } catch (err) {
-          handleFirestoreError(err, "delete", `events/${activeEventCode}/clear-all-data`);
         }
+      } catch (err) {
+        handleFirestoreError(err, "delete", `events/${activeEventCode}/clear-all-data`);
       }
     };
 
     async function seedDemoWorkspaceInFirestore(demoData, resetExisting = false, ensureActiveLicense = false) {
-      if (!currentUser || currentUser.emailVerified === false) return;
       const demoCol = (sub) => collection(db, "events", DEMO_EVENT_CODE, sub);
       const demoDoc = (sub, id) => doc(db, "events", DEMO_EVENT_CODE, sub, id);
+      const authorId = getDeviceAuthorId();
 
       try {
-        const cfgRef = demoDoc("settings", "config");
-        const cfgSnap = await fetchEventConfigDoc(DEMO_EVENT_CODE);
         const grades = normalizeGradeThresholds(demoData.config);
         const targetExpiry = normalizeExpiryDate(demoData.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
-
-        if (!cfgSnap.exists()) {
-          await setDoc(cfgRef, {
-            id: "config",
-            eventCode: DEMO_EVENT_CODE,
-            title: demoData.config.title,
-            subtitle: demoData.config.subtitle,
-            adminPin: DEMO_EVENT_PIN,
-            chartType: normalizeChartType(demoData.config.chartType),
-            gradeA: grades.gradeA,
-            gradeB: grades.gradeB,
-            gradeC: grades.gradeC,
-            isActive: true,
-            expiresAt: targetExpiry,
-            authorId: currentUser.uid,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-        } else {
-          const existingCfg = cfgSnap.data();
-          const updatePayload = {
-            title: demoData.config.title,
-            subtitle: demoData.config.subtitle,
-            adminPin: DEMO_EVENT_PIN,
-            chartType: normalizeChartType(demoData.config.chartType),
-            gradeA: grades.gradeA,
-            gradeB: grades.gradeB,
-            gradeC: grades.gradeC,
-            updatedAt: serverTimestamp()
-          };
-          const canUpdateLicense = currentUser.email === "sajjadsajju2626@gmail.com" || isMasterAdmin;
-          if (ensureActiveLicense && canUpdateLicense) {
-            updatePayload.isActive = true;
-            updatePayload.expiresAt = targetExpiry;
-          }
-          if (canUpdateLicense || existingCfg.authorId === currentUser.uid) {
-            await updateDoc(cfgRef, updatePayload);
-          }
-        }
+        const demoCfg = {
+          title: demoData.config.title,
+          subtitle: demoData.config.subtitle,
+          adminPin: DEMO_EVENT_PIN,
+          chartType: normalizeChartType(demoData.config.chartType),
+          gradeA: grades.gradeA,
+          gradeB: grades.gradeB,
+          gradeC: grades.gradeC,
+          isActive: ensureActiveLicense ? true : (demoData.config?.isActive !== false),
+          expiresAt: targetExpiry,
+          authorId
+        };
+        await syncEventMetadataToCloud(DEMO_EVENT_CODE, demoCfg, true);
 
         if (resetExisting) {
           const [scoresSnap, partsSnap, itemsSnap, groupsSnap] = await Promise.all([
-            getDocs(query(demoCol("scores"), where("total", "<=", 100))),
-            getDocs(query(demoCol("participants"), where("chestNo", ">", ""))),
-            getDocs(query(demoCol("items"), where("maxMarks", "==", 100))),
-            getDocs(query(demoCol("groups"), where("name", ">", "")))
+            getDocs(demoCol("scores")),
+            getDocs(demoCol("participants")),
+            getDocs(demoCol("items")),
+            getDocs(demoCol("groups"))
           ]);
           const deleteRefs = [];
           scoresSnap.forEach(d => deleteRefs.push(d.ref));
@@ -6603,15 +6234,15 @@
           }
         }
 
-        // Phase 1: Groups and Competition Items (must exist before Participants/Scores rules run exists())
+        // Phase 1: Groups and Competition Items
         const phase1Ops = [
           ...demoData.groups.map(g => ({
             ref: demoDoc("groups", g.id),
-            data: { ...g, authorId: currentUser.uid, createdAt: serverTimestamp() }
+            data: { ...g, authorId, createdAt: serverTimestamp() }
           })),
           ...demoData.items.map(it => ({
             ref: demoDoc("items", it.id),
-            data: { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() }
+            data: { ...it, maxMarks: 100, authorId, createdAt: serverTimestamp() }
           }))
         ];
         await commitBatchOperations(phase1Ops);
@@ -6619,7 +6250,7 @@
         // Phase 2: Participants
         const phase2Ops = demoData.participants.map(p => ({
           ref: demoDoc("participants", p.id),
-          data: { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() }
+          data: { ...p, authorId, createdAt: serverTimestamp() }
         }));
         await commitBatchOperations(phase2Ops);
 
@@ -6629,7 +6260,7 @@
           data: {
             ...s,
             remarks: "",
-            authorId: currentUser.uid,
+            authorId,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           }
@@ -6663,75 +6294,57 @@
       }
 
       try {
-        let shouldSeedDemo = !hasLocalEvent(DEMO_EVENT_CODE);
-        let existingDemoLocal = shouldSeedDemo ? null : loadLocalState(DEMO_EVENT_CODE);
-        if (existingDemoLocal && (!Array.isArray(existingDemoLocal.items) || existingDemoLocal.items.length === 0)) {
-          shouldSeedDemo = true;
-        }
+        let shouldSeedDemo = true;
+        let existingDemoConfig = null;
 
-        if (currentUser) {
-          try {
-            const [cfgSnap, itemsSnap] = await Promise.all([
-              fetchEventConfigDoc(DEMO_EVENT_CODE),
-              getDocs(query(collection(db, "events", DEMO_EVENT_CODE, "items"), where("maxMarks", "==", 100)))
-            ]);
-            if (!cfgSnap.exists() || itemsSnap.empty) {
-              shouldSeedDemo = true;
-            } else {
-              const d = cfgSnap.data();
-              existingDemoLocal = {
-                ...(existingDemoLocal || getEmptyEventState()),
-                config: {
-                  title: d.title || "Kalolsavam Showcase (Demo)",
-                  subtitle: d.subtitle ?? "Live Presentation & Demonstration Workspace",
-                  adminPin: DEMO_EVENT_PIN,
-                  chartType: normalizeChartType(d.chartType),
-                  ...normalizeGradeThresholds(d),
-                  isActive: true,
-                  expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS),
-                  authorId: d.authorId || null
-                }
-              };
-              shouldSeedDemo = false;
-            }
-          } catch (err) {
-            const msg = err instanceof Error ? err.message.toLowerCase() : "";
-            if (!(err?.code === "unavailable" || msg.includes("offline"))) {
-              handleFirestoreError(err, "get", `events/${DEMO_EVENT_CODE}/settings/config`);
-            }
-          }
-        }
-
-        if (shouldSeedDemo) {
-          const demoState = getDemoPresentationData(existingDemoLocal?.config);
-          if (currentUser) demoState.config.authorId = currentUser.uid;
-          try {
-            localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(demoState));
-          } catch {}
-          await seedDemoWorkspaceInFirestore(demoState, true, true);
-        } else {
-          if (existingDemoLocal) {
-            existingDemoLocal.config = {
-              ...(existingDemoLocal.config || getDefaultConfig("Kalolsavam Showcase (Demo)", DEMO_EVENT_PIN)),
+        try {
+          const [resolved, itemsSnap] = await Promise.all([
+            resolveCloudEventConfig(DEMO_EVENT_CODE),
+            getDocs(collection(db, "events", DEMO_EVENT_CODE, "items"))
+          ]);
+          if (resolved.exists && resolved.config && !itemsSnap.empty) {
+            shouldSeedDemo = false;
+            existingDemoConfig = {
+              ...resolved.config,
               adminPin: DEMO_EVENT_PIN,
               isActive: true,
               expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
             };
-            try {
-              localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(existingDemoLocal));
-            } catch {}
           }
-          if (currentUser && currentUser.emailVerified !== false) {
-            try {
-              await updateDoc(doc(db, "events", DEMO_EVENT_CODE, "settings", "config"), {
+        } catch (err) {
+          if (isOfflineFirestoreError(err) && hasLocalEvent(DEMO_EVENT_CODE)) {
+            const localDemo = loadLocalState(DEMO_EVENT_CODE);
+            if (Array.isArray(localDemo.items) && localDemo.items.length > 0) {
+              shouldSeedDemo = false;
+              existingDemoConfig = {
+                ...(localDemo.config || getDefaultConfig("Kalolsavam Showcase (Demo)", DEMO_EVENT_PIN)),
                 adminPin: DEMO_EVENT_PIN,
                 isActive: true,
-                expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS),
-                updatedAt: serverTimestamp()
-              });
-            } catch (err) {
-              handleFirestoreError(err, "update", `events/${DEMO_EVENT_CODE}/settings/config`);
+                expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
+              };
             }
+          } else if (!isOfflineFirestoreError(err)) {
+            handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${DEMO_EVENT_CODE}`);
+          }
+        }
+
+        if (shouldSeedDemo) {
+          const demoState = getDemoPresentationData(existingDemoConfig);
+          demoState.config.authorId = getDeviceAuthorId();
+          try {
+            localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(demoState));
+          } catch {}
+          await seedDemoWorkspaceInFirestore(demoState, true, true);
+        } else if (existingDemoConfig) {
+          const localDemo = loadLocalState(DEMO_EVENT_CODE);
+          localDemo.config = existingDemoConfig;
+          try {
+            localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(localDemo));
+          } catch {}
+          try {
+            await syncEventMetadataToCloud(DEMO_EVENT_CODE, existingDemoConfig, false);
+          } catch (err) {
+            handleFirestoreError(err, "update", `${CAMPUS_REGISTRY_COLLECTION}/${DEMO_EVENT_CODE}`);
           }
         }
 
@@ -6807,6 +6420,7 @@
         };
         const judgeName = judgeNames[targetSlot] || "Demo Judge";
         const id = `${targetPart.itemId}_${targetPart.id}_${targetSlot}`;
+        const authorId = getDeviceAuthorId();
         const docData = {
           id,
           itemId: targetPart.itemId,
@@ -6820,7 +6434,7 @@
           overall,
           total,
           remarks: "",
-          authorId: currentUser?.uid || null,
+          authorId,
           updatedAt: new Date().toISOString()
         };
 
@@ -6844,28 +6458,26 @@
         const itemLabel = targetItem ? ` (${targetItem.name})` : "";
         window.showToast(`Simulated ${targetSlot} score: Chest #${targetPart.chestNo} → ${total}/100${isAdminUnlocked ? itemLabel : ""}`);
 
-        if (currentUser && currentUser.emailVerified !== false) {
-          try {
-            await setDoc(eventDocument("scores", id), {
-              id,
-              itemId: targetPart.itemId,
-              participantId: targetPart.id,
-              chestNo: targetPart.chestNo,
-              judgeSlot: targetSlot,
-              judgeName,
-              rhythm,
-              expression,
-              perfection,
-              overall,
-              total,
-              remarks: "",
-              authorId: currentUser.uid,
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          } catch (err) {
-            handleFirestoreError(err, "write", `events/${DEMO_EVENT_CODE}/scores/${id}`);
-          }
+        try {
+          await setDoc(eventDocument("scores", id), {
+            id,
+            itemId: targetPart.itemId,
+            participantId: targetPart.id,
+            chestNo: targetPart.chestNo,
+            judgeSlot: targetSlot,
+            judgeName,
+            rhythm,
+            expression,
+            perfection,
+            overall,
+            total,
+            remarks: "",
+            authorId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${DEMO_EVENT_CODE}/scores/${id}`);
         }
       } finally {
         setDemoButtonsBusy(false);
@@ -6884,9 +6496,7 @@
           gradeB: DEFAULT_GRADE_B,
           gradeC: DEFAULT_GRADE_C
         });
-        if (currentUser) {
-          freshDemo.config.authorId = window.state?.config?.authorId || currentUser.uid;
-        }
+        freshDemo.config.authorId = window.state?.config?.authorId || getDeviceAuthorId();
         window.state = freshDemo;
         saveLocalState();
         applyBrandingUI();
@@ -6900,7 +6510,9 @@
       }
     };
 
-    // Boot: Restore judge sound preference, initialize History navigation, and open on "Enter Festival Code" screen
+    // Boot: Verify Firestore connectivity, sync campus registry, restore preferences, initialize History navigation, and open Welcome screen
+    testConnection();
+    attachCampusRegistryListener();
     loadJudgeSoundPreference();
     initAppHistory();
     showEventEntryView(false, { skipHistorySync: true });
