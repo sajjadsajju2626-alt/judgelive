@@ -441,9 +441,10 @@
   </div>
 
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
-  <header id="app-top-header" class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
-    <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 max-w-[260px] sm:max-w-xs truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
-      <span id="header-brand-title">Arts Fest Digital Judging</span>
+  <header id="app-top-header" class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3 sm:py-3.5 bg-white border-b border-stone-200 sticky top-0 z-30">
+    <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="flex flex-col items-start text-left min-w-0 max-w-full sm:max-w-md font-display select-none cursor-pointer py-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
+      <span id="header-brand-title" class="text-lg sm:text-xl font-bold tracking-tight text-stone-900 leading-tight truncate max-w-full">Arts Fest Digital Judging</span>
+      <span id="header-brand-subtitle" class="hidden font-sans text-sm sm:text-base font-medium text-stone-700 leading-snug truncate max-w-full mt-0.5"></span>
     </button>
     <nav aria-label="Primary Navigation" class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-stone-600">
       <button type="button" onclick="switchView('judge')" id="nav-judge" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 font-semibold pb-0.5">Judge Portal</button>
@@ -452,8 +453,8 @@
     </nav>
     <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 min-w-0 max-w-full">
       <span id="header-mode-label" class="hidden text-xs font-medium text-stone-500 whitespace-nowrap shrink-0">Judge Scoring Mode</span>
-      <span id="header-event-badge" class="hidden px-2.5 py-1 text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded-md tabular-nums whitespace-nowrap shrink-0">
-        Event: <span id="header-event-code">—</span>
+      <span id="header-event-badge" class="hidden px-2 py-0.5 text-[11px] font-medium text-stone-500 bg-stone-100/80 border border-stone-200 rounded tabular-nums whitespace-nowrap shrink-0">
+        Event: <span id="header-event-code" class="font-semibold text-stone-700">—</span>
       </span>
       <button type="button" id="change-event-btn" onclick="openEventSwitcher()" class="hidden px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0">
         Change Festival Code
@@ -497,12 +498,8 @@
 
   <main id="app-main" class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 space-y-8">
     <!-- Status Strip (Privacy-preserving: only Cloud Synced + green dot, shown once Event Code is active) -->
-    <div id="status-strip" class="no-print hidden flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 text-xs text-stone-600">
+    <div id="status-strip" class="no-print hidden flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-stone-200 text-xs text-stone-500">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span id="status-subtitle" class="font-semibold text-stone-900">Kerala State Arts Festival Judging</span>
-        <span aria-hidden="true">·</span>
-        <span class="font-semibold text-amber-800 tabular-nums">Event: <span id="active-event-badge">—</span></span>
-        <span aria-hidden="true">·</span>
         <span id="persistence-status">IndexedDB Offline Persistence Active</span>
       </div>
       <div class="flex items-center gap-2 font-medium text-stone-800">
@@ -512,7 +509,7 @@
     </div>
 
     <!-- Live Presentation / Demo Mode Control Bar (Visible only inside DEMOFEST workspace) -->
-    <div id="demo-mode-bar" class="no-print hidden sm:sticky sm:top-[64px] z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-amber-50/95 backdrop-blur-sm border border-amber-300 rounded-xl shadow-sm">
+    <div id="demo-mode-bar" class="no-print hidden sm:sticky sm:top-[78px] z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-amber-50/95 backdrop-blur-sm border border-amber-300 rounded-xl shadow-sm">
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
         <span class="font-bold uppercase tracking-wider text-amber-900">DEMO MODE</span>
         <span aria-hidden="true" class="text-amber-400">·</span>
@@ -673,14 +670,14 @@
       <!-- Stage / TV Broadcast Header (Visible only in Stage / TV Mode) -->
       <div id="stage-tv-header" class="no-print hidden flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 border-b border-stone-800">
         <div class="space-y-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs sm:text-sm font-semibold text-amber-400">
-            <span id="tv-festival-title">Arts Fest Digital Judging</span>
-            <span aria-hidden="true" class="text-stone-600">·</span>
-            <span id="tv-festival-subtitle" class="text-stone-300 font-medium">Live Scoreboard</span>
-            <span aria-hidden="true" class="text-stone-600">·</span>
-            <span id="tv-event-code" class="tabular-nums text-stone-400">—</span>
+          <div class="flex flex-col items-start min-w-0">
+            <div class="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 min-w-0 max-w-full">
+              <span id="tv-festival-title" class="text-base sm:text-lg font-bold text-amber-400 font-display tracking-tight leading-tight truncate max-w-full">Arts Fest Digital Judging</span>
+              <span id="tv-event-code" class="text-[11px] font-medium text-stone-400 bg-stone-900 border border-stone-700/80 rounded px-1.5 py-0.5 tabular-nums whitespace-nowrap shrink-0">—</span>
+            </div>
+            <div id="tv-festival-subtitle" class="text-sm sm:text-base font-medium text-stone-200 leading-snug truncate max-w-full">Live Scoreboard</div>
           </div>
-          <h1 id="tv-current-item-title" class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight truncate">Official Results</h1>
+          <h1 id="tv-current-item-title" class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight truncate pt-0.5">Official Results</h1>
           <div id="tv-current-item-meta" class="text-xs sm:text-sm font-medium text-stone-300">—</div>
         </div>
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -1969,10 +1966,15 @@
       const cfg = window.state?.config || getDefaultConfig();
       const showDefaultHeader = !activeEventCode || isSwitchingEvent;
       const name = showDefaultHeader ? DEFAULT_HEADER_TITLE : (cfg.title || activeEventCode || DEFAULT_HEADER_TITLE);
-      const subtitle = cfg.subtitle || DEFAULT_SUBTITLE;
+      const subtitle = typeof cfg.subtitle === "string" ? cfg.subtitle.trim() : DEFAULT_SUBTITLE;
 
       document.getElementById("header-brand-title").textContent = name;
-      document.getElementById("status-subtitle").textContent = subtitle || name;
+      const headerSubEl = document.getElementById("header-brand-subtitle");
+      if (headerSubEl) {
+        const showSub = !showDefaultHeader && Boolean(subtitle);
+        headerSubEl.textContent = showSub ? subtitle : "";
+        headerSubEl.classList.toggle("hidden", !showSub);
+      }
       document.getElementById("print-festival-name").textContent = `${cfg.title || activeEventCode || DEFAULT_HEADER_TITLE}${subtitle ? " — " + subtitle : ""} · Official Tabulation Sheet`;
       document.title = activeEventCode && !isSwitchingEvent ? `${cfg.title || activeEventCode} (${activeEventCode})` : "Arts Fest Digital Judging — Kalolsavam Live";
 
@@ -2583,7 +2585,6 @@
       isMasterAdmin = Boolean(keepAdminUnlocked && keepMasterAdmin);
 
       window.state = loadLocalState(code);
-      document.getElementById("active-event-badge").textContent = code;
       document.getElementById("header-event-code").textContent = code;
       document.getElementById("pin-modal-event-code").textContent = code;
       document.getElementById("admin-event-code-label").textContent = code;
@@ -3809,9 +3810,13 @@
       const itemMetaEl = document.getElementById("tv-current-item-meta");
       const indexEl = document.getElementById("tv-item-index-label");
 
+      const tvSubtitle = typeof cfg.subtitle === "string" ? cfg.subtitle.trim() : DEFAULT_SUBTITLE;
       if (titleEl) titleEl.textContent = cfg.title || activeEventCode || DEFAULT_HEADER_TITLE;
-      if (subEl) subEl.textContent = cfg.subtitle || DEFAULT_SUBTITLE;
-      if (codeEl) codeEl.textContent = activeEventCode ? `Event ${activeEventCode}` : "—";
+      if (subEl) {
+        subEl.textContent = tvSubtitle;
+        subEl.classList.toggle("hidden", !tvSubtitle);
+      }
+      if (codeEl) codeEl.textContent = activeEventCode ? `Event: ${activeEventCode}` : "—";
       if (itemTitleEl) {
         itemTitleEl.textContent = selectedItem
           ? `${selectedItem.name}${selectedItem.malayalamName ? " (" + selectedItem.malayalamName + ")" : ""}`
