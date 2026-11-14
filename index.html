@@ -103,6 +103,38 @@
     </div>
   </div>
 
+  <!-- Extend Event Expiry Modal (Master Setup) -->
+  <div id="extend-expiry-modal" role="dialog" aria-modal="true" aria-labelledby="extend-expiry-modal-title" onclick="if (event.target === this) closeExtendExpiryModal()" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
+    <div class="bg-white border border-stone-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div>
+        <div class="text-xs font-semibold text-amber-800">License Validity Management</div>
+        <h2 id="extend-expiry-modal-title" class="text-lg font-bold text-stone-900 mt-1 font-display">Extend Expiry — <span id="extend-modal-event-code" class="tabular-nums text-amber-800">—</span></h2>
+        <p class="text-xs text-stone-600 mt-1">Current expiry date: <span id="extend-modal-current-date" class="font-semibold text-stone-900 tabular-nums">—</span></p>
+      </div>
+      <form onsubmit="handleSaveExtendExpiry(event)" class="space-y-4">
+        <div>
+          <label for="extend-expiry-input" class="block text-xs font-semibold text-stone-700 mb-1.5">New Expiry Date (Inclusive)</label>
+          <input id="extend-expiry-input" type="date" required oninput="hideExtendExpiryError()" class="w-full px-3.5 py-2 text-sm tabular-nums bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          <div class="flex flex-wrap items-center gap-2 mt-2">
+            <span class="text-[11px] font-medium text-stone-500">Quick extend:</span>
+            <button type="button" onclick="applyExtendPresetDays(3)" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">+3 Days</button>
+            <button type="button" onclick="applyExtendPresetDays(7)" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">+7 Days</button>
+            <button type="button" onclick="applyExtendPresetDays(30)" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">+30 Days</button>
+          </div>
+        </div>
+        <div id="extend-expiry-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+        <div class="flex items-center justify-end gap-3 pt-1">
+          <button type="button" onclick="closeExtendExpiryModal()" class="px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+            Cancel
+          </button>
+          <button type="submit" id="extend-expiry-save-btn" class="px-4 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+            Save Expiry Date
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
   <header class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
     <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 max-w-[260px] sm:max-w-xs truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
@@ -186,8 +218,8 @@
       <form onsubmit="handleEventCodeSubmit(event)" class="space-y-4">
         <div>
           <label for="event-code-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Festival Code</label>
-          <input id="event-code-input" type="text" required autocomplete="off" maxlength="32" oninput="hideEventCodeError()" placeholder="e.g. FEST2026 or CAMPUS02" class="w-full px-3.5 py-2.5 text-base uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          <p class="text-xs text-stone-500 mt-1.5">Enter an official Festival Code created in the Admin Panel (default: <span class="tabular-nums font-medium text-stone-700">FEST2026</span>).</p>
+          <input id="event-code-input" type="text" required autocomplete="off" maxlength="32" oninput="hideEventCodeError()" placeholder="Enter Festival Code" class="w-full px-3.5 py-2.5 text-base uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          <p class="text-xs text-stone-500 mt-1.5">Enter the authorized Festival Code provided by the administrator.</p>
         </div>
         <div id="event-code-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
           Invalid Event Code. This event has not been created by the Admin.
@@ -417,7 +449,10 @@
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console — <span id="admin-event-code-label" class="tabular-nums text-amber-800">—</span></h1>
-          <p class="text-sm text-stone-600 mt-1">Create festival workspaces, customize optional display titles, and manage competition items, chest numbers, and scores.</p>
+          <p class="text-sm text-stone-600 mt-1">
+            Create festival workspaces, manage license validity, and configure competition items, chest numbers, and scores.
+            <span id="admin-event-license-summary" class="hidden sm:inline font-semibold text-stone-800 ml-1 tabular-nums"></span>
+          </p>
         </div>
         <!-- Testing & Reset Controls -->
         <div class="flex flex-wrap items-center gap-3">
@@ -430,33 +465,78 @@
         </div>
       </div>
 
-      <!-- Create New Campus / Event Card -->
-      <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4">
-        <div>
-          <h2 class="text-lg font-bold text-stone-900">Create New Campus / Event</h2>
-          <p class="text-xs text-stone-500 mt-0.5">Enter a unique Festival Code to launch an isolated event workspace. Leave the Initial Admin PIN blank to initialize with default PIN <span class="tabular-nums font-semibold text-stone-700">1234</span>.</p>
+      <!-- Master Setup Commercial License Controls (Visible only when unlocked with Master PIN) -->
+      <div id="admin-master-setup-section" class="hidden space-y-6">
+        <!-- Create New Campus / Event Card -->
+        <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-bold text-stone-900">Create New Campus / Event</h2>
+              <p class="text-xs text-stone-500 mt-0.5">Issue a licensed Festival Code with an expiry date. Leave the Initial Admin PIN blank to initialize with default PIN <span class="tabular-nums font-semibold text-stone-700">1234</span>.</p>
+            </div>
+            <span class="text-xs font-semibold text-amber-800">Master Setup</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div class="sm:col-span-4">
+              <label for="create-event-code" class="block text-xs font-semibold text-stone-700 mb-1">Festival Code</label>
+              <input id="create-event-code" type="text" required maxlength="32" autocomplete="off" placeholder="e.g. CAMPUS02" class="w-full px-3.5 py-2.5 text-sm uppercase tabular-nums tracking-wider border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            </div>
+            <div class="sm:col-span-3">
+              <label for="create-event-pin" class="block text-xs font-semibold text-stone-700 mb-1">Initial Event PIN (Optional)</label>
+              <input id="create-event-pin" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Default: 1234" class="w-full px-3.5 py-2.5 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            </div>
+            <div class="sm:col-span-3">
+              <label for="create-event-expiry" class="block text-xs font-semibold text-stone-700 mb-1">Event Expiry Date</label>
+              <input id="create-event-expiry" type="date" required class="w-full px-3.5 py-2.5 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            </div>
+            <div class="sm:col-span-2">
+              <button type="submit" class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
+                Create Event
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-stone-500 font-medium">Validity preset:</span>
+            <button type="button" onclick="setCreateExpiryDays(3)" class="px-2.5 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">3 Days</button>
+            <button type="button" onclick="setCreateExpiryDays(7)" class="px-2.5 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">7 Days</button>
+            <button type="button" onclick="setCreateExpiryDays(30)" class="px-2.5 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">30 Days</button>
+          </div>
+          <div id="create-event-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+        </form>
+
+        <!-- Registered Campus Events Table -->
+        <div id="admin-registered-events-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-stone-900">Registered Campus Events</h2>
+              <p class="text-xs text-stone-500 mt-0.5">Manage active licenses, suspend unauthorized events, or extend campus expiry dates.</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span id="master-events-count" class="text-xs font-medium text-stone-500 tabular-nums">0 events</span>
+              <button type="button" onclick="refreshRegisteredEvents(true)" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+                Refresh List
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
+                  <th class="py-2.5 px-4">Festival Code &amp; Name</th>
+                  <th class="py-2.5 px-4">Expiry Date</th>
+                  <th class="py-2.5 px-4">License Status</th>
+                  <th class="py-2.5 px-4 text-right">License Controls</th>
+                </tr>
+              </thead>
+              <tbody id="admin-registered-events-body" class="divide-y divide-stone-200 text-xs sm:text-sm"></tbody>
+            </table>
+          </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-          <div class="sm:col-span-6">
-            <label for="create-event-code" class="block text-xs font-semibold text-stone-700 mb-1">Festival Code</label>
-            <input id="create-event-code" type="text" required maxlength="32" autocomplete="off" placeholder="e.g. CAMPUS02" class="w-full px-3.5 py-2.5 text-sm uppercase tabular-nums tracking-wider border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          </div>
-          <div class="sm:col-span-4">
-            <label for="create-event-pin" class="block text-xs font-semibold text-stone-700 mb-1">Initial Event PIN (Optional, 4–6 digits)</label>
-            <input id="create-event-pin" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Default: 1234" class="w-full px-3.5 py-2.5 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          </div>
-          <div class="sm:col-span-2">
-            <button type="submit" class="w-full px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
-              Create Event
-            </button>
-          </div>
-        </div>
-        <div id="create-event-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
-      </form>
+      </div>
 
       <!-- Prompt shown when Super Admin unlocks before selecting/creating a Festival Code -->
       <div id="admin-no-event-banner" class="hidden bg-stone-100 border border-stone-200 rounded-xl p-5 text-sm text-stone-700">
-        No Festival Code is currently active. Create a new event above or click <span class="font-semibold text-stone-900">Change Festival Code</span> in the header to open an existing festival.
+        No Festival Code is currently active. Create a new event above, open one from <span class="font-semibold text-stone-900">Registered Campus Events</span>, or click <span class="font-semibold text-stone-900">Change Festival Code</span> in the header.
       </div>
 
       <div id="admin-active-event-sections" class="space-y-8">
@@ -815,6 +895,7 @@
     import {
       getFirestore,
       collection,
+      collectionGroup,
       query,
       where,
       doc,
@@ -890,6 +971,65 @@
     const DEFAULT_GRADE_A = 80;
     const DEFAULT_GRADE_B = 70;
     const DEFAULT_GRADE_C = 60;
+    const DEFAULT_NEW_EVENT_DAYS = 3;
+    const DEFAULT_SEED_EVENT_DAYS = 30;
+    const LICENSE_BLOCKED_MESSAGE = "This Event Code has expired or is inactive. Please contact the administrator to renew access.";
+
+    function getTodayDateString() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function addDaysToDateString(baseDateStr, days) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(baseDateStr || "").trim());
+      const dt = match
+        ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+        : new Date();
+      dt.setDate(dt.getDate() + Number(days || 0));
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, "0");
+      const d = String(dt.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getDefaultExpiryDate(days = DEFAULT_NEW_EVENT_DAYS) {
+      return addDaysToDateString(getTodayDateString(), days);
+    }
+
+    function normalizeExpiryDate(val) {
+      if (val && typeof val === "object" && typeof val.toDate === "function") {
+        const dt = val.toDate();
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+      }
+      const str = String(val || "").trim();
+      const match = /^(\d{4}-\d{2}-\d{2})/.exec(str);
+      return match ? match[1] : "";
+    }
+
+    function isEventLicenseValid(cfg, todayStr = getTodayDateString()) {
+      if (!cfg) return false;
+      if (cfg.isActive !== true) return false;
+      const exp = normalizeExpiryDate(cfg.expiresAt);
+      if (!exp) return false;
+      return todayStr <= exp;
+    }
+
+    function getLicenseStatusInfo(cfg, todayStr = getTodayDateString()) {
+      const exp = normalizeExpiryDate(cfg?.expiresAt);
+      if (cfg?.isActive === false) {
+        return { key: "suspended", label: "Suspended", badgeClass: "text-red-800 bg-red-50 border-red-200", detail: exp ? `Paused (exp ${exp})` : "Paused by Super-Admin" };
+      }
+      if (cfg?.isActive !== true || !exp) {
+        return { key: "unconfigured", label: "Inactive", badgeClass: "text-stone-700 bg-stone-100 border-stone-300", detail: "No expiry date set" };
+      }
+      if (todayStr > exp) {
+        return { key: "expired", label: "Expired", badgeClass: "text-amber-900 bg-amber-50 border-amber-300", detail: `Expired on ${exp}` };
+      }
+      return { key: "active", label: "Active", badgeClass: "text-emerald-800 bg-emerald-50 border-emerald-200", detail: `Valid through ${exp}` };
+    }
 
     function normalizeEventCode(raw) {
       return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
@@ -1002,7 +1142,9 @@
         chartType: "bar",
         gradeA: DEFAULT_GRADE_A,
         gradeB: DEFAULT_GRADE_B,
-        gradeC: DEFAULT_GRADE_C
+        gradeC: DEFAULT_GRADE_C,
+        isActive: true,
+        expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
       };
     }
 
@@ -1082,9 +1224,12 @@
     // Always start cleanly on the Enter Festival Code screen (never auto-open previous events)
     let activeEventCode = "";
     let isAdminUnlocked = false;
+    let isMasterAdmin = false;
     let isSwitchingEvent = false;
     let isCurrentPinVisible = false;
     let editingAdminItemId = null;
+    let extendingExpiryEventCode = "";
+    let masterRegisteredEvents = [];
     let brandTapTimestamps = [];
     let toastTimer = null;
     let defaultInitPromise = null;
@@ -1101,6 +1246,8 @@
             const legacyPin = saved.config?.adminPin || DEFAULT_EVENT_PIN;
             const legacyChart = normalizeChartType(saved.config?.chartType);
             const legacyGrades = normalizeGradeThresholds(saved.config);
+            const legacyIsActive = typeof saved.config?.isActive === "boolean" ? saved.config.isActive : false;
+            const legacyExpiresAt = normalizeExpiryDate(saved.config?.expiresAt);
             const legacyAuthor = saved.config?.authorId || saved.branding?.authorId || null;
             return {
               config: {
@@ -1109,6 +1256,8 @@
                 adminPin: legacyPin,
                 chartType: legacyChart,
                 ...legacyGrades,
+                isActive: legacyIsActive,
+                expiresAt: legacyExpiresAt,
                 authorId: legacyAuthor
               },
               groups: Array.isArray(saved.groups) ? saved.groups : [],
@@ -1215,9 +1364,27 @@
 
       document.getElementById("admin-load-sample-btn").classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-clear-data-btn").classList.toggle("hidden", !hasEvent);
+      document.getElementById("admin-master-setup-section").classList.toggle("hidden", !(isAdminUnlocked && isMasterAdmin));
       document.getElementById("admin-no-event-banner").classList.toggle("hidden", hasEvent);
       document.getElementById("admin-active-event-sections").classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-event-code-label").textContent = hasEvent ? activeEventCode : "Master Setup";
+
+      const licenseSummaryEl = document.getElementById("admin-event-license-summary");
+      if (licenseSummaryEl) {
+        if (hasEvent) {
+          const info = getLicenseStatusInfo(window.state?.config);
+          licenseSummaryEl.textContent = `· License: ${info.label}${info.detail ? " (" + info.detail + ")" : ""}`;
+          licenseSummaryEl.classList.remove("hidden");
+        } else {
+          licenseSummaryEl.textContent = "";
+          licenseSummaryEl.classList.add("hidden");
+        }
+      }
+
+      const createExpiryInput = document.getElementById("create-event-expiry");
+      if (createExpiryInput && !createExpiryInput.value) {
+        createExpiryInput.value = getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
+      }
     }
 
     // Firestore Multi-Event Path Helpers
@@ -1227,6 +1394,18 @@
 
     function eventDocument(subcollectionName, docId) {
       return doc(db, "events", activeEventCode, subcollectionName, docId);
+    }
+
+    function revokeActiveEventAccess(message = LICENSE_BLOCKED_MESSAGE) {
+      detachListeners();
+      isAdminUnlocked = false;
+      isMasterAdmin = false;
+      isCurrentPinVisible = false;
+      activeEventCode = "";
+      window.state = getEmptyEventState();
+      showEventEntryView(false);
+      showEventCodeError(message);
+      window.showToast("Access paused: Event expired or suspended");
     }
 
     function detachListeners() {
@@ -1244,18 +1423,31 @@
       unsubBranding = onSnapshot(eventDocument("settings", "config"), (snap) => {
         if (snap.exists()) {
           const d = snap.data();
-          window.state.config = {
+          const nextCfg = {
             title: d.title || DEFAULT_HEADER_TITLE,
             subtitle: d.subtitle || "",
             adminPin: d.adminPin || DEFAULT_EVENT_PIN,
             chartType: normalizeChartType(d.chartType),
             ...normalizeGradeThresholds(d),
+            isActive: typeof d.isActive === "boolean" ? d.isActive : false,
+            expiresAt: normalizeExpiryDate(d.expiresAt),
             authorId: d.authorId || null
           };
+          window.state.config = nextCfg;
           saveLocalState();
+
+          if (!isMasterAdmin && !isEventLicenseValid(nextCfg)) {
+            revokeActiveEventAccess(LICENSE_BLOCKED_MESSAGE);
+            return;
+          }
+
           applyBrandingUI();
+          applyAdminAccessUI();
           window.renderTabulation();
           window.renderGroupStandings();
+          if (isAdminUnlocked && isMasterAdmin) {
+            refreshRegisteredEvents(false);
+          }
         }
       }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`));
 
@@ -1317,6 +1509,28 @@
           const snap = await fetchEventConfigDoc(DEFAULT_EVENT_CODE);
           if (snap.exists()) {
             const d = snap.data();
+            let resolvedIsActive = typeof d.isActive === "boolean" ? d.isActive : undefined;
+            let resolvedExpiresAt = normalizeExpiryDate(d.expiresAt);
+
+            // Auto-migrate legacy FEST2026 doc created before license fields existed
+            if (
+              (resolvedIsActive === undefined || !resolvedExpiresAt) &&
+              currentUser.emailVerified !== false &&
+              (d.authorId === currentUser.uid || currentUser.email === "sajjadsajju2626@gmail.com")
+            ) {
+              const fallbackExpiry = resolvedExpiresAt || getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
+              const fallbackActive = resolvedIsActive !== undefined ? resolvedIsActive : true;
+              try {
+                await updateDoc(doc(db, "events", DEFAULT_EVENT_CODE, "settings", "config"), {
+                  isActive: fallbackActive,
+                  expiresAt: fallbackExpiry,
+                  updatedAt: serverTimestamp()
+                });
+                resolvedIsActive = fallbackActive;
+                resolvedExpiresAt = fallbackExpiry;
+              } catch {}
+            }
+
             const existingLocal = loadLocalState(DEFAULT_EVENT_CODE);
             existingLocal.config = {
               title: d.title || DEFAULT_HEADER_TITLE,
@@ -1324,12 +1538,15 @@
               adminPin: d.adminPin || DEFAULT_EVENT_PIN,
               chartType: normalizeChartType(d.chartType),
               ...normalizeGradeThresholds(d),
+              isActive: resolvedIsActive === true,
+              expiresAt: resolvedExpiresAt,
               authorId: d.authorId || null
             };
             localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(existingLocal));
             return;
           }
           if (currentUser.emailVerified !== false) {
+            const seedExpiry = getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
             await setDoc(doc(db, "events", DEFAULT_EVENT_CODE, "settings", "config"), {
               id: "config",
               eventCode: DEFAULT_EVENT_CODE,
@@ -1340,11 +1557,15 @@
               gradeA: DEFAULT_GRADE_A,
               gradeB: DEFAULT_GRADE_B,
               gradeC: DEFAULT_GRADE_C,
+              isActive: true,
+              expiresAt: seedExpiry,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
             });
             const localDefault = loadLocalState(DEFAULT_EVENT_CODE);
+            localDefault.config.isActive = true;
+            localDefault.config.expiresAt = seedExpiry;
             localDefault.config.authorId = currentUser.uid;
             localStorage.setItem(getLocalStateKey(DEFAULT_EVENT_CODE), JSON.stringify(localDefault));
           }
@@ -1363,12 +1584,17 @@
       if (user) {
         testConnection();
         await ensureDefaultEventInitialized();
+        if (isAdminUnlocked && isMasterAdmin) {
+          refreshRegisteredEvents(false);
+        }
         if (activeEventCode) {
           try {
             const snap = await fetchEventConfigDoc(activeEventCode);
             if (!snap.exists()) {
-              if (window.state?.config && !window.state.config.authorId && isAdminUnlocked && user.emailVerified !== false) {
+              if (window.state?.config && !window.state.config.authorId && isAdminUnlocked && isMasterAdmin && user.emailVerified !== false) {
                 const grades = normalizeGradeThresholds(window.state.config);
+                const expDate = normalizeExpiryDate(window.state.config.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
+                const activeFlag = typeof window.state.config.isActive === "boolean" ? window.state.config.isActive : true;
                 await setDoc(eventDocument("settings", "config"), {
                   id: "config",
                   eventCode: activeEventCode,
@@ -1379,11 +1605,15 @@
                   gradeA: grades.gradeA,
                   gradeB: grades.gradeB,
                   gradeC: grades.gradeC,
+                  isActive: activeFlag,
+                  expiresAt: expDate,
                   authorId: user.uid,
                   createdAt: serverTimestamp(),
                   updatedAt: serverTimestamp()
                 });
                 window.state.config.authorId = user.uid;
+                window.state.config.isActive = activeFlag;
+                window.state.config.expiresAt = expDate;
                 saveLocalState();
               } else {
                 detachListeners();
@@ -1392,6 +1622,24 @@
                 window.state = getEmptyEventState();
                 showEventEntryView(false);
                 showEventCodeError("Invalid Event Code. This event has not been created by the Admin.");
+                return;
+              }
+            } else {
+              const d = snap.data();
+              const syncedCfg = {
+                title: d.title || DEFAULT_HEADER_TITLE,
+                subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
+                adminPin: d.adminPin || DEFAULT_EVENT_PIN,
+                chartType: normalizeChartType(d.chartType),
+                ...normalizeGradeThresholds(d),
+                isActive: typeof d.isActive === "boolean" ? d.isActive : false,
+                expiresAt: normalizeExpiryDate(d.expiresAt),
+                authorId: d.authorId || null
+              };
+              window.state.config = syncedCfg;
+              saveLocalState();
+              if (!isMasterAdmin && !isEventLicenseValid(syncedCfg)) {
+                revokeActiveEventAccess(LICENSE_BLOCKED_MESSAGE);
                 return;
               }
             }
@@ -1509,13 +1757,14 @@
     }
 
     function enterEventWorkspace(code, options = {}) {
-      const { keepAdminUnlocked = false, targetView = "judge" } = options;
+      const { keepAdminUnlocked = false, keepMasterAdmin = false, targetView = "judge" } = options;
       isSwitchingEvent = false;
       isCurrentPinVisible = false;
       activeEventCode = code;
 
       // Re-lock Admin when switching normally
       isAdminUnlocked = Boolean(keepAdminUnlocked);
+      isMasterAdmin = Boolean(keepAdminUnlocked && keepMasterAdmin);
 
       window.state = loadLocalState(code);
       document.getElementById("active-event-badge").textContent = code;
@@ -1566,6 +1815,7 @@
       }
 
       let isVerifiedEvent = false;
+      let loadedConfig = null;
       try {
         if (currentUser) {
           if (normalized === DEFAULT_EVENT_CODE) {
@@ -1577,20 +1827,26 @@
               isVerifiedEvent = true;
               const d = cfgSnap.data();
               const existingLocal = loadLocalState(normalized);
-              existingLocal.config = {
+              loadedConfig = {
                 title: d.title || DEFAULT_HEADER_TITLE,
                 subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
                 adminPin: d.adminPin || DEFAULT_EVENT_PIN,
                 chartType: normalizeChartType(d.chartType),
                 ...normalizeGradeThresholds(d),
+                isActive: typeof d.isActive === "boolean" ? d.isActive : false,
+                expiresAt: normalizeExpiryDate(d.expiresAt),
                 authorId: d.authorId || null
               };
+              existingLocal.config = loadedConfig;
               localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
             }
           } catch (err) {
             const msg = err instanceof Error ? err.message.toLowerCase() : "";
             if (err?.code === "unavailable" || msg.includes("offline")) {
               isVerifiedEvent = hasLocalEvent(normalized);
+              if (isVerifiedEvent) {
+                loadedConfig = loadLocalState(normalized).config;
+              }
             } else {
               handleFirestoreError(err, "get", `events/${normalized}/settings/config`);
             }
@@ -1598,6 +1854,9 @@
         } else {
           ensureDefaultLocalEvent();
           isVerifiedEvent = hasLocalEvent(normalized);
+          if (isVerifiedEvent) {
+            loadedConfig = loadLocalState(normalized).config;
+          }
         }
       } finally {
         if (submitBtn) {
@@ -1608,6 +1867,13 @@
 
       if (!isVerifiedEvent) {
         showEventCodeError("Invalid Event Code. This event has not been created by the Admin.");
+        input.focus();
+        input.select();
+        return;
+      }
+
+      if (!isEventLicenseValid(loadedConfig)) {
+        showEventCodeError(LICENSE_BLOCKED_MESSAGE);
         input.focus();
         input.select();
         return;
@@ -1670,13 +1936,19 @@
 
     window.lockAdminSession = () => {
       isAdminUnlocked = false;
+      isMasterAdmin = false;
       isCurrentPinVisible = false;
       updateCurrentPinDisplay();
       applyBrandingUI();
       applyAdminAccessUI();
-      if (activeEventCode) {
+      if (activeEventCode && isEventLicenseValid(window.state?.config)) {
         window.switchView("judge");
       } else {
+        if (activeEventCode) {
+          detachListeners();
+          activeEventCode = "";
+          window.state = getEmptyEventState();
+        }
         showEventEntryView(false);
       }
       window.showToast("Admin Locked");
@@ -1686,6 +1958,7 @@
       if (e.key === "Escape") {
         window.closePinModal();
         window.closeClearModal();
+        window.closeExtendExpiryModal();
       }
     });
 
@@ -1738,6 +2011,8 @@
                 adminPin: storedEventPin,
                 chartType: normalizeChartType(d.chartType || window.state.config?.chartType),
                 ...normalizeGradeThresholds(d),
+                isActive: typeof d.isActive === "boolean" ? d.isActive : Boolean(window.state.config?.isActive),
+                expiresAt: normalizeExpiryDate(d.expiresAt) || normalizeExpiryDate(window.state.config?.expiresAt),
                 authorId: d.authorId || window.state.config?.authorId || null
               };
               saveLocalState();
@@ -1762,13 +2037,17 @@
 
       if (isAuthorized) {
         isAdminUnlocked = true;
+        isMasterAdmin = (entered === MASTER_PIN);
         isSwitchingEvent = false;
         isCurrentPinVisible = false;
         window.closePinModal();
         applyBrandingUI();
         applyAdminAccessUI();
         window.switchView("admin");
-        window.showToast(hasWorkspace ? `Admin Unlocked for ${activeEventCode}` : "Admin Unlocked");
+        if (isMasterAdmin) {
+          refreshRegisteredEvents(false);
+        }
+        window.showToast(isMasterAdmin ? "Master Setup Unlocked" : `Admin Unlocked for ${activeEventCode}`);
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
         document.getElementById("admin-pin-input").select();
@@ -2559,6 +2838,8 @@
             });
           } else {
             const grades = normalizeGradeThresholds(window.state.config);
+            const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
+            const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
             await setDoc(eventDocument("settings", "config"), {
               id: "config",
               eventCode: activeEventCode,
@@ -2569,6 +2850,8 @@
               gradeA: grades.gradeA,
               gradeB: grades.gradeB,
               gradeC: grades.gradeC,
+              isActive,
+              expiresAt,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -2881,6 +3164,10 @@
 
     window.handleScoreSubmit = async (e) => {
       e.preventDefault();
+      if (!isMasterAdmin && !isEventLicenseValid(window.state?.config)) {
+        revokeActiveEventAccess(LICENSE_BLOCKED_MESSAGE);
+        return;
+      }
       const itemId = document.getElementById("judge-item").value;
       const participantId = document.getElementById("judge-participant").value;
       if (!itemId || !participantId) {
@@ -2969,15 +3256,379 @@
       }
     };
 
+    function collectLocalEventConfigs() {
+      const found = [];
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith("kalolsavam_local_state_") && key.endsWith("_v1")) {
+            const code = key.slice("kalolsavam_local_state_".length, -"_v1".length);
+            if (!isValidEventCode(code)) continue;
+            const parsed = JSON.parse(localStorage.getItem(key) || "null");
+            if (parsed && parsed.config) {
+              found.push({
+                eventCode: code,
+                title: parsed.config.title || code,
+                subtitle: parsed.config.subtitle || "",
+                adminPin: parsed.config.adminPin || DEFAULT_EVENT_PIN,
+                chartType: normalizeChartType(parsed.config.chartType),
+                ...normalizeGradeThresholds(parsed.config),
+                isActive: parsed.config.isActive === true,
+                expiresAt: normalizeExpiryDate(parsed.config.expiresAt),
+                authorId: parsed.config.authorId || null,
+                source: "local"
+              });
+            }
+          }
+        }
+      } catch {}
+      return found;
+    }
+
+    function renderRegisteredEventsTable() {
+      const tbody = document.getElementById("admin-registered-events-body");
+      const countEl = document.getElementById("master-events-count");
+      if (!tbody) return;
+
+      const list = [...masterRegisteredEvents].sort((a, b) => a.eventCode.localeCompare(b.eventCode));
+      if (countEl) {
+        countEl.textContent = `${list.length} ${list.length === 1 ? "event" : "events"}`;
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-6 px-4 text-center text-xs sm:text-sm text-stone-500">No campus events registered yet. Create one above to issue a Festival Code.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const todayStr = getTodayDateString();
+      tbody.innerHTML = list.map(ev => {
+        const info = getLicenseStatusInfo(ev, todayStr);
+        const isCurrent = ev.eventCode === activeEventCode && !isSwitchingEvent;
+        const isSuspended = ev.isActive === false;
+        const toggleLabel = isSuspended ? "Activate" : "Suspend";
+        const toggleClass = isSuspended
+          ? "text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
+          : "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200";
+        const expDisplay = ev.expiresAt ? escapeHtml(ev.expiresAt) : `<span class="text-stone-400">Not Set</span>`;
+        return `
+          <tr class="hover:bg-stone-50 ${isCurrent ? "bg-amber-50/40" : ""}">
+            <td class="py-3 px-4">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-stone-900 tabular-nums">${escapeHtml(ev.eventCode)}</span>
+                ${isCurrent ? `<span class="text-[11px] font-semibold text-amber-800">(Active Workspace)</span>` : ""}
+              </div>
+              <div class="text-xs text-stone-500 truncate max-w-xs">${escapeHtml(ev.title || ev.eventCode)}</div>
+            </td>
+            <td class="py-3 px-4 tabular-nums text-stone-800 whitespace-nowrap">
+              <div class="font-semibold">${expDisplay}</div>
+              <div class="text-[11px] text-stone-500">${escapeHtml(info.detail)}</div>
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="inline-block px-2 py-0.5 text-[11px] font-semibold border rounded ${info.badgeClass}">
+                ${escapeHtml(info.label)}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
+                <button type="button" onclick="toggleEventLicenseActive('${escapeHtml(ev.eventCode)}')" class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${toggleClass}">
+                  ${toggleLabel}
+                </button>
+                <button type="button" onclick="openExtendExpiryModal('${escapeHtml(ev.eventCode)}')" class="px-2.5 py-1 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition-colors">
+                  Extend Expiry
+                </button>
+                <button type="button" onclick="openEventFromMaster('${escapeHtml(ev.eventCode)}')" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">
+                  ${isCurrent ? "Managing" : "Open"}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function refreshRegisteredEvents(showToastOnDone = false) {
+      const mergedMap = new Map();
+      collectLocalEventConfigs().forEach(ev => mergedMap.set(ev.eventCode, ev));
+
+      if (currentUser) {
+        try {
+          const snap = await getDocs(collectionGroup(db, "settings"));
+          snap.forEach(docSnap => {
+            if (docSnap.id !== "config") return;
+            const d = docSnap.data();
+            const code = normalizeEventCode(d.eventCode || docSnap.ref.parent?.parent?.id || "");
+            if (!isValidEventCode(code)) return;
+            const cfgObj = {
+              eventCode: code,
+              title: d.title || code,
+              subtitle: d.subtitle ?? DEFAULT_SUBTITLE,
+              adminPin: d.adminPin || DEFAULT_EVENT_PIN,
+              chartType: normalizeChartType(d.chartType),
+              ...normalizeGradeThresholds(d),
+              isActive: typeof d.isActive === "boolean" ? d.isActive : false,
+              expiresAt: normalizeExpiryDate(d.expiresAt),
+              authorId: d.authorId || null,
+              source: "cloud"
+            };
+            mergedMap.set(code, cfgObj);
+
+            // Keep cached local config synchronized
+            const existingLocal = loadLocalState(code);
+            existingLocal.config = {
+              title: cfgObj.title,
+              subtitle: cfgObj.subtitle,
+              adminPin: cfgObj.adminPin,
+              chartType: cfgObj.chartType,
+              gradeA: cfgObj.gradeA,
+              gradeB: cfgObj.gradeB,
+              gradeC: cfgObj.gradeC,
+              isActive: cfgObj.isActive,
+              expiresAt: cfgObj.expiresAt,
+              authorId: cfgObj.authorId
+            };
+            try {
+              localStorage.setItem(getLocalStateKey(code), JSON.stringify(existingLocal));
+            } catch {}
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message.toLowerCase() : "";
+          if (!msg.includes("permission") && err?.code !== "permission-denied") {
+            handleFirestoreError(err, "list", "settings(collectionGroup)");
+          }
+        }
+      }
+
+      masterRegisteredEvents = Array.from(mergedMap.values());
+      renderRegisteredEventsTable();
+      if (showToastOnDone) {
+        window.showToast(`Loaded ${masterRegisteredEvents.length} registered event(s)`);
+      }
+    }
+    window.refreshRegisteredEvents = refreshRegisteredEvents;
+
+    window.setCreateExpiryDays = (days) => {
+      const expiryInput = document.getElementById("create-event-expiry");
+      if (expiryInput) {
+        expiryInput.value = getDefaultExpiryDate(days);
+      }
+    };
+
+    window.openEventFromMaster = (code) => {
+      if (!isMasterAdmin) return;
+      enterEventWorkspace(code, { keepAdminUnlocked: true, keepMasterAdmin: true, targetView: "admin" });
+      refreshRegisteredEvents(false);
+      window.showToast(`Switched Master Console to ${code}`);
+    };
+
+    window.toggleEventLicenseActive = async (code) => {
+      if (!isMasterAdmin || !isValidEventCode(code)) return;
+      const existingEntry = masterRegisteredEvents.find(ev => ev.eventCode === code);
+      const localEv = loadLocalState(code);
+      const currentActive = existingEntry ? existingEntry.isActive === true : localEv.config?.isActive === true;
+      const nextActive = !currentActive;
+
+      if (existingEntry) {
+        existingEntry.isActive = nextActive;
+      }
+      localEv.config = {
+        ...(localEv.config || getDefaultConfig(code)),
+        isActive: nextActive
+      };
+      try {
+        localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv));
+      } catch {}
+
+      if (activeEventCode === code && window.state?.config) {
+        window.state.config.isActive = nextActive;
+        saveLocalState();
+        applyAdminAccessUI();
+      }
+      renderRegisteredEventsTable();
+
+      if (currentUser) {
+        try {
+          const cfgRef = doc(db, "events", code, "settings", "config");
+          const existingAuthorId = existingEntry?.authorId || localEv.config?.authorId || null;
+          if (existingAuthorId) {
+            await updateDoc(cfgRef, {
+              isActive: nextActive,
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            const grades = normalizeGradeThresholds(localEv.config);
+            const expDate = normalizeExpiryDate(existingEntry?.expiresAt || localEv.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
+            await setDoc(cfgRef, {
+              id: "config",
+              eventCode: code,
+              title: existingEntry?.title || localEv.config?.title || code,
+              subtitle: existingEntry?.subtitle || localEv.config?.subtitle || DEFAULT_SUBTITLE,
+              adminPin: existingEntry?.adminPin || localEv.config?.adminPin || DEFAULT_EVENT_PIN,
+              chartType: normalizeChartType(existingEntry?.chartType || localEv.config?.chartType),
+              gradeA: grades.gradeA,
+              gradeB: grades.gradeB,
+              gradeC: grades.gradeC,
+              isActive: nextActive,
+              expiresAt: expDate,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            localEv.config.authorId = currentUser.uid;
+            localEv.config.expiresAt = expDate;
+            try { localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv)); } catch {}
+          }
+        } catch (err) {
+          handleFirestoreError(err, "update", `events/${code}/settings/config`);
+        }
+      }
+
+      window.showToast(nextActive ? `Activated ${code}` : `Suspended ${code} — access blocked`);
+      await refreshRegisteredEvents(false);
+    };
+
+    window.hideExtendExpiryError = () => {
+      const errEl = document.getElementById("extend-expiry-error");
+      if (errEl) errEl.classList.add("hidden");
+    };
+
+    window.openExtendExpiryModal = (code) => {
+      if (!isMasterAdmin || !isValidEventCode(code)) return;
+      extendingExpiryEventCode = code;
+      const entry = masterRegisteredEvents.find(ev => ev.eventCode === code);
+      const currentExp = normalizeExpiryDate(entry?.expiresAt);
+      document.getElementById("extend-modal-event-code").textContent = code;
+      document.getElementById("extend-modal-current-date").textContent = currentExp || "Not Set";
+      const input = document.getElementById("extend-expiry-input");
+      const todayStr = getTodayDateString();
+      const base = currentExp && currentExp >= todayStr ? currentExp : todayStr;
+      input.value = addDaysToDateString(base, 3);
+      window.hideExtendExpiryError();
+      document.getElementById("extend-expiry-modal").classList.remove("hidden");
+      setTimeout(() => input.focus(), 30);
+    };
+
+    window.closeExtendExpiryModal = () => {
+      document.getElementById("extend-expiry-modal").classList.add("hidden");
+      extendingExpiryEventCode = "";
+      window.hideExtendExpiryError();
+    };
+
+    window.applyExtendPresetDays = (days) => {
+      const entry = masterRegisteredEvents.find(ev => ev.eventCode === extendingExpiryEventCode);
+      const currentExp = normalizeExpiryDate(entry?.expiresAt);
+      const todayStr = getTodayDateString();
+      const base = currentExp && currentExp >= todayStr ? currentExp : todayStr;
+      const input = document.getElementById("extend-expiry-input");
+      if (input) {
+        input.value = addDaysToDateString(base, days);
+      }
+      window.hideExtendExpiryError();
+    };
+
+    window.handleSaveExtendExpiry = async (e) => {
+      e.preventDefault();
+      if (!isMasterAdmin || !extendingExpiryEventCode) return;
+      const code = extendingExpiryEventCode;
+      const input = document.getElementById("extend-expiry-input");
+      const errEl = document.getElementById("extend-expiry-error");
+      const saveBtn = document.getElementById("extend-expiry-save-btn");
+      const newExpiry = normalizeExpiryDate(input?.value);
+
+      if (!newExpiry) {
+        if (errEl) {
+          errEl.textContent = "Please choose a valid expiry date (YYYY-MM-DD).";
+          errEl.classList.remove("hidden");
+        }
+        return;
+      }
+
+      const existingEntry = masterRegisteredEvents.find(ev => ev.eventCode === code);
+      const localEv = loadLocalState(code);
+      if (existingEntry) {
+        existingEntry.expiresAt = newExpiry;
+        existingEntry.isActive = true;
+      }
+      localEv.config = {
+        ...(localEv.config || getDefaultConfig(code)),
+        expiresAt: newExpiry,
+        isActive: true
+      };
+      try {
+        localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv));
+      } catch {}
+
+      if (activeEventCode === code && window.state?.config) {
+        window.state.config.expiresAt = newExpiry;
+        window.state.config.isActive = true;
+        saveLocalState();
+        applyAdminAccessUI();
+      }
+
+      if (currentUser) {
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = "Saving...";
+        }
+        try {
+          const cfgRef = doc(db, "events", code, "settings", "config");
+          const existingAuthorId = existingEntry?.authorId || localEv.config?.authorId || null;
+          if (existingAuthorId) {
+            await updateDoc(cfgRef, {
+              expiresAt: newExpiry,
+              isActive: true,
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            const grades = normalizeGradeThresholds(localEv.config);
+            await setDoc(cfgRef, {
+              id: "config",
+              eventCode: code,
+              title: existingEntry?.title || localEv.config?.title || code,
+              subtitle: existingEntry?.subtitle || localEv.config?.subtitle || DEFAULT_SUBTITLE,
+              adminPin: existingEntry?.adminPin || localEv.config?.adminPin || DEFAULT_EVENT_PIN,
+              chartType: normalizeChartType(existingEntry?.chartType || localEv.config?.chartType),
+              gradeA: grades.gradeA,
+              gradeB: grades.gradeB,
+              gradeC: grades.gradeC,
+              isActive: true,
+              expiresAt: newExpiry,
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+        } catch (err) {
+          handleFirestoreError(err, "update", `events/${code}/settings/config`);
+        } finally {
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Expiry Date";
+          }
+        }
+      }
+
+      window.closeExtendExpiryModal();
+      renderRegisteredEventsTable();
+      await refreshRegisteredEvents(false);
+      window.showToast(`Extended ${code} license through ${newExpiry}`);
+    };
+
     window.handleCreateNewEvent = async (e) => {
       e.preventDefault();
+      if (!isMasterAdmin) return;
       const codeInput = document.getElementById("create-event-code");
       const pinInput = document.getElementById("create-event-pin");
+      const expiryInput = document.getElementById("create-event-expiry");
       const errEl = document.getElementById("create-event-error");
 
       const newCode = normalizeEventCode(codeInput.value);
       const rawPin = pinInput ? pinInput.value.trim() : "";
       const initialPin = rawPin || DEFAULT_EVENT_PIN;
+      const expiresAt = normalizeExpiryDate(expiryInput ? expiryInput.value : "");
       codeInput.value = newCode;
 
       const showCreateErr = (msg) => {
@@ -2994,6 +3645,12 @@
       if (rawPin && !isValidEventPin(rawPin)) {
         showCreateErr("Initial Event PIN must be 4–6 numeric digits (or leave blank for default 1234).");
         pinInput.focus();
+        return;
+      }
+
+      if (!expiresAt || expiresAt < getTodayDateString()) {
+        showCreateErr("Please choose a valid Event Expiry Date (today or later).");
+        if (expiryInput) expiryInput.focus();
         return;
       }
 
@@ -3032,6 +3689,8 @@
           gradeA: DEFAULT_GRADE_A,
           gradeB: DEFAULT_GRADE_B,
           gradeC: DEFAULT_GRADE_C,
+          isActive: true,
+          expiresAt,
           authorId: currentUser?.uid || null
         },
         groups: [],
@@ -3055,6 +3714,8 @@
             gradeA: DEFAULT_GRADE_A,
             gradeB: DEFAULT_GRADE_B,
             gradeC: DEFAULT_GRADE_C,
+            isActive: true,
+            expiresAt,
             authorId: currentUser.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -3065,8 +3726,10 @@
       }
 
       e.target.reset();
-      enterEventWorkspace(newCode, { keepAdminUnlocked: true, targetView: "admin" });
-      window.showToast(`Created ${newCode} (PIN: ${initialPin})! Add groups, items & chest numbers below.`);
+      if (expiryInput) expiryInput.value = getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
+      enterEventWorkspace(newCode, { keepAdminUnlocked: true, keepMasterAdmin: true, targetView: "admin" });
+      refreshRegisteredEvents(false);
+      window.showToast(`Created ${newCode} (PIN: ${initialPin}, valid until ${expiresAt})!`);
     };
 
     window.handleSaveEventConfig = async (e) => {
@@ -3078,6 +3741,8 @@
       const chartType = normalizeChartType(window.state.config?.chartType);
       const adminPin = window.state.config?.adminPin || DEFAULT_EVENT_PIN;
       const grades = normalizeGradeThresholds(window.state.config);
+      const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
+      const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
 
       const existingAuthorId = window.state.config?.authorId || null;
       window.state.config = {
@@ -3086,11 +3751,14 @@
         adminPin,
         chartType,
         ...grades,
+        isActive,
+        expiresAt,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
       applyBrandingUI();
       window.renderTabulation();
+      if (isMasterAdmin) refreshRegisteredEvents(false);
       window.showToast(`Saved display settings for ${activeEventCode}`);
 
       if (currentUser) {
@@ -3117,6 +3785,8 @@
               gradeA: grades.gradeA,
               gradeB: grades.gradeB,
               gradeC: grades.gradeC,
+              isActive,
+              expiresAt,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -3151,6 +3821,8 @@
       const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
       const chartType = normalizeChartType(window.state.config?.chartType);
       const grades = normalizeGradeThresholds(window.state.config);
+      const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
+      const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
 
       window.state.config = {
         title,
@@ -3158,6 +3830,8 @@
         adminPin: newPin,
         chartType,
         ...grades,
+        isActive,
+        expiresAt,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
@@ -3186,6 +3860,8 @@
               gradeA: grades.gradeA,
               gradeB: grades.gradeB,
               gradeC: grades.gradeC,
+              isActive,
+              expiresAt,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
@@ -3211,6 +3887,8 @@
       const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
       const adminPin = window.state.config?.adminPin || DEFAULT_EVENT_PIN;
       const chartType = normalizeChartType(window.state.config?.chartType);
+      const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
+      const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
 
       window.state.config = {
         title,
@@ -3220,6 +3898,8 @@
         gradeA: thresholds.gradeA,
         gradeB: thresholds.gradeB,
         gradeC: thresholds.gradeC,
+        isActive,
+        expiresAt,
         authorId: existingAuthorId || currentUser?.uid || null
       };
       saveLocalState();
@@ -3251,6 +3931,8 @@
               gradeA: thresholds.gradeA,
               gradeB: thresholds.gradeB,
               gradeC: thresholds.gradeC,
+              isActive,
+              expiresAt,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()

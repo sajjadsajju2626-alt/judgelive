@@ -353,10 +353,11 @@ function evaluateCreateEventConfig(
   auth: AuthContext | null,
   eventCode: string,
   settingId: string,
-  incoming: Record<string, unknown>
+  incoming: Record<string, unknown>,
+  requireAuthorMatch = true
 ): 'ALLOW' | 'PERMISSION_DENIED' {
   const reqKeys = ['id', 'eventCode', 'title', 'subtitle', 'adminPin', 'authorId', 'createdAt', 'updatedAt'];
-  const allowedKeys = [...reqKeys, 'chartType', 'gradeA', 'gradeB', 'gradeC'];
+  const allowedKeys = [...reqKeys, 'chartType', 'gradeA', 'gradeB', 'gradeC', 'isActive', 'expiresAt'];
   if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
   if (!isValidEventCode(eventCode) || !isValidId(settingId)) return 'PERMISSION_DENIED';
   if (!hasExactKeys(incoming, reqKeys, allowedKeys)) return 'PERMISSION_DENIED';
@@ -372,7 +373,10 @@ function evaluateCreateEventConfig(
   if ('gradeA' in incoming && 'gradeB' in incoming && Number(incoming.gradeA) <= Number(incoming.gradeB)) return 'PERMISSION_DENIED';
   if ('gradeB' in incoming && 'gradeC' in incoming && Number(incoming.gradeB) <= Number(incoming.gradeC)) return 'PERMISSION_DENIED';
   if ('gradeA' in incoming && 'gradeC' in incoming && Number(incoming.gradeA) <= Number(incoming.gradeC)) return 'PERMISSION_DENIED';
-  if (incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
+  if ('isActive' in incoming && typeof incoming.isActive !== 'boolean') return 'PERMISSION_DENIED';
+  if ('expiresAt' in incoming && (typeof incoming.expiresAt !== 'string' || incoming.expiresAt.length !== 10 || !/^\d{4}-\d{2}-\d{2}$/.test(incoming.expiresAt))) return 'PERMISSION_DENIED';
+  if (typeof incoming.authorId !== 'string' || incoming.authorId.length < 1 || incoming.authorId.length > 128) return 'PERMISSION_DENIED';
+  if (requireAuthorMatch && incoming.authorId !== auth.uid) return 'PERMISSION_DENIED';
   if (incoming.createdAt !== REQUEST_TIME || incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
   return 'ALLOW';
 }
@@ -463,17 +467,20 @@ function evaluateUpdateEventConfigPin(
   if (!isVerifiedUser(auth) || !auth) return 'PERMISSION_DENIED';
   if (!isValidEventCode(eventCode)) return 'PERMISSION_DENIED';
   const evalCheck = evaluateCreateEventConfig(
-    { ...auth, uid: String(existing.authorId) },
+    auth,
     eventCode,
     'config',
-    { ...incoming, createdAt: REQUEST_TIME, updatedAt: REQUEST_TIME }
+    { ...incoming, createdAt: REQUEST_TIME, updatedAt: REQUEST_TIME },
+    false
   );
   if (evalCheck !== 'ALLOW') return 'PERMISSION_DENIED';
   if (incoming.id !== existing.id || incoming.eventCode !== existing.eventCode || incoming.authorId !== existing.authorId || incoming.createdAt !== existing.createdAt) {
     return 'PERMISSION_DENIED';
   }
   if (incoming.updatedAt !== REQUEST_TIME) return 'PERMISSION_DENIED';
-  if (existing.authorId !== auth.uid && auth.email !== 'sajjadsajju2626@gmail.com') return 'PERMISSION_DENIED';
+  const isSuperAdmin = auth.email === 'sajjadsajju2626@gmail.com';
+  if (isSuperAdmin) return 'ALLOW';
+  if (existing.authorId !== auth.uid) return 'PERMISSION_DENIED';
   const changedKeys = Object.keys(incoming).filter((k) => incoming[k] !== existing[k]);
   const allowedUpdateKeys = ['title', 'subtitle', 'adminPin', 'chartType', 'gradeA', 'gradeB', 'gradeC', 'updatedAt'];
   if (!changedKeys.every((k) => allowedUpdateKeys.includes(k))) return 'PERMISSION_DENIED';
@@ -596,5 +603,62 @@ test('EventConfig validates custom A/B/C grading threshold ranges and strict des
     'PERMISSION_DENIED'
   );
 });
+
+test('EventConfig license fields (isActive, expiresAt) are validated and restricted to Super-Admin on update', () => {
+  const superAdminAuth: AuthContext = { uid: 'super_admin_uid', email: 'sajjadsajju2626@gmail.com', email_verified: true };
+  const existingCfg = {
+    id: 'config',
+    eventCode: 'CAMPUS02',
+    title: 'CAMPUS02',
+    subtitle: 'Kerala State Arts Festival Judging',
+    adminPin: '1234',
+    chartType: 'bar',
+    isActive: true,
+    expiresAt: '2026-11-16',
+    authorId: 'user_A',
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  };
+
+  // Campus author cannot extend their own expiry or re-activate their own suspended event
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      expiresAt: '2027-12-31',
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+  assert.equal(
+    evaluateUpdateEventConfigPin(verifiedUserA, 'CAMPUS02', { ...existingCfg, isActive: false }, {
+      ...existingCfg,
+      isActive: true,
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+
+  // Super-Admin can suspend, activate, or extend expiry for any campus event
+  assert.equal(
+    evaluateUpdateEventConfigPin(superAdminAuth, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      isActive: false,
+      expiresAt: '2026-11-30',
+      updatedAt: REQUEST_TIME,
+    }),
+    'ALLOW'
+  );
+
+  // Invalid date format must be rejected even for Super-Admin
+  assert.equal(
+    evaluateUpdateEventConfigPin(superAdminAuth, 'CAMPUS02', existingCfg, {
+      ...existingCfg,
+      expiresAt: '16-11-2026',
+      updatedAt: REQUEST_TIME,
+    }),
+    'PERMISSION_DENIED'
+  );
+});
+
 
 

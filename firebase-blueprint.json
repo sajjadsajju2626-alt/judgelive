@@ -55,6 +55,17 @@
           "type": "number",
           "description": "Minimum percentage threshold for Grade C (default 60, must be >= 0 and < gradeB)."
         },
+        "isActive": {
+          "type": "boolean",
+          "description": "Commercial license activation status (true = active, false = suspended)."
+        },
+        "expiresAt": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 32,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Inclusive event license expiry date in YYYY-MM-DD format."
+        },
         "authorId": {
           "type": "string",
           "maxLength": 128,
