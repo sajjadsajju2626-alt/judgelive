@@ -63,7 +63,102 @@
         animation: none !important;
       }
     }
+    .ticker-track {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      animation: tickerScroll var(--ticker-duration, 28s) linear infinite;
+      will-change: transform;
+    }
+    .live-ticker-wrap:hover .ticker-track,
+    .live-ticker-wrap:focus-within .ticker-track {
+      animation-play-state: paused;
+    }
+    @keyframes tickerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track {
+        animation: none !important;
+      }
+    }
+    body.stage-tv-mode {
+      background-color: #0C0A09;
+      color: #FAFAF9;
+    }
+    body.stage-tv-mode #app-top-header,
+    body.stage-tv-mode #status-strip,
+    body.stage-tv-mode #demo-mode-bar,
+    body.stage-tv-mode #tab-standard-header,
+    body.stage-tv-mode #tab-chart-selector {
+      display: none !important;
+    }
+    body.stage-tv-mode #app-main {
+      max-width: 100%;
+      padding: 1.5rem 2.25rem 2.5rem;
+    }
+    body.stage-tv-mode #view-tabulation {
+      gap: 1.5rem;
+    }
+    body.stage-tv-mode #tab-group-standings-section h2,
+    body.stage-tv-mode #tab-item-results-heading {
+      color: #FAFAF9;
+      font-size: 1.5rem;
+    }
+    body.stage-tv-mode #tab-group-standings-section p,
+    body.stage-tv-mode #tab-grade-rules-badge {
+      color: #A8A29E;
+      font-size: 0.875rem;
+    }
+    body.stage-tv-mode #leading-group-banner {
+      background-color: #1C1917;
+      border-color: #B45309;
+      color: #FAFAF9;
+    }
+    body.stage-tv-mode #tab-chart-card,
+    body.stage-tv-mode #tab-standings-card,
+    body.stage-tv-mode #tab-leaderboard-card {
+      background-color: #1C1917;
+      border-color: #292524;
+      color: #FAFAF9;
+    }
+    body.stage-tv-mode #tab-chart-card-header,
+    body.stage-tv-mode #tab-standings-card-header {
+      background-color: #171412;
+      border-color: #292524;
+    }
+    body.stage-tv-mode #tab-chart-card-header h3,
+    body.stage-tv-mode #tab-standings-card-header h3 {
+      color: #FAFAF9;
+      font-size: 1.05rem;
+    }
+    body.stage-tv-mode #tab-chart-mode-label,
+    body.stage-tv-mode #tab-groups-count {
+      color: #A8A29E;
+    }
+    body.stage-tv-mode #tab-standings-card thead tr,
+    body.stage-tv-mode #tab-leaderboard-card thead tr {
+      background-color: #171412;
+      border-color: #292524;
+      color: #D6D3D1;
+      font-size: 0.85rem;
+    }
+    body.stage-tv-mode #group-standings-body,
+    body.stage-tv-mode #leaderboard-body {
+      font-size: 1.05rem;
+    }
+    body.stage-tv-mode #group-standings-body tr,
+    body.stage-tv-mode #leaderboard-body tr {
+      border-color: #292524;
+    }
+    body.stage-tv-mode #group-standings-body td,
+    body.stage-tv-mode #leaderboard-body td {
+      padding-top: 0.9rem;
+      padding-bottom: 0.9rem;
+    }
     @media print {
+      body.stage-tv-mode { background-color: #FFFFFF !important; color: #000000 !important; }
       @page { size: A4 portrait; margin: 14mm; }
       body { background-color: #FFFFFF !important; color: #000000 !important; }
       .no-print { display: none !important; }
@@ -184,7 +279,7 @@
   </div>
 
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
-  <header class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
+  <header id="app-top-header" class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
     <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 max-w-[260px] sm:max-w-xs truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
       <span id="header-brand-title">Arts Fest Digital Judging</span>
     </button>
@@ -238,7 +333,7 @@
     </div>
   </div>
 
-  <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 space-y-8">
+  <main id="app-main" class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 space-y-8">
     <!-- Status Strip (Privacy-preserving: only Cloud Synced + green dot, shown once Event Code is active) -->
     <div id="status-strip" class="no-print hidden flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 text-xs text-stone-600">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -400,6 +495,38 @@
 
     <!-- VIEW 2: LIVE TABULATION (Hidden unless unlocked via triple-tap + PIN 2026) -->
     <section id="view-tabulation" class="hidden space-y-8">
+      <!-- Subtle Corner Exit Button (Visible only in Stage / TV Mode) -->
+      <button type="button" id="exit-tv-mode-btn" onclick="exitStageTvMode()" class="no-print hidden fixed top-4 right-5 z-40 items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-stone-200 bg-stone-900/90 hover:bg-stone-800 border border-stone-700 rounded-lg shadow-lg backdrop-blur-sm transition-colors whitespace-nowrap">
+        Exit TV Mode
+      </button>
+
+      <!-- Stage / TV Broadcast Header (Visible only in Stage / TV Mode) -->
+      <div id="stage-tv-header" class="no-print hidden flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 pr-36 border-b border-stone-800">
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs sm:text-sm font-semibold text-amber-400">
+            <span id="tv-festival-title">Arts Fest Digital Judging</span>
+            <span aria-hidden="true" class="text-stone-600">·</span>
+            <span id="tv-festival-subtitle" class="text-stone-300 font-medium">Live Scoreboard</span>
+            <span aria-hidden="true" class="text-stone-600">·</span>
+            <span id="tv-event-code" class="tabular-nums text-stone-400">—</span>
+          </div>
+          <h1 id="tv-current-item-title" class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight">Official Results</h1>
+          <div id="tv-current-item-meta" class="text-xs sm:text-sm font-medium text-stone-300">—</div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button type="button" onclick="stepTabItem(-1)" title="Previous Competition Item" class="px-3 py-2 text-xs font-semibold text-stone-200 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded-lg transition-colors whitespace-nowrap">
+            ‹ Prev Item
+          </button>
+          <span id="tv-item-index-label" class="text-xs font-semibold text-stone-400 tabular-nums px-1">1 / 1</span>
+          <button type="button" onclick="stepTabItem(1)" title="Next Competition Item" class="px-3 py-2 text-xs font-semibold text-stone-200 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded-lg transition-colors whitespace-nowrap">
+            Next Item ›
+          </button>
+          <button type="button" id="tv-auto-rotate-btn" role="switch" aria-checked="false" onclick="toggleAutoRotateItems()" class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-100 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded-lg transition-colors whitespace-nowrap">
+            <span id="tv-auto-rotate-label">Auto-Rotate (10s): OFF</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Official Print Header (Only visible when printing) -->
       <div class="hidden print-only pb-4 mb-4 border-b-2 border-stone-900">
         <div id="print-festival-name" class="text-xs font-semibold uppercase tracking-wider text-stone-600">Kerala School Kalolsavam — Official Tabulation Sheet</div>
@@ -407,7 +534,7 @@
         <div id="print-event-meta" class="text-xs text-stone-600 mt-1"></div>
       </div>
 
-      <div class="no-print flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+      <div id="tab-standard-header" class="no-print flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Live Tabulation &amp; Leaderboard</h1>
           <p class="text-sm text-stone-600 mt-1">Real-time average scores, grades (A / B / C), ordinal ranks, and group championship standings.</p>
@@ -415,11 +542,32 @@
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
             <label for="tab-item-select" class="text-xs font-medium text-stone-600">Event:</label>
-            <select id="tab-item-select" onchange="renderTabulation()" class="px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+            <select id="tab-item-select" onchange="handleManualTabItemChange()" class="px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
           </div>
+          <button type="button" id="tab-auto-rotate-btn" role="switch" aria-checked="false" onclick="toggleAutoRotateItems()" class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 hover:bg-stone-50 rounded-lg transition-colors whitespace-nowrap shrink-0">
+            <span id="tab-auto-rotate-track" class="relative inline-flex h-4 w-7 items-center rounded-full bg-stone-300 transition-colors">
+              <span id="tab-auto-rotate-thumb" class="inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform translate-x-0.5"></span>
+            </span>
+            <span>Auto-Rotate Items (10s)</span>
+            <span id="tab-auto-rotate-countdown" class="hidden tabular-nums text-[11px] font-bold text-amber-800">10s</span>
+          </button>
+          <button type="button" id="stage-tv-mode-btn" onclick="toggleStageTvMode()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-amber-950 bg-amber-100 border border-amber-300 rounded-lg hover:bg-amber-200 transition-colors whitespace-nowrap shrink-0">
+            📺 Stage / TV Mode
+          </button>
           <button type="button" onclick="handlePrintResults()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap shrink-0">
             Print / Save as PDF
           </button>
+        </div>
+      </div>
+
+      <!-- Live Breaking Results Ticker (Scrolling Winner Banner) -->
+      <div id="live-results-ticker" class="no-print live-ticker-wrap flex items-stretch overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+        <div id="live-results-ticker-badge" class="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-amber-700 text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-300 animate-pulse" aria-hidden="true"></span>
+          <span>LIVE RESULTS</span>
+        </div>
+        <div class="relative flex-1 overflow-hidden flex items-center">
+          <div id="live-results-ticker-track" class="ticker-track"></div>
         </div>
       </div>
 
@@ -448,16 +596,16 @@
 
         <!-- Chart + Ranked Group Standings Table -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-          <div class="lg:col-span-3 bg-white border border-stone-200 rounded-xl p-5 flex flex-col justify-between print-surface">
-            <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-100">
+          <div id="tab-chart-card" class="lg:col-span-3 bg-white border border-stone-200 rounded-xl p-5 flex flex-col justify-between print-surface">
+            <div id="tab-chart-card-header" class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-100">
               <h3 class="text-sm font-bold text-stone-900">Standings Visualization</h3>
               <span id="tab-chart-mode-label" class="text-xs font-medium text-stone-500">Vertical Bar Chart</span>
             </div>
             <div id="tab-group-chart-container" class="flex-1 flex items-center justify-center min-h-[220px]"></div>
           </div>
 
-          <div class="lg:col-span-2 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col print-surface">
-            <div class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+          <div id="tab-standings-card" class="lg:col-span-2 bg-white border border-stone-200 rounded-xl overflow-hidden flex flex-col print-surface">
+            <div id="tab-standings-card-header" class="px-4 py-3 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
               <h3 class="text-sm font-bold text-stone-900">Ranked Group Standings</h3>
               <span id="tab-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
             </div>
@@ -482,10 +630,10 @@
       <!-- Item-wise Leaderboard -->
       <div class="space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h2 class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+          <h2 id="tab-item-results-heading" class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
           <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
         </div>
-        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
+        <div id="tab-leaderboard-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
@@ -1355,6 +1503,11 @@
     let extendingExpiryEventCode = "";
     let settingPinEventCode = "";
     let deletingEventCode = "";
+    let isStageTvMode = false;
+    let didEnterBrowserFullscreen = false;
+    let isAutoRotateEnabled = false;
+    let autoRotateSecondsLeft = 10;
+    let autoRotateTimer = null;
     let masterRegisteredEvents = [];
     let brandTapTimestamps = [];
     let toastTimer = null;
@@ -1990,6 +2143,8 @@
     };
 
     window.openEventSwitcher = () => {
+      if (isStageTvMode) window.exitStageTvMode(false);
+      stopAutoRotateTimer(true);
       showEventEntryView(Boolean(activeEventCode));
     };
 
@@ -2045,6 +2200,8 @@
     };
 
     window.lockAdminSession = () => {
+      if (isStageTvMode) window.exitStageTvMode(false);
+      stopAutoRotateTimer(true);
       isAdminUnlocked = false;
       isMasterAdmin = false;
       applyBrandingUI();
@@ -2064,6 +2221,7 @@
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        if (isStageTvMode) window.exitStageTvMode();
         window.closePinModal();
         window.closeClearModal();
         window.closeExtendExpiryModal();
@@ -2072,15 +2230,30 @@
       }
     });
 
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement && didEnterBrowserFullscreen) {
+        didEnterBrowserFullscreen = false;
+        if (isStageTvMode) {
+          window.exitStageTvMode(false);
+        }
+      }
+    });
+
     window.switchView = (view) => {
       if (!isAdminUnlocked && (!activeEventCode || isSwitchingEvent || view !== "judge")) return;
       if (!activeEventCode && view !== "admin") return;
 
+      if (view !== "tabulation" && isStageTvMode) {
+        window.exitStageTvMode(false);
+      }
       document.getElementById("view-event-entry").classList.add("hidden");
       ["judge", "tabulation", "admin"].forEach(v => {
         document.getElementById("view-" + v).classList.toggle("hidden", v !== view);
       });
       updateNavHighlights(view);
+      if (view === "tabulation") {
+        window.renderTabulation();
+      }
     };
 
     function updateNavHighlights(activeView) {
@@ -2362,9 +2535,10 @@
     };
 
     function buildGroupChartMarkup(standings, chartType, compact = false) {
+      const dark = !compact && isStageTvMode;
       if (!standings.length) {
         return `
-          <div class="w-full py-8 px-4 text-center text-xs sm:text-sm text-stone-500 border border-dashed border-stone-200 rounded-lg">
+          <div class="w-full py-8 px-4 text-center text-xs sm:text-sm ${dark ? "text-stone-300 border-stone-700" : "text-stone-500 border-stone-200"} border border-dashed rounded-lg">
             Add Groups / Houses in the Admin Panel and link Chest Numbers to display live standings charts.
           </div>
         `;
@@ -2380,19 +2554,19 @@
               const pct = g.points > 0 ? Math.max(4, Math.round((g.points / maxPts) * 100)) : 0;
               return `
                 <div class="space-y-1.5">
-                  <div class="flex items-center justify-between gap-3 text-xs sm:text-sm">
+                  <div class="flex items-center justify-between gap-3 ${dark ? "text-sm sm:text-base" : "text-xs sm:text-sm"}">
                     <div class="flex items-center gap-2 min-w-0">
-                      <span class="inline-flex items-center justify-center w-6 h-5 rounded bg-stone-100 text-[11px] font-bold text-stone-700 tabular-nums shrink-0">#${g.rank}</span>
+                      <span class="inline-flex items-center justify-center w-6 h-5 rounded ${dark ? "bg-stone-800 text-amber-300" : "bg-stone-100 text-stone-700"} text-[11px] font-bold tabular-nums shrink-0">#${g.rank}</span>
                       <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
-                      <span class="font-semibold text-stone-900 truncate">${escapeHtml(g.name)}</span>
-                      ${compact ? "" : `<span class="hidden sm:inline text-xs text-stone-400 tabular-nums shrink-0">(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)</span>`}
+                      <span class="font-semibold ${dark ? "text-stone-100" : "text-stone-900"} truncate">${escapeHtml(g.name)}</span>
+                      ${compact ? "" : `<span class="hidden sm:inline text-xs ${dark ? "text-stone-400" : "text-stone-400"} tabular-nums shrink-0">(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)</span>`}
                     </div>
                     <div class="flex items-baseline gap-2.5 shrink-0 tabular-nums">
-                      <span class="text-[11px] text-stone-500">${g.rawMarks.toFixed(1)} raw</span>
-                      <span class="font-bold text-stone-900">${g.points} pts</span>
+                      <span class="text-[11px] ${dark ? "text-stone-400" : "text-stone-500"}">${g.rawMarks.toFixed(1)} raw</span>
+                      <span class="font-bold ${dark ? "text-amber-300" : "text-stone-900"}">${g.points} pts</span>
                     </div>
                   </div>
-                  <div class="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+                  <div class="w-full h-3 ${dark ? "bg-stone-800" : "bg-stone-100"} rounded-full overflow-hidden">
                     <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${escapeHtml(g.color)};"></div>
                   </div>
                 </div>
@@ -2403,11 +2577,11 @@
       }
 
       if (chartType === "doughnut") {
-        const size = compact ? 148 : 176;
+        const size = compact ? 148 : (dark ? 196 : 176);
         const cx = size / 2;
         const cy = size / 2;
-        const r = compact ? 48 : 58;
-        const strokeW = compact ? 22 : 26;
+        const r = compact ? 48 : (dark ? 66 : 58);
+        const strokeW = compact ? 22 : (dark ? 28 : 26);
         const circ = 2 * Math.PI * r;
         let offset = 0;
 
@@ -2419,30 +2593,30 @@
               offset += segLen;
               return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${escapeHtml(g.color)}" stroke-width="${strokeW}" stroke-dasharray="${segDash}" stroke-dashoffset="${segOffset}" transform="rotate(-90 ${cx} ${cy})"><title>${escapeHtml(g.name)}: ${g.points} pts (${Math.round((g.points / totalPts) * 100)}%)</title></circle>`;
             }).join("")
-          : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E7E5E4" stroke-width="${strokeW}" />`;
+          : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${dark ? "#292524" : "#E7E5E4"}" stroke-width="${strokeW}" />`;
 
         return `
           <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-6">
             <div class="shrink-0 flex items-center justify-center">
               <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Group Points Doughnut Chart">
                 ${slicesMarkup}
-                <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="${compact ? 18 : 22}" font-weight="700" fill="#1C1917" class="tabular-nums">${totalPts}</text>
-                <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" font-weight="600" fill="#78716C">TOTAL PTS</text>
+                <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="${compact ? 18 : (dark ? 26 : 22)}" font-weight="700" fill="${dark ? "#FAFAF9" : "#1C1917"}" class="tabular-nums">${totalPts}</text>
+                <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" font-weight="600" fill="${dark ? "#A8A29E" : "#78716C"}">TOTAL PTS</text>
               </svg>
             </div>
             <div class="w-full max-w-xs space-y-2">
               ${standings.map(g => {
                 const share = totalPts > 0 ? Math.round((g.points / totalPts) * 100) : 0;
                 return `
-                  <div class="flex items-center justify-between gap-3 text-xs py-1 border-b border-stone-100 last:border-b-0">
+                  <div class="flex items-center justify-between gap-3 ${dark ? "text-sm border-stone-800" : "text-xs border-stone-100"} py-1 border-b last:border-b-0">
                     <div class="flex items-center gap-2 min-w-0">
-                      <span class="font-bold text-stone-500 tabular-nums w-5 shrink-0">#${g.rank}</span>
+                      <span class="font-bold ${dark ? "text-stone-400" : "text-stone-500"} tabular-nums w-5 shrink-0">#${g.rank}</span>
                       <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
-                      <span class="font-semibold text-stone-900 truncate">${escapeHtml(g.name)}</span>
+                      <span class="font-semibold ${dark ? "text-stone-100" : "text-stone-900"} truncate">${escapeHtml(g.name)}</span>
                     </div>
                     <div class="flex items-center gap-2 shrink-0 tabular-nums">
                       <span class="text-stone-400">${share}%</span>
-                      <span class="font-bold text-stone-900">${g.points} pts</span>
+                      <span class="font-bold ${dark ? "text-amber-300" : "text-stone-900"}">${g.points} pts</span>
                     </div>
                   </div>
                 `;
@@ -2469,8 +2643,8 @@
         const y = padTop + plotH - (ratio * plotH);
         const val = Math.round(maxPts * ratio);
         return `
-          <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${width - padRight}" y2="${y.toFixed(1)}" stroke="#E7E5E4" stroke-dasharray="3 3" />
-          <text x="${padLeft - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="10" fill="#78716C" class="tabular-nums">${val}</text>
+          <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${width - padRight}" y2="${y.toFixed(1)}" stroke="${dark ? "#292524" : "#E7E5E4"}" stroke-dasharray="3 3" />
+          <text x="${padLeft - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="10" fill="${dark ? "#A8A29E" : "#78716C"}" class="tabular-nums">${val}</text>
         `;
       }).join("");
 
@@ -2484,18 +2658,18 @@
           <g>
             <title>${escapeHtml(g.name)} — Rank #${g.rank}: ${g.points} pts (${g.rawMarks.toFixed(1)} raw marks)</title>
             <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="5" fill="${escapeHtml(g.color)}" />
-            <text x="${cx.toFixed(1)}" y="${(y - 7).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="700" fill="#1C1917" class="tabular-nums">${g.points}p</text>
-            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 16).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="#1C1917">${escapeHtml(shortName)}</text>
-            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 31).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="#78716C" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
+            <text x="${cx.toFixed(1)}" y="${(y - 7).toFixed(1)}" text-anchor="middle" font-size="${dark ? 13 : 11}" font-weight="700" fill="${dark ? "#FCD34D" : "#1C1917"}" class="tabular-nums">${g.points}p</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 16).toFixed(1)}" text-anchor="middle" font-size="${dark ? 12 : 11}" font-weight="600" fill="${dark ? "#FAFAF9" : "#1C1917"}">${escapeHtml(shortName)}</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 31).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="600" fill="${dark ? "#A8A29E" : "#78716C"}" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
           </g>
         `;
       }).join("");
 
       return `
         <div class="w-full">
-          <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto max-h-64" role="img" aria-label="Group Points Vertical Bar Chart">
+          <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto ${dark ? "max-h-72" : "max-h-64"}" role="img" aria-label="Group Points Vertical Bar Chart">
             ${gridLines}
-            <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="#D6D3D1" />
+            <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="${dark ? "#44403C" : "#D6D3D1"}" />
             ${bars}
           </svg>
         </div>
@@ -2674,6 +2848,7 @@
 
     function renderAnimatedHorizontalBars(containerEl, standings, compact = false) {
       if (!containerEl || !standings.length) return false;
+      const dark = !compact && isStageTvMode;
       const maxPts = Math.max(1, ...standings.map(g => g.points));
       let wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
       if (!wrapper) {
@@ -2707,7 +2882,7 @@
           rowEl.setAttribute("data-group-bar-key", key);
           rowEl.className = "space-y-1.5 tab-animated-row";
           rowEl.innerHTML = `
-            <div class="flex items-center justify-between gap-3 text-xs sm:text-sm">
+            <div data-col="row-header" class="flex items-center justify-between gap-3 text-xs sm:text-sm">
               <div class="flex items-center gap-2 min-w-0">
                 <span data-col="rank" class="inline-flex items-center justify-center w-6 h-5 rounded bg-stone-100 text-[11px] font-bold text-stone-700 tabular-nums shrink-0 rank-pill-transition"></span>
                 <span data-col="dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
@@ -2719,18 +2894,34 @@
                 <span data-col="pts" class="font-bold text-stone-900"></span>
               </div>
             </div>
-            <div class="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+            <div data-col="track" class="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
               <div data-col="fill" class="h-full rounded-full progress-fill-transition" style="width: 0%;"></div>
             </div>
           `;
         }
-        rowEl.querySelector('[data-col="rank"]').textContent = `#${g.rank}`;
+        const rowHeader = rowEl.querySelector('[data-col="row-header"]');
+        if (rowHeader) {
+          rowHeader.className = `flex items-center justify-between gap-3 ${dark ? "text-sm sm:text-base" : "text-xs sm:text-sm"}`;
+        }
+        const rankEl = rowEl.querySelector('[data-col="rank"]');
+        rankEl.className = `inline-flex items-center justify-center w-6 h-5 rounded ${dark ? "bg-stone-800 text-amber-300" : "bg-stone-100 text-stone-700"} text-[11px] font-bold tabular-nums shrink-0 rank-pill-transition`;
+        rankEl.textContent = `#${g.rank}`;
         rowEl.querySelector('[data-col="dot"]').style.backgroundColor = g.color;
-        rowEl.querySelector('[data-col="name"]').textContent = g.name;
+        const nameEl = rowEl.querySelector('[data-col="name"]');
+        nameEl.className = `font-semibold ${dark ? "text-stone-100" : "text-stone-900"} truncate`;
+        nameEl.textContent = g.name;
         const medalsEl = rowEl.querySelector('[data-col="medals"]');
         if (!compact) medalsEl.textContent = `(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)`;
-        animateNumericCell(rowEl.querySelector('[data-col="raw"]'), g.rawMarks, 1, " raw");
-        animateNumericCell(rowEl.querySelector('[data-col="pts"]'), g.points, 0, " pts");
+        const rawEl = rowEl.querySelector('[data-col="raw"]');
+        rawEl.className = `text-[11px] ${dark ? "text-stone-400" : "text-stone-500"}`;
+        animateNumericCell(rawEl, g.rawMarks, 1, " raw");
+        const ptsEl = rowEl.querySelector('[data-col="pts"]');
+        ptsEl.className = `font-bold ${dark ? "text-amber-300" : "text-stone-900"}`;
+        animateNumericCell(ptsEl, g.points, 0, " pts");
+        const trackEl = rowEl.querySelector('[data-col="track"]');
+        if (trackEl) {
+          trackEl.className = `w-full ${dark ? "h-3.5 bg-stone-800" : "h-3 bg-stone-100"} rounded-full overflow-hidden`;
+        }
         const fillEl = rowEl.querySelector('[data-col="fill"]');
         fillEl.style.backgroundColor = g.color;
         requestAnimationFrame(() => {
@@ -2792,13 +2983,14 @@
 
       const leader = standings[0] || null;
       const hasAnyPoints = standings.some(g => g.points > 0 || g.rawMarks > 0);
+      const dark = isStageTvMode;
       if (bannerEl) {
         if (!leader) {
           bannerEl.innerHTML = `
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">Leading Group</div>
-                <div class="text-sm font-semibold text-stone-700 mt-0.5">No groups registered yet. Add Groups / Houses in the Admin Panel to track championship points.</div>
+                <div class="text-xs font-semibold uppercase tracking-wider ${dark ? "text-amber-400" : "text-amber-800"}">Leading Group</div>
+                <div class="text-sm font-semibold ${dark ? "text-stone-300" : "text-stone-700"} mt-0.5">No groups registered yet. Add Groups / Houses in the Admin Panel to track championship points.</div>
               </div>
             </div>
           `;
@@ -2808,11 +3000,11 @@
               <div class="flex items-center gap-3">
                 <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${escapeHtml(leader.color)}"></span>
                 <div>
-                  <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">Leading Group</div>
-                  <div class="text-base font-bold text-stone-900 font-display">Awaiting judge score submissions (${standings.length} groups registered)</div>
+                  <div class="text-xs font-semibold uppercase tracking-wider ${dark ? "text-amber-400" : "text-amber-800"}">Leading Group</div>
+                  <div class="text-base font-bold ${dark ? "text-white" : "text-stone-900"} font-display">Awaiting judge score submissions (${standings.length} groups registered)</div>
                 </div>
               </div>
-              <div class="text-xs font-medium text-stone-500 tabular-nums">0 pts · 0.0 raw marks</div>
+              <div class="text-xs font-medium ${dark ? "text-stone-400" : "text-stone-500"} tabular-nums">0 pts · 0.0 raw marks</div>
             </div>
           `;
         } else {
@@ -2823,24 +3015,24 @@
           bannerEl.innerHTML = `
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 tab-row-enter">
               <div class="flex items-center gap-3.5">
-                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white font-bold text-sm tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
+                <span class="inline-flex items-center justify-center ${dark ? "w-12 h-12 text-base" : "w-10 h-10 text-sm"} rounded-xl text-white font-bold tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
                 <div>
-                  <div class="text-xs font-semibold uppercase tracking-wider text-amber-800">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
-                  <div class="text-xl font-bold text-stone-900 font-display">${leaderTitle}</div>
+                  <div class="text-xs font-semibold uppercase tracking-wider ${dark ? "text-amber-400" : "text-amber-800"}">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
+                  <div class="${dark ? "text-2xl sm:text-3xl text-white" : "text-xl text-stone-900"} font-bold font-display">${leaderTitle}</div>
                 </div>
               </div>
-              <div class="flex flex-wrap items-center gap-4 sm:gap-6 tabular-nums">
+              <div class="flex flex-wrap items-center gap-4 sm:gap-7 tabular-nums">
                 <div>
-                  <div class="text-[11px] font-medium text-stone-500">Championship Points</div>
-                  <div class="text-xl font-bold text-stone-900">${leader.points} pts</div>
+                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Championship Points</div>
+                  <div class="${dark ? "text-2xl sm:text-3xl text-amber-300" : "text-xl text-stone-900"} font-bold">${leader.points} pts</div>
                 </div>
                 <div>
-                  <div class="text-[11px] font-medium text-stone-500">Raw Judge Marks</div>
-                  <div class="text-base font-semibold text-stone-700">${leader.rawMarks.toFixed(1)}</div>
+                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Raw Judge Marks</div>
+                  <div class="${dark ? "text-lg text-stone-200" : "text-base text-stone-700"} font-semibold">${leader.rawMarks.toFixed(1)}</div>
                 </div>
                 <div>
-                  <div class="text-[11px] font-medium text-stone-500">Placements (1st/2nd/3rd)</div>
-                  <div class="text-sm font-semibold text-stone-700">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
+                  <div class="text-[11px] font-medium ${dark ? "text-stone-400" : "text-stone-500"}">Placements (1st/2nd/3rd)</div>
+                  <div class="${dark ? "text-base text-stone-200" : "text-sm text-stone-700"} font-semibold">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
                 </div>
               </div>
             </div>
@@ -2870,7 +3062,7 @@
         if (standings.length === 0) {
           bodyEl.innerHTML = `
             <tr>
-              <td colspan="5" class="py-8 px-4 text-center text-xs sm:text-sm text-stone-500">No groups registered for this festival yet.</td>
+              <td colspan="5" class="py-8 px-4 text-center text-xs sm:text-sm ${dark ? "text-stone-400" : "text-stone-500"}">No groups registered for this festival yet.</td>
             </tr>
           `;
         } else {
@@ -2895,14 +3087,33 @@
               return tr;
             },
             (tr, g) => {
-              tr.classList.toggle("bg-amber-50/40", g.rank === 1 && hasAnyPoints);
-              tr.classList.toggle("hover:bg-stone-50", !(g.rank === 1 && hasAnyPoints));
-              tr.querySelector('[data-col="rank"]').textContent = `#${g.rank}`;
+              const isLeaderRow = g.rank === 1 && hasAnyPoints;
+              tr.classList.toggle("bg-amber-50/40", !dark && isLeaderRow);
+              tr.classList.toggle("hover:bg-stone-50", !dark && !isLeaderRow);
+              tr.classList.toggle("bg-amber-950/35", dark && isLeaderRow);
+              tr.classList.toggle("hover:bg-stone-800/60", dark && !isLeaderRow);
+
+              const rankTd = tr.querySelector('[data-col="rank"]');
+              rankTd.className = `py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${dark ? (isLeaderRow ? "text-amber-300" : "text-stone-200") : "text-stone-900"}`;
+              rankTd.textContent = `#${g.rank}`;
+
               tr.querySelector('[data-col="dot"]').style.backgroundColor = g.color;
-              tr.querySelector('[data-col="name"]').textContent = g.name;
-              tr.querySelector('[data-col="medals"]').textContent = `${g.firsts} / ${g.seconds} / ${g.thirds}`;
-              animateNumericCell(tr.querySelector('[data-col="raw"]'), g.rawMarks, 1, "");
-              animateNumericCell(tr.querySelector('[data-col="pts"]'), g.points, 0, " pts");
+
+              const nameEl = tr.querySelector('[data-col="name"]');
+              nameEl.className = `font-semibold ${dark ? "text-stone-100" : "text-stone-900"}`;
+              nameEl.textContent = g.name;
+
+              const medalsTd = tr.querySelector('[data-col="medals"]');
+              medalsTd.className = `py-2.5 px-3 text-right ${dark ? "text-sm text-stone-300" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`;
+              medalsTd.textContent = `${g.firsts} / ${g.seconds} / ${g.thirds}`;
+
+              const rawTd = tr.querySelector('[data-col="raw"]');
+              rawTd.className = `py-2.5 px-3 text-right ${dark ? "text-sm text-stone-300" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`;
+              animateNumericCell(rawTd, g.rawMarks, 1, "");
+
+              const ptsTd = tr.querySelector('[data-col="pts"]');
+              ptsTd.className = `py-2.5 px-3 text-right font-bold ${dark ? "text-amber-300" : "text-stone-900"} tabular-nums whitespace-nowrap`;
+              animateNumericCell(ptsTd, g.points, 0, " pts");
               return g.rank;
             }
           );
@@ -2979,12 +3190,308 @@
       }
     };
 
+    function updateStageTvHeaderMeta(selectedItem) {
+      const cfg = window.state?.config || getDefaultConfig();
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const titleEl = document.getElementById("tv-festival-title");
+      const subEl = document.getElementById("tv-festival-subtitle");
+      const codeEl = document.getElementById("tv-event-code");
+      const itemTitleEl = document.getElementById("tv-current-item-title");
+      const itemMetaEl = document.getElementById("tv-current-item-meta");
+      const indexEl = document.getElementById("tv-item-index-label");
+
+      if (titleEl) titleEl.textContent = cfg.title || activeEventCode || DEFAULT_HEADER_TITLE;
+      if (subEl) subEl.textContent = cfg.subtitle || DEFAULT_SUBTITLE;
+      if (codeEl) codeEl.textContent = activeEventCode ? `Event ${activeEventCode}` : "—";
+      if (itemTitleEl) {
+        itemTitleEl.textContent = selectedItem
+          ? `${selectedItem.name}${selectedItem.malayalamName ? " (" + selectedItem.malayalamName + ")" : ""}`
+          : "Official Results";
+      }
+      if (itemMetaEl) {
+        itemMetaEl.textContent = selectedItem
+          ? `${selectedItem.category} · ${selectedItem.stage}`
+          : "No competition items available";
+      }
+      if (indexEl) {
+        const idx = selectedItem ? items.findIndex(it => it.id === selectedItem.id) : -1;
+        indexEl.textContent = items.length > 0 && idx >= 0 ? `${idx + 1} / ${items.length}` : "0 / 0";
+      }
+    }
+
+    function renderLiveResultsTicker() {
+      const wrapEl = document.getElementById("live-results-ticker");
+      const badgeEl = document.getElementById("live-results-ticker-badge");
+      const trackEl = document.getElementById("live-results-ticker-track");
+      if (!wrapEl || !trackEl) return;
+
+      const dark = isStageTvMode;
+      wrapEl.className = `no-print live-ticker-wrap flex items-stretch overflow-hidden rounded-xl border shadow-sm ${
+        dark ? "border-stone-800 bg-stone-900 text-stone-100" : "border-stone-200 bg-white text-stone-900"
+      }`;
+      if (badgeEl) {
+        badgeEl.className = `flex items-center gap-2 px-3.5 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
+          dark ? "bg-amber-500 text-stone-950" : "bg-amber-700 text-white"
+        }`;
+      }
+
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const participants = Array.isArray(window.state?.participants) ? window.state.participants : [];
+      const scores = Array.isArray(window.state?.scores) ? window.state.scores : [];
+      const groups = Array.isArray(window.state?.groups) ? window.state.groups : [];
+      const labels = ["1st", "2nd", "3rd"];
+
+      const itemEntries = [];
+      items.forEach((it) => {
+        const itemParts = participants.filter(p => p.itemId === it.id);
+        if (!itemParts.length) return;
+
+        const ranked = itemParts.map(p => {
+          const sc = scores.filter(s => s.itemId === it.id && s.participantId === p.id);
+          if (!sc.length) return null;
+          const avg = sc.reduce((sum, s) => sum + (Number(s.total) || 0), 0) / sc.length;
+          const grpObj = p.groupId ? groups.find(g => g.id === p.groupId) : null;
+          const groupName = grpObj?.name || p.groupName || "";
+          return { p, avg, groupName };
+        }).filter(Boolean).sort((a, b) => b.avg - a.avg);
+
+        if (!ranked.length) return;
+
+        let currentRank = 1;
+        let prevAvg = null;
+        ranked.forEach((r, idx) => {
+          if (idx > 0 && prevAvg !== null && Math.abs(r.avg - prevAvg) > 1e-6) {
+            currentRank = idx + 1;
+          }
+          prevAvg = r.avg;
+          r.rankNum = currentRank;
+          r.rankLabel = labels[currentRank - 1] || `${currentRank}th`;
+        });
+
+        const topWinners = ranked.filter(r => r.rankNum >= 1 && r.rankNum <= 3);
+        if (!topWinners.length) return;
+
+        const isCompleted = ranked.length === itemParts.length;
+        itemEntries.push({ item: it, isCompleted, topWinners });
+      });
+
+      itemEntries.sort((a, b) => Number(b.isCompleted) - Number(a.isCompleted));
+
+      if (itemEntries.length === 0) {
+        const emptyKey = `empty_${dark ? "dark" : "light"}`;
+        if (trackEl.dataset.tickerKey === emptyKey) return;
+        trackEl.dataset.tickerKey = emptyKey;
+        trackEl.style.animation = "none";
+        trackEl.innerHTML = `
+          <span class="px-4 py-2 text-xs sm:text-sm font-medium ${dark ? "text-stone-300" : "text-stone-600"}">
+            Awaiting judge score submissions — 1st, 2nd &amp; 3rd place winners will stream here live as results come in.
+          </span>
+        `;
+        return;
+      }
+
+      const segmentHtml = itemEntries.map(({ item, topWinners }) => {
+        const winnersHtml = topWinners.map(w => {
+          const rankColor = dark
+            ? (w.rankNum === 1 ? "text-amber-300" : w.rankNum === 2 ? "text-stone-200" : "text-amber-500")
+            : (w.rankNum === 1 ? "text-amber-800" : w.rankNum === 2 ? "text-stone-800" : "text-amber-700");
+          const groupPart = w.groupName ? ` · ${escapeHtml(w.groupName)}` : "";
+          return `
+            <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <span class="font-bold ${rankColor}">${escapeHtml(w.rankLabel)}:</span>
+              <span class="font-semibold ${dark ? "text-white" : "text-stone-900"}">${escapeHtml(w.p.name)}</span>
+              <span class="text-xs tabular-nums ${dark ? "text-stone-400" : "text-stone-500"}">(#${escapeHtml(w.p.chestNo)}${groupPart} · ${w.avg.toFixed(1)})</span>
+            </span>
+          `;
+        }).join(`<span class="${dark ? "text-stone-600" : "text-stone-300"} px-1.5">·</span>`);
+
+        return `
+          <span class="inline-flex items-center gap-2.5 px-5 whitespace-nowrap">
+            <span class="font-bold ${dark ? "text-amber-400" : "text-amber-900"}">${escapeHtml(item.name)}</span>
+            <span class="${dark ? "text-stone-600" : "text-stone-400"}">—</span>
+            ${winnersHtml}
+            <span class="${dark ? "text-stone-700" : "text-stone-300"} pl-4" aria-hidden="true">|</span>
+          </span>
+        `;
+      }).join("");
+
+      const tickerKey = `${dark ? "dark" : "light"}::${itemEntries.map(e => `${e.item.id}:${e.topWinners.map(w => `${w.rankNum}-${w.p.id}-${w.avg.toFixed(2)}`).join(",")}`).join("|")}`;
+      if (trackEl.dataset.tickerKey === tickerKey) return;
+      trackEl.dataset.tickerKey = tickerKey;
+      trackEl.style.animation = "";
+      const durationSec = Math.max(20, itemEntries.length * 10);
+      trackEl.style.setProperty("--ticker-duration", `${durationSec}s`);
+      trackEl.innerHTML = `
+        <div class="inline-flex items-center py-2 text-xs sm:text-sm">${segmentHtml}</div>
+        <div class="inline-flex items-center py-2 text-xs sm:text-sm" aria-hidden="true">${segmentHtml}</div>
+      `;
+    }
+
+    function updateAutoRotateUI() {
+      const btn = document.getElementById("tab-auto-rotate-btn");
+      const track = document.getElementById("tab-auto-rotate-track");
+      const thumb = document.getElementById("tab-auto-rotate-thumb");
+      const countdownEl = document.getElementById("tab-auto-rotate-countdown");
+      const tvBtn = document.getElementById("tv-auto-rotate-btn");
+      const tvLabel = document.getElementById("tv-auto-rotate-label");
+
+      if (btn) {
+        btn.setAttribute("aria-checked", isAutoRotateEnabled ? "true" : "false");
+        btn.classList.toggle("border-amber-400", isAutoRotateEnabled);
+        btn.classList.toggle("bg-amber-50", isAutoRotateEnabled);
+        btn.classList.toggle("text-amber-950", isAutoRotateEnabled);
+        btn.classList.toggle("border-stone-300", !isAutoRotateEnabled);
+        btn.classList.toggle("bg-white", !isAutoRotateEnabled);
+        btn.classList.toggle("text-stone-700", !isAutoRotateEnabled);
+      }
+      if (track) {
+        track.classList.toggle("bg-amber-600", isAutoRotateEnabled);
+        track.classList.toggle("bg-stone-300", !isAutoRotateEnabled);
+      }
+      if (thumb) {
+        thumb.classList.toggle("translate-x-3.5", isAutoRotateEnabled);
+        thumb.classList.toggle("translate-x-0.5", !isAutoRotateEnabled);
+      }
+      if (countdownEl) {
+        countdownEl.classList.toggle("hidden", !isAutoRotateEnabled);
+        countdownEl.textContent = `${autoRotateSecondsLeft}s`;
+      }
+      if (tvBtn && tvLabel) {
+        tvBtn.setAttribute("aria-checked", isAutoRotateEnabled ? "true" : "false");
+        tvBtn.classList.toggle("border-amber-500", isAutoRotateEnabled);
+        tvBtn.classList.toggle("text-amber-300", isAutoRotateEnabled);
+        tvLabel.textContent = isAutoRotateEnabled
+          ? `Auto-Rotate (10s): ON (${autoRotateSecondsLeft}s)`
+          : "Auto-Rotate (10s): OFF";
+      }
+    }
+
+    function stopAutoRotateTimer(resetToggle = false) {
+      if (autoRotateTimer) {
+        clearInterval(autoRotateTimer);
+        autoRotateTimer = null;
+      }
+      if (resetToggle) {
+        isAutoRotateEnabled = false;
+      }
+      autoRotateSecondsLeft = 10;
+      updateAutoRotateUI();
+    }
+
+    window.stepTabItem = (delta = 1) => {
+      const selectEl = document.getElementById("tab-item-select");
+      if (!selectEl || !selectEl.options || selectEl.options.length === 0) return;
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      if (items.length <= 1) return;
+      const total = selectEl.options.length;
+      const nextIdx = (selectEl.selectedIndex + delta + total) % total;
+      selectEl.selectedIndex = nextIdx;
+      autoRotateSecondsLeft = 10;
+      updateAutoRotateUI();
+      window.renderTabulation();
+    };
+
+    window.handleManualTabItemChange = () => {
+      autoRotateSecondsLeft = 10;
+      updateAutoRotateUI();
+      window.renderTabulation();
+    };
+
+    window.toggleAutoRotateItems = () => {
+      if (isAutoRotateEnabled) {
+        stopAutoRotateTimer(true);
+        window.showToast("Auto-Rotate Items turned OFF");
+        return;
+      }
+      isAutoRotateEnabled = true;
+      autoRotateSecondsLeft = 10;
+      updateAutoRotateUI();
+      if (autoRotateTimer) clearInterval(autoRotateTimer);
+      autoRotateTimer = setInterval(() => {
+        const tabSection = document.getElementById("view-tabulation");
+        if (!activeEventCode || !isAdminUnlocked || !tabSection || tabSection.classList.contains("hidden")) {
+          return;
+        }
+        const items = Array.isArray(window.state?.items) ? window.state.items : [];
+        if (items.length <= 1) {
+          autoRotateSecondsLeft = 10;
+          updateAutoRotateUI();
+          return;
+        }
+        autoRotateSecondsLeft -= 1;
+        if (autoRotateSecondsLeft <= 0) {
+          autoRotateSecondsLeft = 10;
+          window.stepTabItem(1);
+        } else {
+          updateAutoRotateUI();
+        }
+      }, 1000);
+      window.showToast("Auto-Rotate Items ON (cycles every 10s)");
+    };
+
+    function applyStageTvModeUI() {
+      document.body.classList.toggle("stage-tv-mode", isStageTvMode);
+      const exitBtn = document.getElementById("exit-tv-mode-btn");
+      const tvHeader = document.getElementById("stage-tv-header");
+      if (exitBtn) {
+        exitBtn.classList.toggle("hidden", !isStageTvMode);
+        exitBtn.classList.toggle("inline-flex", isStageTvMode);
+      }
+      if (tvHeader) {
+        tvHeader.classList.toggle("hidden", !isStageTvMode);
+        tvHeader.classList.toggle("flex", isStageTvMode);
+      }
+      updateAutoRotateUI();
+    }
+
+    window.enterStageTvMode = () => {
+      if (!activeEventCode || !isAdminUnlocked) return;
+      isStageTvMode = true;
+      applyStageTvModeUI();
+      window.renderTabulation();
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          Promise.resolve(document.documentElement.requestFullscreen())
+            .then(() => { didEnterBrowserFullscreen = true; })
+            .catch(() => { didEnterBrowserFullscreen = false; });
+        }
+      } catch {
+        didEnterBrowserFullscreen = false;
+      }
+    };
+
+    window.exitStageTvMode = (exitBrowserFullscreen = true) => {
+      isStageTvMode = false;
+      didEnterBrowserFullscreen = false;
+      applyStageTvModeUI();
+      window.renderTabulation();
+      if (exitBrowserFullscreen) {
+        try {
+          if (document.fullscreenElement && document.exitFullscreen) {
+            Promise.resolve(document.exitFullscreen()).catch(() => {});
+          }
+        } catch {}
+      }
+    };
+
+    window.toggleStageTvMode = () => {
+      if (isStageTvMode) {
+        window.exitStageTvMode();
+      } else {
+        window.enterStageTvMode();
+      }
+    };
+
     window.renderTabulation = () => {
       const itemId = document.getElementById("tab-item-select").value;
       const selectedItem = window.state.items.find(it => it.id === itemId);
       const parts = window.state.participants.filter(p => p.itemId === itemId);
       const groups = Array.isArray(window.state.groups) ? window.state.groups : [];
       const tbody = document.getElementById("leaderboard-body");
+      const dark = isStageTvMode;
+
+      updateStageTvHeaderMeta(selectedItem);
+      renderLiveResultsTicker();
 
       // Update Print Header details
       document.getElementById("print-event-title").textContent = selectedItem
@@ -2997,7 +3504,7 @@
       if (parts.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="8" class="py-8 px-4 text-center text-sm text-stone-500">No participants registered for this event yet.</td>
+            <td colspan="8" class="py-8 px-4 text-center text-sm ${dark ? "text-stone-400" : "text-stone-500"}">No participants registered for this event yet.</td>
           </tr>
         `;
         window.renderGroupStandings();
@@ -3045,7 +3552,7 @@
             <td data-col="chest" class="py-3 px-4 font-semibold tabular-nums whitespace-nowrap"></td>
             <td class="py-3 px-4">
               <div data-col="name" class="font-semibold text-stone-900"></div>
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
+              <div data-col="meta-row" class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
                 <span data-col="school"></span>
                 <span data-col="group" class="hidden items-center gap-1 font-semibold text-stone-700">
                   <span data-col="group-dot" class="w-2 h-2 rounded-full inline-block"></span>
@@ -3064,27 +3571,58 @@
         (tr, r) => {
           const groupLabel = r.groupObj?.name || r.p.groupName || "";
           const groupColor = r.groupObj?.color || "#78716C";
-          tr.querySelector('[data-col="rank"]').textContent = r.rankLabel;
-          tr.querySelector('[data-col="chest"]').textContent = `#${r.p.chestNo}`;
-          tr.querySelector('[data-col="name"]').textContent = r.p.name;
+          const isLeaderRow = r.rankNum === 1;
+          tr.classList.toggle("hover:bg-stone-50", !dark);
+          tr.classList.toggle("hover:bg-stone-800/60", dark);
+          tr.classList.toggle("bg-amber-950/35", dark && isLeaderRow);
+
+          const rankTd = tr.querySelector('[data-col="rank"]');
+          rankTd.className = `py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${
+            dark
+              ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300" : "text-stone-300")
+              : "text-stone-900"
+          }`;
+          rankTd.textContent = r.rankLabel;
+
+          const chestTd = tr.querySelector('[data-col="chest"]');
+          chestTd.className = `py-3 px-4 font-semibold tabular-nums whitespace-nowrap ${dark ? "text-amber-200" : "text-stone-900"}`;
+          chestTd.textContent = `#${r.p.chestNo}`;
+
+          const nameEl = tr.querySelector('[data-col="name"]');
+          nameEl.className = `font-semibold ${dark ? "text-stone-100 text-base sm:text-lg" : "text-stone-900"}`;
+          nameEl.textContent = r.p.name;
+
+          const metaRow = tr.querySelector('[data-col="meta-row"]');
+          if (metaRow) {
+            metaRow.className = `flex flex-wrap items-center gap-x-2 gap-y-0.5 ${dark ? "text-xs sm:text-sm text-stone-400" : "text-xs text-stone-500"}`;
+          }
           tr.querySelector('[data-col="school"]').textContent = r.p.school;
 
           const grpWrap = tr.querySelector('[data-col="group"]');
+          grpWrap.className = `${groupLabel ? "inline-flex" : "hidden"} items-center gap-1 font-semibold ${dark ? "text-stone-200" : "text-stone-700"}`;
           if (groupLabel) {
-            grpWrap.classList.remove("hidden");
-            grpWrap.classList.add("inline-flex");
             tr.querySelector('[data-col="group-dot"]').style.backgroundColor = groupColor;
             tr.querySelector('[data-col="group-name"]').textContent = groupLabel;
-          } else {
-            grpWrap.classList.add("hidden");
-            grpWrap.classList.remove("inline-flex");
           }
 
-          animateNumericCell(tr.querySelector('[data-col="j1"]'), r.j1, 0, "");
-          animateNumericCell(tr.querySelector('[data-col="j2"]'), r.j2, 0, "");
-          animateNumericCell(tr.querySelector('[data-col="j3"]'), r.j3, 0, "");
-          animateNumericCell(tr.querySelector('[data-col="avg"]'), r.avg, 2, "");
-          tr.querySelector('[data-col="grade"]').textContent = r.grade;
+          const j1Td = tr.querySelector('[data-col="j1"]');
+          const j2Td = tr.querySelector('[data-col="j2"]');
+          const j3Td = tr.querySelector('[data-col="j3"]');
+          const avgTd = tr.querySelector('[data-col="avg"]');
+          const judgeCellClass = `py-3 px-4 text-right tabular-nums whitespace-nowrap ${dark ? "text-stone-300" : "text-stone-700"}`;
+          j1Td.className = judgeCellClass;
+          j2Td.className = judgeCellClass;
+          j3Td.className = judgeCellClass;
+          avgTd.className = `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-base sm:text-lg" : "text-stone-900"}`;
+
+          animateNumericCell(j1Td, r.j1, 0, "");
+          animateNumericCell(j2Td, r.j2, 0, "");
+          animateNumericCell(j3Td, r.j3, 0, "");
+          animateNumericCell(avgTd, r.avg, 2, "");
+
+          const gradeTd = tr.querySelector('[data-col="grade"]');
+          gradeTd.className = `py-3 px-4 text-right font-medium whitespace-nowrap ${dark ? "text-sm font-semibold text-amber-300" : "text-xs text-stone-700"}`;
+          gradeTd.textContent = r.grade;
           return r.rankNum;
         }
       );
@@ -5406,6 +5944,8 @@
         const tabSelect = document.getElementById("tab-item-select");
         if (tabSelect && tabSelect.value !== targetPart.itemId && !isJudgeView) {
           tabSelect.value = targetPart.itemId;
+          autoRotateSecondsLeft = 10;
+          updateAutoRotateUI();
           window.renderTabulation();
         }
 
