@@ -206,6 +206,23 @@
       </div>
     </div>
 
+    <!-- Live Presentation / Demo Mode Control Bar (Visible only inside DEMO2026 workspace) -->
+    <div id="demo-mode-bar" class="no-print hidden sm:sticky sm:top-[64px] z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-amber-50/95 backdrop-blur-sm border border-amber-300 rounded-xl shadow-sm">
+      <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
+        <span class="font-bold uppercase tracking-wider text-amber-900">DEMO MODE</span>
+        <span aria-hidden="true" class="text-amber-400">·</span>
+        <span class="text-stone-700 font-medium">Isolated presentation sandbox (<span class="tabular-nums font-semibold text-stone-900">DEMO2026</span>)</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" id="demo-simulate-score-btn" onclick="handleDemoSimulateScore()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+          ⚡ Simulate Live Judge Score
+        </button>
+        <button type="button" id="demo-reset-btn" onclick="handleDemoResetData()" class="px-3.5 py-1.5 text-xs font-semibold text-stone-800 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+          ↻ Reset Demo Data
+        </button>
+      </div>
+    </div>
+
     <!-- VIEW 0: EVENT / FESTIVAL CODE ENTRY SCREEN -->
     <section id="view-event-entry" class="no-print max-w-lg mx-auto my-6 sm:my-10 bg-white border border-stone-200 rounded-xl p-6 sm:p-8 space-y-6">
       <div class="space-y-3">
@@ -472,6 +489,20 @@
 
       <!-- Master Setup Commercial License Controls (Visible only when unlocked with Master PIN) -->
       <div id="admin-master-setup-section" class="hidden space-y-6">
+        <!-- Live Presentation / Demo Mode Launcher -->
+        <div class="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="text-xs font-semibold text-amber-800">Client Presentation Sandbox</div>
+            <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Live Presentation / Demo Mode</h2>
+            <p class="text-xs text-stone-600 max-w-2xl">
+              Launch an isolated <span class="font-semibold text-stone-900 tabular-nums">DEMO2026</span> workspace pre-loaded with 4 Houses, 4 Kerala Arts Fest items, 12 chest numbers (<span class="tabular-nums">101–112</span>), and live scores without touching campus events.
+            </p>
+          </div>
+          <button type="button" id="launch-demo-mode-btn" onclick="handleLaunchDemoMode()" class="px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+            Launch Live Demo Mode
+          </button>
+        </div>
+
         <!-- Create New Campus / Event Card -->
         <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4">
           <div class="flex flex-wrap items-start justify-between gap-2">
@@ -971,6 +1002,7 @@
     const MASTER_PIN = "2026";
     const DEFAULT_EVENT_PIN = "1234";
     const DEFAULT_EVENT_CODE = "FEST2026";
+    const DEMO_EVENT_CODE = "DEMO2026";
     const DEFAULT_HEADER_TITLE = "Arts Fest Digital Judging";
     const DEFAULT_SUBTITLE = "Kerala State Arts Festival Judging";
     const DEFAULT_GRADE_A = 80;
@@ -1226,12 +1258,71 @@
       };
     }
 
-    // Always start cleanly on the Enter Festival Code screen (never auto-open previous events)
+    function getDemoPresentationData(currentConfig) {
+      const baseCfg = currentConfig || getDefaultConfig("Kalolsavam Showcase 2026 (Demo)", DEFAULT_EVENT_PIN);
+      return {
+        config: {
+          ...baseCfg,
+          title: "Kalolsavam Showcase 2026 (Demo)",
+          subtitle: "Live Presentation & Demonstration Workspace",
+          adminPin: baseCfg.adminPin || DEFAULT_EVENT_PIN,
+          chartType: normalizeChartType(baseCfg.chartType || "bar"),
+          ...normalizeGradeThresholds(baseCfg),
+          isActive: true,
+          expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
+        },
+        groups: [
+          { id: "demo_grp_red", name: "Red House", color: "#DC2626" },
+          { id: "demo_grp_blue", name: "Blue House", color: "#2563EB" },
+          { id: "demo_grp_green", name: "Green House", color: "#059669" },
+          { id: "demo_grp_yellow", name: "Yellow House", color: "#D97706" }
+        ],
+        items: [
+          { id: "demo_item_1", name: "Mappilappattu (HS)", malayalamName: "മാപ്പിളപ്പാട്ട് (HS)", category: "High School", stage: "Stage 1 — Nila" },
+          { id: "demo_item_2", name: "Elocution - Malayalam", malayalamName: "പ്രസംഗം - മലയാളം", category: "Higher Secondary", stage: "Stage 2 — Periyar" },
+          { id: "demo_item_3", name: "Oppana (Group)", malayalamName: "ഒപ്പന (സംഘം)", category: "High School", stage: "Stage 1 — Nila" },
+          { id: "demo_item_4", name: "Light Music", malayalamName: "ലളിതഗാനം", category: "General", stage: "Stage 3 — Kabani" }
+        ],
+        participants: [
+          { id: "demo_p_101", itemId: "demo_item_1", chestNo: "101", name: "Amina Fathima K.", school: "Markaz Girls HSS, Karanthur", groupId: "demo_grp_red", groupName: "Red House" },
+          { id: "demo_p_102", itemId: "demo_item_1", chestNo: "102", name: "Muhammed Nihal P.", school: "MES HSS, Mampad", groupId: "demo_grp_blue", groupName: "Blue House" },
+          { id: "demo_p_103", itemId: "demo_item_1", chestNo: "103", name: "Fathima Zoya T.", school: "CHMKM HSS, Koduvally", groupId: "demo_grp_green", groupName: "Green House" },
+          { id: "demo_p_104", itemId: "demo_item_2", chestNo: "104", name: "Adithya Krishnan V.", school: "St. Joseph’s HSS, Kozhikode", groupId: "demo_grp_yellow", groupName: "Yellow House" },
+          { id: "demo_p_105", itemId: "demo_item_2", chestNo: "105", name: "Nandana Rajeev", school: "Providence Girls HSS, Kozhikode", groupId: "demo_grp_red", groupName: "Red House" },
+          { id: "demo_p_106", itemId: "demo_item_2", chestNo: "106", name: "Arjun Madhavan", school: "GHSS Medical College Campus", groupId: "demo_grp_blue", groupName: "Blue House" },
+          { id: "demo_p_107", itemId: "demo_item_3", chestNo: "107", name: "Aysha Mariyam & Team", school: "Presentation HSS, Chevayur", groupId: "demo_grp_green", groupName: "Green House" },
+          { id: "demo_p_108", itemId: "demo_item_3", chestNo: "108", name: "Hiba Nasrin & Team", school: "Farook HSS, Feroke", groupId: "demo_grp_yellow", groupName: "Yellow House" },
+          { id: "demo_p_109", itemId: "demo_item_3", chestNo: "109", name: "Raniya Sherin & Team", school: "Silver Hills HSS, Kozhikode", groupId: "demo_grp_red", groupName: "Red House" },
+          { id: "demo_p_110", itemId: "demo_item_4", chestNo: "110", name: "Devapriya Menon", school: "St. Teresa’s CGHSS, Ernakulam", groupId: "demo_grp_blue", groupName: "Blue House" },
+          { id: "demo_p_111", itemId: "demo_item_4", chestNo: "111", name: "Sreerag Nambiar", school: "BSS Gurukulam HSS, Alathur", groupId: "demo_grp_green", groupName: "Green House" },
+          { id: "demo_p_112", itemId: "demo_item_4", chestNo: "112", name: "Ananya S. Warrier", school: "Sacred Heart CGHSS, Thrissur", groupId: "demo_grp_yellow", groupName: "Yellow House" }
+        ],
+        scores: [
+          { id: "demo_item_1_demo_p_101_J1", itemId: "demo_item_1", participantId: "demo_p_101", chestNo: "101", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 23, expression: 23, perfection: 23, overall: 23, total: 92 },
+          { id: "demo_item_1_demo_p_101_J2", itemId: "demo_item_1", participantId: "demo_p_101", chestNo: "101", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 23, expression: 22, perfection: 23, overall: 23, total: 91 },
+          { id: "demo_item_1_demo_p_102_J1", itemId: "demo_item_1", participantId: "demo_p_102", chestNo: "102", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 22, perfection: 21, overall: 22, total: 87 },
+          { id: "demo_item_1_demo_p_102_J2", itemId: "demo_item_1", participantId: "demo_p_102", chestNo: "102", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 22, expression: 22, perfection: 22, overall: 22, total: 88 },
+          { id: "demo_item_2_demo_p_104_J1", itemId: "demo_item_2", participantId: "demo_p_104", chestNo: "104", judgeSlot: "J1", judgeName: "Dr. Kavitha Balakrishnan", rhythm: 23, expression: 22, perfection: 22, overall: 23, total: 90 },
+          { id: "demo_item_2_demo_p_104_J2", itemId: "demo_item_2", participantId: "demo_p_104", chestNo: "104", judgeSlot: "J2", judgeName: "Prof. K. Sachidanandan", rhythm: 22, expression: 23, perfection: 22, overall: 23, total: 90 },
+          { id: "demo_item_2_demo_p_105_J1", itemId: "demo_item_2", participantId: "demo_p_105", chestNo: "105", judgeSlot: "J1", judgeName: "Dr. Kavitha Balakrishnan", rhythm: 21, expression: 21, perfection: 21, overall: 22, total: 85 },
+          { id: "demo_item_2_demo_p_105_J2", itemId: "demo_item_2", participantId: "demo_p_105", chestNo: "105", judgeSlot: "J2", judgeName: "Prof. K. Sachidanandan", rhythm: 21, expression: 21, perfection: 21, overall: 21, total: 84 },
+          { id: "demo_item_3_demo_p_107_J1", itemId: "demo_item_3", participantId: "demo_p_107", chestNo: "107", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 24, expression: 23, perfection: 23, overall: 23, total: 93 },
+          { id: "demo_item_3_demo_p_107_J2", itemId: "demo_item_3", participantId: "demo_p_107", chestNo: "107", judgeSlot: "J2", judgeName: "Smt. Sujatha Mohan", rhythm: 23, expression: 24, perfection: 23, overall: 23, total: 93 },
+          { id: "demo_item_3_demo_p_108_J1", itemId: "demo_item_3", participantId: "demo_p_108", chestNo: "108", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 22, expression: 22, perfection: 22, overall: 22, total: 88 },
+          { id: "demo_item_3_demo_p_108_J2", itemId: "demo_item_3", participantId: "demo_p_108", chestNo: "108", judgeSlot: "J2", judgeName: "Smt. Sujatha Mohan", rhythm: 22, expression: 23, perfection: 22, overall: 22, total: 89 },
+          { id: "demo_item_4_demo_p_111_J1", itemId: "demo_item_4", participantId: "demo_p_111", chestNo: "111", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 21, perfection: 21, overall: 22, total: 86 },
+          { id: "demo_item_4_demo_p_111_J2", itemId: "demo_item_4", participantId: "demo_p_111", chestNo: "111", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 21, expression: 22, perfection: 21, overall: 22, total: 86 }
+        ]
+      };
+    }
+
+    // Always start cleanly on the Enter Festival Code screen on startup (never auto-open previous events)
     let activeEventCode = "";
     let isAdminUnlocked = false;
     let isMasterAdmin = false;
     let isSwitchingEvent = false;
     let isCurrentPinVisible = false;
+    let isDemoActionBusy = false;
     let editingAdminItemId = null;
     let extendingExpiryEventCode = "";
     let masterRegisteredEvents = [];
@@ -1366,6 +1457,10 @@
       document.getElementById("lock-admin-btn").classList.toggle("hidden", !isAdminUnlocked);
       document.getElementById("header-mode-label").classList.toggle("sm:inline", hasEvent && !isAdminUnlocked);
       document.getElementById("status-strip").classList.toggle("hidden", !hasEvent);
+      const demoBar = document.getElementById("demo-mode-bar");
+      if (demoBar) {
+        demoBar.classList.toggle("hidden", !(hasEvent && activeEventCode === DEMO_EVENT_CODE));
+      }
 
       document.getElementById("admin-load-sample-btn").classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-clear-data-btn").classList.toggle("hidden", !hasEvent);
@@ -4839,6 +4934,366 @@
         } catch (err) {
           handleFirestoreError(err, "delete", `events/${activeEventCode}/clear-all-data`);
         }
+      }
+    };
+
+    async function seedDemoWorkspaceInFirestore(demoData, resetExisting = false, ensureActiveLicense = false) {
+      if (!currentUser || currentUser.emailVerified === false) return;
+      const demoCol = (sub) => collection(db, "events", DEMO_EVENT_CODE, sub);
+      const demoDoc = (sub, id) => doc(db, "events", DEMO_EVENT_CODE, sub, id);
+
+      try {
+        const cfgRef = demoDoc("settings", "config");
+        const cfgSnap = await fetchEventConfigDoc(DEMO_EVENT_CODE);
+        const grades = normalizeGradeThresholds(demoData.config);
+        const targetExpiry = normalizeExpiryDate(demoData.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
+
+        if (!cfgSnap.exists()) {
+          await setDoc(cfgRef, {
+            id: "config",
+            eventCode: DEMO_EVENT_CODE,
+            title: demoData.config.title,
+            subtitle: demoData.config.subtitle,
+            adminPin: demoData.config.adminPin || DEFAULT_EVENT_PIN,
+            chartType: normalizeChartType(demoData.config.chartType),
+            gradeA: grades.gradeA,
+            gradeB: grades.gradeB,
+            gradeC: grades.gradeC,
+            isActive: true,
+            expiresAt: targetExpiry,
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          const existingCfg = cfgSnap.data();
+          const updatePayload = {
+            title: demoData.config.title,
+            subtitle: demoData.config.subtitle,
+            chartType: normalizeChartType(demoData.config.chartType),
+            gradeA: grades.gradeA,
+            gradeB: grades.gradeB,
+            gradeC: grades.gradeC,
+            updatedAt: serverTimestamp()
+          };
+          const canUpdateLicense = currentUser.email === "sajjadsajju2626@gmail.com" || isMasterAdmin;
+          if (ensureActiveLicense && canUpdateLicense) {
+            updatePayload.isActive = true;
+            updatePayload.expiresAt = targetExpiry;
+          }
+          if (canUpdateLicense || existingCfg.authorId === currentUser.uid) {
+            await updateDoc(cfgRef, updatePayload);
+          }
+        }
+
+        if (resetExisting) {
+          const [scoresSnap, partsSnap, itemsSnap, groupsSnap] = await Promise.all([
+            getDocs(query(demoCol("scores"), where("total", "<=", 100))),
+            getDocs(query(demoCol("participants"), where("chestNo", ">", ""))),
+            getDocs(query(demoCol("items"), where("maxMarks", "==", 100))),
+            getDocs(query(demoCol("groups"), where("name", ">", "")))
+          ]);
+          const deleteRefs = [];
+          scoresSnap.forEach(d => deleteRefs.push(d.ref));
+          partsSnap.forEach(d => deleteRefs.push(d.ref));
+          itemsSnap.forEach(d => deleteRefs.push(d.ref));
+          groupsSnap.forEach(d => deleteRefs.push(d.ref));
+          for (let i = 0; i < deleteRefs.length; i += 400) {
+            const batch = writeBatch(db);
+            deleteRefs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+            await batch.commit();
+          }
+        }
+
+        // Phase 1: Groups and Competition Items (must exist before Participants/Scores rules run exists())
+        const phase1Ops = [
+          ...demoData.groups.map(g => ({
+            ref: demoDoc("groups", g.id),
+            data: { ...g, authorId: currentUser.uid, createdAt: serverTimestamp() }
+          })),
+          ...demoData.items.map(it => ({
+            ref: demoDoc("items", it.id),
+            data: { ...it, maxMarks: 100, authorId: currentUser.uid, createdAt: serverTimestamp() }
+          }))
+        ];
+        await commitBatchOperations(phase1Ops);
+
+        // Phase 2: Participants
+        const phase2Ops = demoData.participants.map(p => ({
+          ref: demoDoc("participants", p.id),
+          data: { ...p, authorId: currentUser.uid, createdAt: serverTimestamp() }
+        }));
+        await commitBatchOperations(phase2Ops);
+
+        // Phase 3: Initial Scores
+        const phase3Ops = demoData.scores.map(s => ({
+          ref: demoDoc("scores", s.id),
+          data: {
+            ...s,
+            remarks: "",
+            authorId: currentUser.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }
+        }));
+        await commitBatchOperations(phase3Ops);
+      } catch (err) {
+        handleFirestoreError(err, "write", `events/${DEMO_EVENT_CODE}/demo-seed`);
+      }
+    }
+
+    function setDemoButtonsBusy(busy, actionLabel = "") {
+      isDemoActionBusy = busy;
+      const simBtn = document.getElementById("demo-simulate-score-btn");
+      const rstBtn = document.getElementById("demo-reset-btn");
+      if (simBtn) {
+        simBtn.disabled = busy;
+        simBtn.textContent = busy && actionLabel === "sim" ? "⚡ Simulating..." : "⚡ Simulate Live Judge Score";
+      }
+      if (rstBtn) {
+        rstBtn.disabled = busy;
+        rstBtn.textContent = busy && actionLabel === "reset" ? "↻ Resetting..." : "↻ Reset Demo Data";
+      }
+    }
+
+    window.handleLaunchDemoMode = async () => {
+      if (!isMasterAdmin || isDemoActionBusy) return;
+      const launchBtn = document.getElementById("launch-demo-mode-btn");
+      if (launchBtn) {
+        launchBtn.disabled = true;
+        launchBtn.textContent = "Launching Demo...";
+      }
+
+      try {
+        let shouldSeedDemo = !hasLocalEvent(DEMO_EVENT_CODE);
+        let existingDemoLocal = shouldSeedDemo ? null : loadLocalState(DEMO_EVENT_CODE);
+        if (existingDemoLocal && (!Array.isArray(existingDemoLocal.items) || existingDemoLocal.items.length === 0)) {
+          shouldSeedDemo = true;
+        }
+
+        if (currentUser) {
+          try {
+            const [cfgSnap, itemsSnap] = await Promise.all([
+              fetchEventConfigDoc(DEMO_EVENT_CODE),
+              getDocs(query(collection(db, "events", DEMO_EVENT_CODE, "items"), where("maxMarks", "==", 100)))
+            ]);
+            if (!cfgSnap.exists() || itemsSnap.empty) {
+              shouldSeedDemo = true;
+            } else {
+              const d = cfgSnap.data();
+              existingDemoLocal = {
+                ...(existingDemoLocal || getEmptyEventState()),
+                config: {
+                  title: d.title || "Kalolsavam Showcase 2026 (Demo)",
+                  subtitle: d.subtitle ?? "Live Presentation & Demonstration Workspace",
+                  adminPin: d.adminPin || DEFAULT_EVENT_PIN,
+                  chartType: normalizeChartType(d.chartType),
+                  ...normalizeGradeThresholds(d),
+                  isActive: true,
+                  expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS),
+                  authorId: d.authorId || null
+                }
+              };
+              shouldSeedDemo = false;
+            }
+          } catch (err) {
+            const msg = err instanceof Error ? err.message.toLowerCase() : "";
+            if (!(err?.code === "unavailable" || msg.includes("offline"))) {
+              handleFirestoreError(err, "get", `events/${DEMO_EVENT_CODE}/settings/config`);
+            }
+          }
+        }
+
+        if (shouldSeedDemo) {
+          const demoState = getDemoPresentationData(existingDemoLocal?.config);
+          if (currentUser) demoState.config.authorId = currentUser.uid;
+          try {
+            localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(demoState));
+          } catch {}
+          await seedDemoWorkspaceInFirestore(demoState, true, true);
+        } else {
+          if (existingDemoLocal) {
+            existingDemoLocal.config = {
+              ...(existingDemoLocal.config || getDefaultConfig("Kalolsavam Showcase 2026 (Demo)")),
+              isActive: true,
+              expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
+            };
+            try {
+              localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(existingDemoLocal));
+            } catch {}
+          }
+          if (currentUser && currentUser.emailVerified !== false) {
+            try {
+              await updateDoc(doc(db, "events", DEMO_EVENT_CODE, "settings", "config"), {
+                isActive: true,
+                expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS),
+                updatedAt: serverTimestamp()
+              });
+            } catch (err) {
+              handleFirestoreError(err, "update", `events/${DEMO_EVENT_CODE}/settings/config`);
+            }
+          }
+        }
+
+        enterEventWorkspace(DEMO_EVENT_CODE, {
+          keepAdminUnlocked: true,
+          keepMasterAdmin: true,
+          targetView: "tabulation"
+        });
+        refreshRegisteredEvents(false);
+        window.showToast("Live Presentation Mode active (DEMO2026)");
+      } finally {
+        if (launchBtn) {
+          launchBtn.disabled = false;
+          launchBtn.textContent = "Launch Live Demo Mode";
+        }
+      }
+    };
+
+    window.handleDemoSimulateScore = async () => {
+      if (activeEventCode !== DEMO_EVENT_CODE || isDemoActionBusy) return;
+      const participants = Array.isArray(window.state?.participants) ? window.state.participants : [];
+      const scores = Array.isArray(window.state?.scores) ? window.state.scores : [];
+      if (participants.length === 0) {
+        window.showToast("No demo participants found — click Reset Demo Data");
+        return;
+      }
+
+      const isJudgeView = !document.getElementById("view-judge").classList.contains("hidden");
+      const currentItemId = isJudgeView
+        ? document.getElementById("judge-item")?.value
+        : document.getElementById("tab-item-select")?.value;
+
+      // Priority 1: Completely unscored chest number in the currently viewed item
+      // Priority 2: Any completely unscored chest number across all items
+      const unscoredAll = participants.filter(p => !scores.some(s => s.participantId === p.id));
+      let targetPart = unscoredAll.find(p => p.itemId === currentItemId) || unscoredAll[0] || null;
+      let targetSlot = "J1";
+
+      // Fallback Priority 3: Next missing judge slot (J1/J2/J3) if all participants already have >= 1 score
+      if (!targetPart) {
+        const orderedParts = [
+          ...participants.filter(p => p.itemId === currentItemId),
+          ...participants.filter(p => p.itemId !== currentItemId)
+        ];
+        for (const p of orderedParts) {
+          const openSlot = ["J1", "J2", "J3"].find(slot => !scores.some(s => s.itemId === p.itemId && s.participantId === p.id && s.judgeSlot === slot));
+          if (openSlot) {
+            targetPart = p;
+            targetSlot = openSlot;
+            break;
+          }
+        }
+      }
+
+      if (!targetPart) {
+        window.showToast("All demo chest numbers are fully scored — click Reset Demo Data");
+        return;
+      }
+
+      setDemoButtonsBusy(true, "sim");
+      try {
+        const pickHalf = (min, max) => Math.round((min + Math.random() * (max - min)) * 2) / 2;
+        const rhythm = pickHalf(20.5, 24.5);
+        const expression = pickHalf(20.5, 24.5);
+        const perfection = pickHalf(20.5, 24.5);
+        const overall = pickHalf(20.5, 24.5);
+        const total = rhythm + expression + perfection + overall;
+
+        const judgeNames = {
+          J1: "Kalamandalam Hymavathy",
+          J2: "Prof. M. Jayachandran",
+          J3: "Dr. Kavitha Balakrishnan"
+        };
+        const judgeName = judgeNames[targetSlot] || "Demo Judge";
+        const id = `${targetPart.itemId}_${targetPart.id}_${targetSlot}`;
+        const docData = {
+          id,
+          itemId: targetPart.itemId,
+          participantId: targetPart.id,
+          chestNo: targetPart.chestNo,
+          judgeSlot: targetSlot,
+          judgeName,
+          rhythm,
+          expression,
+          perfection,
+          overall,
+          total,
+          remarks: "",
+          authorId: currentUser?.uid || null,
+          updatedAt: new Date().toISOString()
+        };
+
+        // Ensure the presenter sees the target item's leaderboard animate right away if on Tabulation
+        const tabSelect = document.getElementById("tab-item-select");
+        if (tabSelect && tabSelect.value !== targetPart.itemId && !isJudgeView) {
+          tabSelect.value = targetPart.itemId;
+          window.renderTabulation();
+        }
+
+        window.state.scores = [...scores.filter(s => s.id !== id), docData];
+        saveLocalState();
+        window.populateJudgeParticipants();
+        window.renderTabulation();
+        window.renderAdminLists();
+        window.renderGroupStandings();
+
+        const targetItem = window.state.items.find(it => it.id === targetPart.itemId);
+        const itemLabel = targetItem ? ` (${targetItem.name})` : "";
+        window.showToast(`Simulated ${targetSlot} score: Chest #${targetPart.chestNo} → ${total}/100${isAdminUnlocked ? itemLabel : ""}`);
+
+        if (currentUser && currentUser.emailVerified !== false) {
+          try {
+            await setDoc(eventDocument("scores", id), {
+              id,
+              itemId: targetPart.itemId,
+              participantId: targetPart.id,
+              chestNo: targetPart.chestNo,
+              judgeSlot: targetSlot,
+              judgeName,
+              rhythm,
+              expression,
+              perfection,
+              overall,
+              total,
+              remarks: "",
+              authorId: currentUser.uid,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } catch (err) {
+            handleFirestoreError(err, "write", `events/${DEMO_EVENT_CODE}/scores/${id}`);
+          }
+        }
+      } finally {
+        setDemoButtonsBusy(false);
+      }
+    };
+
+    window.handleDemoResetData = async () => {
+      if (activeEventCode !== DEMO_EVENT_CODE || isDemoActionBusy) return;
+      setDemoButtonsBusy(true, "reset");
+      try {
+        const freshDemo = getDemoPresentationData({
+          ...(window.state?.config || getDefaultConfig("Kalolsavam Showcase 2026 (Demo)")),
+          chartType: "bar",
+          gradeA: DEFAULT_GRADE_A,
+          gradeB: DEFAULT_GRADE_B,
+          gradeC: DEFAULT_GRADE_C
+        });
+        if (currentUser) {
+          freshDemo.config.authorId = window.state?.config?.authorId || currentUser.uid;
+        }
+        window.state = freshDemo;
+        saveLocalState();
+        applyBrandingUI();
+        window.refreshAllSelects();
+        applyAdminAccessUI();
+
+        await seedDemoWorkspaceInFirestore(freshDemo, true, false);
+        window.showToast("Demo data restored to clean initial state");
+      } finally {
+        setDemoButtonsBusy(false);
       }
     };
 
