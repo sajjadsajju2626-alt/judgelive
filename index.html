@@ -135,6 +135,32 @@
     </div>
   </div>
 
+  <!-- Set Campus Event Admin PIN Modal (Master Setup Only) -->
+  <div id="set-event-pin-modal" role="dialog" aria-modal="true" aria-labelledby="set-pin-modal-title" onclick="if (event.target === this) closeSetEventPinModal()" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
+    <div class="bg-white border border-stone-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div>
+        <div class="text-xs font-semibold text-amber-800">Master Setup Security</div>
+        <h2 id="set-pin-modal-title" class="text-lg font-bold text-stone-900 mt-1 font-display">Set Event Admin PIN — <span id="set-pin-modal-event-code" class="tabular-nums text-amber-800">—</span></h2>
+        <p class="text-xs text-stone-600 mt-1">Only the Super-Admin can set or update a campus event’s private Admin PIN.</p>
+      </div>
+      <form onsubmit="handleSaveMasterEventPin(event)" class="space-y-4">
+        <div>
+          <label for="master-set-pin-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Event Admin PIN (4–6 numeric digits)</label>
+          <input id="master-set-pin-input" type="text" inputmode="numeric" required minlength="4" maxlength="6" autocomplete="off" oninput="hideSetEventPinError()" placeholder="e.g. 1234" class="w-full px-3.5 py-2 text-sm tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+        </div>
+        <div id="set-event-pin-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+        <div class="flex items-center justify-end gap-3 pt-1">
+          <button type="button" onclick="closeSetEventPinModal()" class="px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+            Cancel
+          </button>
+          <button type="submit" id="master-set-pin-save-btn" class="px-4 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+            Save Event PIN
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
   <header class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 bg-white border-b border-stone-200 sticky top-0 z-30">
     <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="text-left text-base sm:text-lg font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 font-display select-none cursor-pointer py-1 -my-1 max-w-[260px] sm:max-w-xs truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
@@ -206,12 +232,12 @@
       </div>
     </div>
 
-    <!-- Live Presentation / Demo Mode Control Bar (Visible only inside DEMO2026 workspace) -->
+    <!-- Live Presentation / Demo Mode Control Bar (Visible only inside DEMOFEST workspace) -->
     <div id="demo-mode-bar" class="no-print hidden sm:sticky sm:top-[64px] z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-amber-50/95 backdrop-blur-sm border border-amber-300 rounded-xl shadow-sm">
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
         <span class="font-bold uppercase tracking-wider text-amber-900">DEMO MODE</span>
         <span aria-hidden="true" class="text-amber-400">·</span>
-        <span class="text-stone-700 font-medium">Isolated presentation sandbox (<span class="tabular-nums font-semibold text-stone-900">DEMO2026</span>)</span>
+        <span class="text-stone-700 font-medium">Isolated presentation sandbox (<span class="tabular-nums font-semibold text-stone-900">DEMOFEST</span>)</span>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" id="demo-simulate-score-btn" onclick="handleDemoSimulateScore()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -495,7 +521,7 @@
             <div class="text-xs font-semibold text-amber-800">Client Presentation Sandbox</div>
             <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Live Presentation / Demo Mode</h2>
             <p class="text-xs text-stone-600 max-w-2xl">
-              Launch an isolated <span class="font-semibold text-stone-900 tabular-nums">DEMO2026</span> workspace pre-loaded with 4 Houses, 4 Kerala Arts Fest items, 12 chest numbers (<span class="tabular-nums">101–112</span>), and live scores without touching campus events.
+              Launch an isolated <span class="font-semibold text-stone-900 tabular-nums">DEMOFEST</span> workspace pre-loaded with 4 Houses, 4 Kerala Arts Fest items, 12 chest numbers (<span class="tabular-nums">101–112</span>), and live scores without touching campus events.
             </p>
           </div>
           <button type="button" id="launch-demo-mode-btn" onclick="handleLaunchDemoMode()" class="px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -576,63 +602,29 @@
       </div>
 
       <div id="admin-active-event-sections" class="space-y-8">
-      <!-- Optional Display Name & Security PIN Settings -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="text-lg font-bold text-stone-900">Optional Event Display Name</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Customize the display title and subtitle shown in the header and print sheets for this Festival Code.</p>
-              </div>
-              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
-            </div>
-            <div class="space-y-3">
-              <div>
-                <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Display Title (Optional)</label>
-                <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-              </div>
-              <div>
-                <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue (Optional)</label>
-                <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-              </div>
-            </div>
+      <!-- Festival / Campus Branding Card (Campus Admin Panel) -->
+      <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Festival / Campus Branding</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Customize your Institution / Festival Name and Subtitle / Venue shown in the header and print sheets for this Festival Code.</p>
           </div>
-          <div class="pt-1">
-            <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Display Settings</button>
+          <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
+            <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
-        </form>
-
-        <!-- Security & Admin PIN Settings Card -->
-        <form id="admin-pin-settings-form" onsubmit="handleUpdateEventPin(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="text-lg font-bold text-stone-900">Security &amp; Admin PIN Settings</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Set a private Admin PIN for this campus event only. Updating it here never affects other events.</p>
-              </div>
-              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-pin-scope-code">—</span></span>
-            </div>
-            <div class="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-lg">
-              <div>
-                <div class="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Current Event Admin PIN</div>
-                <div id="admin-current-pin-display" class="text-base font-bold text-stone-900 tabular-nums tracking-widest mt-0.5">••••</div>
-              </div>
-              <button type="button" id="toggle-current-pin-btn" onclick="toggleCurrentPinVisibility()" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors whitespace-nowrap shrink-0">
-                Show PIN
-              </button>
-            </div>
-            <div>
-              <label for="admin-new-pin" class="block text-xs font-semibold text-stone-700 mb-1">New Event Admin PIN (4–6 digits)</label>
-              <input id="admin-new-pin" type="password" inputmode="numeric" required minlength="4" maxlength="6" autocomplete="new-password" oninput="hideEventPinError()" placeholder="Enter 4–6 digit PIN" class="w-full px-3 py-2 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-            </div>
-            <div id="admin-pin-update-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+          <div>
+            <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
+            <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
-          <div class="pt-1">
-            <button type="submit" id="admin-update-pin-btn" class="px-4 py-2 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">Update Event PIN</button>
-          </div>
-        </form>
-      </div>
+        </div>
+        <div class="pt-1 flex justify-end">
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
+        </div>
+      </form>
 
       <!-- Manage Groups / Houses & Live Chart Preview -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1002,7 +994,8 @@
     const MASTER_PIN = "2026";
     const DEFAULT_EVENT_PIN = "1234";
     const DEFAULT_EVENT_CODE = "FEST2026";
-    const DEMO_EVENT_CODE = "DEMO2026";
+    const DEMO_EVENT_CODE = "DEMOFEST";
+    const DEMO_EVENT_PIN = "1234";
     const DEFAULT_HEADER_TITLE = "Arts Fest Digital Judging";
     const DEFAULT_SUBTITLE = "Kerala State Arts Festival Judging";
     const DEFAULT_GRADE_A = 80;
@@ -1259,13 +1252,13 @@
     }
 
     function getDemoPresentationData(currentConfig) {
-      const baseCfg = currentConfig || getDefaultConfig("Kalolsavam Showcase 2026 (Demo)", DEFAULT_EVENT_PIN);
+      const baseCfg = currentConfig || getDefaultConfig("Kalolsavam Showcase (Demo)", DEMO_EVENT_PIN);
       return {
         config: {
           ...baseCfg,
-          title: "Kalolsavam Showcase 2026 (Demo)",
+          title: "Kalolsavam Showcase (Demo)",
           subtitle: "Live Presentation & Demonstration Workspace",
-          adminPin: baseCfg.adminPin || DEFAULT_EVENT_PIN,
+          adminPin: DEMO_EVENT_PIN,
           chartType: normalizeChartType(baseCfg.chartType || "bar"),
           ...normalizeGradeThresholds(baseCfg),
           isActive: true,
@@ -1316,15 +1309,18 @@
       };
     }
 
+    // Remove legacy DEMO2026 local cache so Master PIN year is never hinted
+    try { localStorage.removeItem("kalolsavam_local_state_DEMO2026_v1"); } catch {}
+
     // Always start cleanly on the Enter Festival Code screen on startup (never auto-open previous events)
     let activeEventCode = "";
     let isAdminUnlocked = false;
     let isMasterAdmin = false;
     let isSwitchingEvent = false;
-    let isCurrentPinVisible = false;
     let isDemoActionBusy = false;
     let editingAdminItemId = null;
     let extendingExpiryEventCode = "";
+    let settingPinEventCode = "";
     let masterRegisteredEvents = [];
     let brandTapTimestamps = [];
     let toastTimer = null;
@@ -1413,33 +1409,7 @@
       if (gradeBadgeEl) {
         gradeBadgeEl.textContent = `Grading: A ≥ ${grades.gradeA}% · B ≥ ${grades.gradeB}% · C ≥ ${grades.gradeC}%`;
       }
-
-      updateCurrentPinDisplay();
     }
-
-    function updateCurrentPinDisplay() {
-      const pinDisplay = document.getElementById("admin-current-pin-display");
-      const toggleBtn = document.getElementById("toggle-current-pin-btn");
-      if (!pinDisplay || !toggleBtn) return;
-      const currentPin = window.state?.config?.adminPin || DEFAULT_EVENT_PIN;
-      if (isCurrentPinVisible) {
-        pinDisplay.textContent = currentPin;
-        toggleBtn.textContent = "Hide PIN";
-      } else {
-        pinDisplay.textContent = "•".repeat(Math.max(4, String(currentPin).length));
-        toggleBtn.textContent = "Show PIN";
-      }
-    }
-
-    window.toggleCurrentPinVisibility = () => {
-      isCurrentPinVisible = !isCurrentPinVisible;
-      updateCurrentPinDisplay();
-    };
-
-    window.hideEventPinError = () => {
-      const errEl = document.getElementById("admin-pin-update-error");
-      if (errEl) errEl.classList.add("hidden");
-    };
 
     window.hideGradeThresholdError = () => {
       const errEl = document.getElementById("admin-grade-error");
@@ -1464,7 +1434,8 @@
 
       document.getElementById("admin-load-sample-btn").classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-clear-data-btn").classList.toggle("hidden", !hasEvent);
-      document.getElementById("admin-master-setup-section").classList.toggle("hidden", !(isAdminUnlocked && isMasterAdmin));
+      // Master Setup sections appear ONLY when unlocked from the welcome screen without an active campus/demo event
+      document.getElementById("admin-master-setup-section").classList.toggle("hidden", !(isAdminUnlocked && isMasterAdmin && !hasEvent));
       document.getElementById("admin-no-event-banner").classList.toggle("hidden", hasEvent);
       document.getElementById("admin-active-event-sections").classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-event-code-label").textContent = hasEvent ? activeEventCode : "Master Setup";
@@ -1500,7 +1471,6 @@
       detachListeners();
       isAdminUnlocked = false;
       isMasterAdmin = false;
-      isCurrentPinVisible = false;
       activeEventCode = "";
       window.state = getEmptyEventState();
       showEventEntryView(false);
@@ -1859,7 +1829,6 @@
     function enterEventWorkspace(code, options = {}) {
       const { keepAdminUnlocked = false, keepMasterAdmin = false, targetView = "judge" } = options;
       isSwitchingEvent = false;
-      isCurrentPinVisible = false;
       activeEventCode = code;
 
       // Re-lock Admin when switching normally
@@ -1872,15 +1841,11 @@
       document.getElementById("pin-modal-event-code").textContent = code;
       document.getElementById("admin-event-code-label").textContent = code;
       document.getElementById("admin-brand-scope-code").textContent = code;
-      document.getElementById("admin-pin-scope-code").textContent = code;
       const gradeScopeEl = document.getElementById("admin-grade-scope-code");
       if (gradeScopeEl) gradeScopeEl.textContent = code;
       const csvScopeEl = document.getElementById("admin-csv-scope-code");
       if (csvScopeEl) csvScopeEl.textContent = code;
       document.getElementById("clear-modal-event-code").textContent = code;
-      const newPinInput = document.getElementById("admin-new-pin");
-      if (newPinInput) newPinInput.value = "";
-      window.hideEventPinError();
       window.hideGradeThresholdError();
       if (typeof window.clearCsvImport === "function") window.clearCsvImport();
       if (typeof window.resetAdminItemsFilterAndEdit === "function") window.resetAdminItemsFilterAndEdit();
@@ -2003,7 +1968,11 @@
       brandTapTimestamps.push(now);
       if (brandTapTimestamps.length >= 3) {
         brandTapTimestamps = [];
-        if (isAdminUnlocked) {
+        if (isAdminUnlocked && !isSwitchingEvent) {
+          applyBrandingUI();
+          applyAdminAccessUI();
+          window.switchView("admin");
+        } else if (isAdminUnlocked && isSwitchingEvent && !activeEventCode) {
           isSwitchingEvent = false;
           applyBrandingUI();
           applyAdminAccessUI();
@@ -2037,8 +2006,6 @@
     window.lockAdminSession = () => {
       isAdminUnlocked = false;
       isMasterAdmin = false;
-      isCurrentPinVisible = false;
-      updateCurrentPinDisplay();
       applyBrandingUI();
       applyAdminAccessUI();
       if (activeEventCode && isEventLicenseValid(window.state?.config)) {
@@ -2059,6 +2026,7 @@
         window.closePinModal();
         window.closeClearModal();
         window.closeExtendExpiryModal();
+        window.closeSetEventPinModal();
       }
     });
 
@@ -2136,18 +2104,22 @@
         : (entered === MASTER_PIN);
 
       if (isAuthorized) {
+        if (!hasWorkspace && activeEventCode) {
+          detachListeners();
+          activeEventCode = "";
+          window.state = getEmptyEventState();
+        }
         isAdminUnlocked = true;
         isMasterAdmin = (entered === MASTER_PIN);
         isSwitchingEvent = false;
-        isCurrentPinVisible = false;
         window.closePinModal();
         applyBrandingUI();
         applyAdminAccessUI();
         window.switchView("admin");
-        if (isMasterAdmin) {
+        if (isMasterAdmin && !hasWorkspace) {
           refreshRegisteredEvents(false);
         }
-        window.showToast(isMasterAdmin ? "Master Setup Unlocked" : `Admin Unlocked for ${activeEventCode}`);
+        window.showToast(isMasterAdmin && !hasWorkspace ? "Master Setup Unlocked" : `Admin Unlocked for ${activeEventCode}`);
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
         document.getElementById("admin-pin-input").select();
@@ -3421,7 +3393,7 @@
                 <span class="font-bold text-stone-900 tabular-nums">${escapeHtml(ev.eventCode)}</span>
                 ${isCurrent ? `<span class="text-[11px] font-semibold text-amber-800">(Active Workspace)</span>` : ""}
               </div>
-              <div class="text-xs text-stone-500 truncate max-w-xs">${escapeHtml(ev.title || ev.eventCode)}</div>
+              <div class="text-xs text-stone-500 truncate max-w-xs">${escapeHtml(ev.title || ev.eventCode)} · <span class="tabular-nums font-medium text-stone-700">PIN: ${escapeHtml(ev.adminPin || DEFAULT_EVENT_PIN)}</span></div>
             </td>
             <td class="py-3 px-4 tabular-nums text-stone-800 whitespace-nowrap">
               <div class="font-semibold">${expDisplay}</div>
@@ -3434,6 +3406,9 @@
             </td>
             <td class="py-3 px-4 text-right whitespace-nowrap">
               <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
+                <button type="button" onclick="openSetEventPinModal('${escapeHtml(ev.eventCode)}')" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-md transition-colors">
+                  Set PIN
+                </button>
                 <button type="button" onclick="toggleEventLicenseActive('${escapeHtml(ev.eventCode)}')" class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${toggleClass}">
                   ${toggleLabel}
                 </button>
@@ -3898,12 +3873,39 @@
       }
     };
 
-    window.handleUpdateEventPin = async (e) => {
+    window.hideSetEventPinError = () => {
+      const errEl = document.getElementById("set-event-pin-error");
+      if (errEl) errEl.classList.add("hidden");
+    };
+
+    window.openSetEventPinModal = (code) => {
+      if (!isMasterAdmin || !isValidEventCode(code)) return;
+      settingPinEventCode = code;
+      const entry = masterRegisteredEvents.find(ev => ev.eventCode === code);
+      document.getElementById("set-pin-modal-event-code").textContent = code;
+      const input = document.getElementById("master-set-pin-input");
+      input.value = entry?.adminPin || DEFAULT_EVENT_PIN;
+      window.hideSetEventPinError();
+      document.getElementById("set-event-pin-modal").classList.remove("hidden");
+      setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 30);
+    };
+
+    window.closeSetEventPinModal = () => {
+      document.getElementById("set-event-pin-modal").classList.add("hidden");
+      settingPinEventCode = "";
+      window.hideSetEventPinError();
+    };
+
+    window.handleSaveMasterEventPin = async (e) => {
       e.preventDefault();
-      if (!activeEventCode) return;
-      const pinInput = document.getElementById("admin-new-pin");
-      const errEl = document.getElementById("admin-pin-update-error");
-      const submitBtn = document.getElementById("admin-update-pin-btn");
+      if (!isMasterAdmin || !settingPinEventCode) return;
+      const code = settingPinEventCode;
+      const pinInput = document.getElementById("master-set-pin-input");
+      const errEl = document.getElementById("set-event-pin-error");
+      const submitBtn = document.getElementById("master-set-pin-save-btn");
       const newPin = pinInput.value.trim();
 
       if (!isValidEventPin(newPin)) {
@@ -3915,69 +3917,72 @@
         return;
       }
 
-      window.hideEventPinError();
-      const existingAuthorId = window.state.config?.authorId || null;
-      const title = window.state.config?.title || activeEventCode;
-      const subtitle = window.state.config?.subtitle ?? DEFAULT_SUBTITLE;
-      const chartType = normalizeChartType(window.state.config?.chartType);
-      const grades = normalizeGradeThresholds(window.state.config);
-      const isActive = typeof window.state.config?.isActive === "boolean" ? window.state.config.isActive : true;
-      const expiresAt = normalizeExpiryDate(window.state.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
-
-      window.state.config = {
-        title,
-        subtitle,
-        adminPin: newPin,
-        chartType,
-        ...grades,
-        isActive,
-        expiresAt,
-        authorId: existingAuthorId || currentUser?.uid || null
+      window.hideSetEventPinError();
+      const existingEntry = masterRegisteredEvents.find(ev => ev.eventCode === code);
+      const localEv = loadLocalState(code);
+      if (existingEntry) {
+        existingEntry.adminPin = newPin;
+      }
+      localEv.config = {
+        ...(localEv.config || getDefaultConfig(code, newPin)),
+        adminPin: newPin
       };
-      saveLocalState();
-      updateCurrentPinDisplay();
-      pinInput.value = "";
+      try {
+        localStorage.setItem(getLocalStateKey(code), JSON.stringify(localEv));
+      } catch {}
+
+      if (activeEventCode === code && window.state?.config) {
+        window.state.config.adminPin = newPin;
+        saveLocalState();
+      }
 
       if (currentUser) {
         if (submitBtn) {
           submitBtn.disabled = true;
-          submitBtn.textContent = "Updating PIN...";
+          submitBtn.textContent = "Saving PIN...";
         }
         try {
+          const cfgRef = doc(db, "events", code, "settings", "config");
+          const existingAuthorId = existingEntry?.authorId || localEv.config?.authorId || null;
           if (existingAuthorId) {
-            await updateDoc(eventDocument("settings", "config"), {
+            await updateDoc(cfgRef, {
               adminPin: newPin,
               updatedAt: serverTimestamp()
             });
           } else {
-            await setDoc(eventDocument("settings", "config"), {
+            const grades = normalizeGradeThresholds(localEv.config);
+            const expDate = normalizeExpiryDate(existingEntry?.expiresAt || localEv.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_NEW_EVENT_DAYS);
+            await setDoc(cfgRef, {
               id: "config",
-              eventCode: activeEventCode,
-              title,
-              subtitle,
+              eventCode: code,
+              title: existingEntry?.title || localEv.config?.title || code,
+              subtitle: existingEntry?.subtitle || localEv.config?.subtitle || DEFAULT_SUBTITLE,
               adminPin: newPin,
-              chartType,
+              chartType: normalizeChartType(existingEntry?.chartType || localEv.config?.chartType),
               gradeA: grades.gradeA,
               gradeB: grades.gradeB,
               gradeC: grades.gradeC,
-              isActive,
-              expiresAt,
+              isActive: existingEntry?.isActive !== false,
+              expiresAt: expDate,
               authorId: currentUser.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
             });
           }
         } catch (err) {
-          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/config`);
+          handleFirestoreError(err, "update", `events/${code}/settings/config`);
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = "Update Event PIN";
+            submitBtn.textContent = "Save Event PIN";
           }
         }
       }
 
-      window.showToast(`Updated Admin PIN for ${activeEventCode}`);
+      window.closeSetEventPinModal();
+      renderRegisteredEventsTable();
+      await refreshRegisteredEvents(false);
+      window.showToast(`Updated Admin PIN for ${code}`);
     };
 
     async function persistGradeThresholds(thresholds, toastMessage) {
@@ -4954,7 +4959,7 @@
             eventCode: DEMO_EVENT_CODE,
             title: demoData.config.title,
             subtitle: demoData.config.subtitle,
-            adminPin: demoData.config.adminPin || DEFAULT_EVENT_PIN,
+            adminPin: DEMO_EVENT_PIN,
             chartType: normalizeChartType(demoData.config.chartType),
             gradeA: grades.gradeA,
             gradeB: grades.gradeB,
@@ -4970,6 +4975,7 @@
           const updatePayload = {
             title: demoData.config.title,
             subtitle: demoData.config.subtitle,
+            adminPin: DEMO_EVENT_PIN,
             chartType: normalizeChartType(demoData.config.chartType),
             gradeA: grades.gradeA,
             gradeB: grades.gradeB,
@@ -5084,9 +5090,9 @@
               existingDemoLocal = {
                 ...(existingDemoLocal || getEmptyEventState()),
                 config: {
-                  title: d.title || "Kalolsavam Showcase 2026 (Demo)",
+                  title: d.title || "Kalolsavam Showcase (Demo)",
                   subtitle: d.subtitle ?? "Live Presentation & Demonstration Workspace",
-                  adminPin: d.adminPin || DEFAULT_EVENT_PIN,
+                  adminPin: DEMO_EVENT_PIN,
                   chartType: normalizeChartType(d.chartType),
                   ...normalizeGradeThresholds(d),
                   isActive: true,
@@ -5114,7 +5120,8 @@
         } else {
           if (existingDemoLocal) {
             existingDemoLocal.config = {
-              ...(existingDemoLocal.config || getDefaultConfig("Kalolsavam Showcase 2026 (Demo)")),
+              ...(existingDemoLocal.config || getDefaultConfig("Kalolsavam Showcase (Demo)", DEMO_EVENT_PIN)),
+              adminPin: DEMO_EVENT_PIN,
               isActive: true,
               expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
             };
@@ -5125,6 +5132,7 @@
           if (currentUser && currentUser.emailVerified !== false) {
             try {
               await updateDoc(doc(db, "events", DEMO_EVENT_CODE, "settings", "config"), {
+                adminPin: DEMO_EVENT_PIN,
                 isActive: true,
                 expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS),
                 updatedAt: serverTimestamp()
@@ -5135,13 +5143,13 @@
           }
         }
 
+        // Enter DEMOFEST as a standard Campus Admin (Master Setup completely hidden)
         enterEventWorkspace(DEMO_EVENT_CODE, {
           keepAdminUnlocked: true,
-          keepMasterAdmin: true,
+          keepMasterAdmin: false,
           targetView: "tabulation"
         });
-        refreshRegisteredEvents(false);
-        window.showToast("Live Presentation Mode active (DEMO2026)");
+        window.showToast("Live Presentation Mode active (DEMOFEST)");
       } finally {
         if (launchBtn) {
           launchBtn.disabled = false;
@@ -5275,7 +5283,8 @@
       setDemoButtonsBusy(true, "reset");
       try {
         const freshDemo = getDemoPresentationData({
-          ...(window.state?.config || getDefaultConfig("Kalolsavam Showcase 2026 (Demo)")),
+          ...(window.state?.config || getDefaultConfig("Kalolsavam Showcase (Demo)", DEMO_EVENT_PIN)),
+          adminPin: DEMO_EVENT_PIN,
           chartType: "bar",
           gradeA: DEFAULT_GRADE_A,
           gradeB: DEFAULT_GRADE_B,
