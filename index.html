@@ -2082,6 +2082,8 @@
     }
 
     function revokeActiveEventAccess(message = LICENSE_BLOCKED_MESSAGE) {
+      if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
+      stopAutoRotateTimer(true);
       detachListeners();
       isAdminUnlocked = false;
       isMasterAdmin = false;
@@ -2432,7 +2434,164 @@
       document.getElementById("event-code-error").classList.add("hidden");
     };
 
-    function showEventEntryView(allowCancel) {
+    // Android / Mobile Phone Back Button (History API & popstate) Navigation
+    const BACK_EXIT_CONFIRM_WINDOW_MS = 2500;
+    let lastBackExitPromptAt = 0;
+    let backExitRearmTimer = null;
+    let ignorePopstateState = null;
+
+    function getCurrentLogicalRoute() {
+      if (isStageTvMode) return "tv-mode";
+      const entryEl = document.getElementById("view-event-entry");
+      if (entryEl && !entryEl.classList.contains("hidden")) return "welcome";
+      const tabEl = document.getElementById("view-tabulation");
+      if (tabEl && !tabEl.classList.contains("hidden")) return "tabulation";
+      const adminEl = document.getElementById("view-admin");
+      if (adminEl && !adminEl.classList.contains("hidden")) return "admin";
+      return "judge";
+    }
+
+    function hasAnyOpenModal() {
+      const modalIds = [
+        "pin-modal",
+        "clear-modal",
+        "extend-expiry-modal",
+        "set-event-pin-modal",
+        "delete-event-modal"
+      ];
+      return modalIds.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains("hidden");
+      });
+    }
+
+    function closeAllModals() {
+      window.closePinModal();
+      window.closeClearModal();
+      window.closeExtendExpiryModal();
+      window.closeSetEventPinModal();
+      window.closeDeleteEventModal();
+    }
+
+    function buildRouteHistoryPayload(route) {
+      const hasActive = Boolean(activeEventCode) && !isSwitchingEvent;
+      if (route === "exit-guard") {
+        return { appRoute: "exit-guard", depth: 0, eventCode: "" };
+      }
+      if (route === "welcome") {
+        return { appRoute: "welcome", depth: 1, eventCode: "" };
+      }
+      if (route === "judge") {
+        return { appRoute: "judge", depth: 2, eventCode: activeEventCode || "" };
+      }
+      if (route === "admin" && !hasActive) {
+        return { appRoute: "admin", depth: 2, eventCode: "", masterMode: true };
+      }
+      if (route === "tabulation" || route === "admin") {
+        return { appRoute: route, depth: 3, eventCode: activeEventCode || "", masterMode: false };
+      }
+      if (route === "tv-mode") {
+        return { appRoute: "tv-mode", depth: 4, eventCode: activeEventCode || "" };
+      }
+      return { appRoute: "welcome", depth: 1, eventCode: "" };
+    }
+
+    function getRouteHash(route) {
+      if (route === "exit-guard" || route === "welcome") return "#welcome";
+      return `#${route}`;
+    }
+
+    function setIgnorePopstateTarget(route) {
+      ignorePopstateState = { route, expiresAt: Date.now() + 450 };
+    }
+
+    function clearBackExitPrompt() {
+      lastBackExitPromptAt = 0;
+      if (backExitRearmTimer) {
+        clearTimeout(backExitRearmTimer);
+        backExitRearmTimer = null;
+      }
+    }
+
+    function rearmWelcomeExitGuard() {
+      clearBackExitPrompt();
+      if (getCurrentLogicalRoute() === "welcome" && window.history.state?.appRoute === "exit-guard") {
+        try {
+          window.history.pushState(buildRouteHistoryPayload("welcome"), "", "#welcome");
+        } catch {}
+      }
+    }
+
+    function initAppHistory() {
+      try {
+        window.history.replaceState(buildRouteHistoryPayload("exit-guard"), "", "#welcome");
+        window.history.pushState(buildRouteHistoryPayload("welcome"), "", "#welcome");
+      } catch {}
+    }
+
+    function syncHistoryForRoute(route, options = {}) {
+      const { fromPopstate = false, skipHistorySync = false, ensureJudgeBase = false } = options;
+      clearBackExitPrompt();
+      if (fromPopstate || skipHistorySync) return;
+
+      const target = buildRouteHistoryPayload(route);
+      const curState = window.history.state;
+      const curDepth = typeof curState?.depth === "number" ? curState.depth : -1;
+      const curRoute = curState?.appRoute || "";
+
+      try {
+        if (route === "welcome") {
+          if (curRoute === "welcome" && curDepth === 1) return;
+          if (curRoute === "exit-guard" || curDepth < 1) {
+            window.history.pushState(target, "", "#welcome");
+            return;
+          }
+          if (curDepth > 1) {
+            setIgnorePopstateTarget("welcome");
+            window.history.go(-(curDepth - 1));
+            return;
+          }
+          window.history.replaceState(target, "", "#welcome");
+          return;
+        }
+
+        if (ensureJudgeBase && (route === "tabulation" || route === "admin") && activeEventCode && !isSwitchingEvent) {
+          const judgePayload = buildRouteHistoryPayload("judge");
+          if (curDepth >= 2) {
+            window.history.replaceState(judgePayload, "", "#judge");
+          } else {
+            if (curDepth < 1) {
+              window.history.replaceState(buildRouteHistoryPayload("exit-guard"), "", "#welcome");
+              window.history.pushState(buildRouteHistoryPayload("welcome"), "", "#welcome");
+            }
+            window.history.pushState(judgePayload, "", "#judge");
+          }
+          window.history.pushState(target, "", getRouteHash(route));
+          return;
+        }
+
+        if (curRoute === route && curDepth === target.depth) {
+          window.history.replaceState(target, "", getRouteHash(route));
+          return;
+        }
+
+        if (curDepth < target.depth) {
+          if (curDepth < 1 && target.depth >= 2) {
+            window.history.replaceState(buildRouteHistoryPayload("exit-guard"), "", "#welcome");
+            window.history.pushState(buildRouteHistoryPayload("welcome"), "", "#welcome");
+          }
+          window.history.pushState(target, "", getRouteHash(route));
+        } else if (curDepth === target.depth) {
+          window.history.replaceState(target, "", getRouteHash(route));
+        } else {
+          setIgnorePopstateTarget(route);
+          window.history.go(-(curDepth - target.depth));
+        }
+      } catch {}
+    }
+
+    function showEventEntryView(allowCancel, options = {}) {
+      if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       isSwitchingEvent = true;
       applyBrandingUI();
       applyAdminAccessUI();
@@ -2444,6 +2603,7 @@
       document.getElementById("event-entry-cancel-btn").classList.toggle("hidden", !allowCancel);
       const input = document.getElementById("event-code-input");
       input.value = activeEventCode || "";
+      syncHistoryForRoute("welcome", options);
       setTimeout(() => input.focus(), 30);
     }
 
@@ -2475,7 +2635,9 @@
       initJudgeSession();
       window.refreshAllSelects();
       applyAdminAccessUI();
-      window.switchView(targetView);
+      window.switchView(targetView, {
+        ensureJudgeBase: targetView === "tabulation" || targetView === "admin"
+      });
 
       if (currentUser) {
         attachListeners();
@@ -2570,7 +2732,7 @@
     };
 
     window.openEventSwitcher = () => {
-      if (isStageTvMode) window.exitStageTvMode(false);
+      if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
       showEventEntryView(Boolean(activeEventCode));
     };
@@ -2627,7 +2789,7 @@
     };
 
     window.lockAdminSession = () => {
-      if (isStageTvMode) window.exitStageTvMode(false);
+      if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
       isAdminUnlocked = false;
       isMasterAdmin = false;
@@ -2649,11 +2811,7 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         if (isStageTvMode) window.exitStageTvMode();
-        window.closePinModal();
-        window.closeClearModal();
-        window.closeExtendExpiryModal();
-        window.closeSetEventPinModal();
-        window.closeDeleteEventModal();
+        closeAllModals();
       }
     });
 
@@ -2666,21 +2824,116 @@
       }
     });
 
-    window.switchView = (view) => {
+    // Re-arm welcome exit guard on user interaction if user stayed on Welcome after first back prompt
+    const ensureWelcomeGuardOnInteraction = () => {
+      if (
+        getCurrentLogicalRoute() === "welcome" &&
+        window.history.state?.appRoute === "exit-guard" &&
+        !lastBackExitPromptAt
+      ) {
+        rearmWelcomeExitGuard();
+      }
+    };
+    document.addEventListener("pointerdown", ensureWelcomeGuardOnInteraction, { passive: true });
+    document.addEventListener("keydown", ensureWelcomeGuardOnInteraction, { passive: true });
+
+    window.addEventListener("popstate", (event) => {
+      const targetState = event.state;
+      const targetRoute = targetState?.appRoute || "";
+      const currentRoute = getCurrentLogicalRoute();
+
+      if (
+        ignorePopstateState &&
+        Date.now() <= ignorePopstateState.expiresAt &&
+        targetRoute === ignorePopstateState.route
+      ) {
+        ignorePopstateState = null;
+        return;
+      }
+      ignorePopstateState = null;
+
+      // Dismiss any open modal first without leaving the active view
+      if (hasAnyOpenModal()) {
+        closeAllModals();
+        syncHistoryForRoute(currentRoute);
+        return;
+      }
+
+      // Already on initial "Enter Festival Code" screen -> double-back confirmation before exit
+      if (currentRoute === "welcome") {
+        const now = Date.now();
+        if (lastBackExitPromptAt && (now - lastBackExitPromptAt) <= BACK_EXIT_CONFIRM_WINDOW_MS) {
+          clearBackExitPrompt();
+          if (targetRoute && targetRoute !== "exit-guard") {
+            try { window.history.go(-(targetState?.depth || 1)); } catch {}
+          }
+          return;
+        }
+        lastBackExitPromptAt = now;
+        window.showToast("Press back again to exit the app");
+        if (backExitRearmTimer) clearTimeout(backExitRearmTimer);
+        backExitRearmTimer = setTimeout(() => {
+          rearmWelcomeExitGuard();
+        }, BACK_EXIT_CONFIRM_WINDOW_MS + 100);
+        return;
+      }
+
+      // Stage / TV Mode -> Exit TV Mode and return to Live Tabulation
+      if (currentRoute === "tv-mode" || isStageTvMode) {
+        window.exitStageTvMode(true, { fromPopstate: true });
+        if (targetRoute !== "tabulation") {
+          try { window.history.replaceState(buildRouteHistoryPayload("tabulation"), "", "#tabulation"); } catch {}
+        }
+        return;
+      }
+
+      // Admin Panel or Live Tabulation -> Return to Judge Portal (or Welcome if Master Setup with no active event)
+      if (currentRoute === "admin" || currentRoute === "tabulation") {
+        if (activeEventCode && !isSwitchingEvent) {
+          window.switchView("judge", { fromPopstate: true });
+          if (targetRoute !== "judge") {
+            try { window.history.replaceState(buildRouteHistoryPayload("judge"), "", "#judge"); } catch {}
+          }
+        } else {
+          isAdminUnlocked = false;
+          isMasterAdmin = false;
+          showEventEntryView(false, { fromPopstate: true });
+          if (targetRoute !== "welcome") {
+            try { window.history.replaceState(buildRouteHistoryPayload("welcome"), "", "#welcome"); } catch {}
+          }
+        }
+        return;
+      }
+
+      // Judge Portal -> Navigate back to initial "Enter Festival Code" screen
+      if (currentRoute === "judge") {
+        stopAutoRotateTimer(true);
+        showEventEntryView(Boolean(activeEventCode), { fromPopstate: true });
+        if (targetRoute !== "welcome") {
+          try { window.history.replaceState(buildRouteHistoryPayload("welcome"), "", "#welcome"); } catch {}
+        }
+      }
+    });
+
+    window.switchView = (view, options = {}) => {
       if (!isAdminUnlocked && (!activeEventCode || isSwitchingEvent || view !== "judge")) return;
       if (!activeEventCode && view !== "admin") return;
 
+      isSwitchingEvent = false;
       if (view !== "tabulation" && isStageTvMode) {
-        window.exitStageTvMode(false);
+        window.exitStageTvMode(true, { skipHistorySync: true });
       }
       document.getElementById("view-event-entry").classList.add("hidden");
       ["judge", "tabulation", "admin"].forEach(v => {
         document.getElementById("view-" + v).classList.toggle("hidden", v !== view);
       });
+      applyBrandingUI();
+      applyAdminAccessUI();
       updateNavHighlights(view);
       if (view === "tabulation") {
         window.renderTabulation();
       }
+      syncHistoryForRoute(view, options);
     };
 
     function updateNavHighlights(activeView) {
@@ -3902,6 +4155,7 @@
       isStageTvMode = true;
       applyStageTvModeUI();
       window.renderTabulation();
+      syncHistoryForRoute("tv-mode");
       try {
         if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
           Promise.resolve(document.documentElement.requestFullscreen())
@@ -3913,11 +4167,12 @@
       }
     };
 
-    window.exitStageTvMode = (exitBrowserFullscreen = true) => {
+    window.exitStageTvMode = (exitBrowserFullscreen = true, options = {}) => {
       isStageTvMode = false;
       didEnterBrowserFullscreen = false;
       applyStageTvModeUI();
       window.renderTabulation();
+      syncHistoryForRoute("tabulation", options);
       if (exitBrowserFullscreen) {
         try {
           if (document.fullscreenElement && document.exitFullscreen) {
@@ -6645,9 +6900,10 @@
       }
     };
 
-    // Boot: Restore judge sound preference and open on the "Enter Festival Code" screen
+    // Boot: Restore judge sound preference, initialize History navigation, and open on "Enter Festival Code" screen
     loadJudgeSoundPreference();
-    showEventEntryView(false);
+    initAppHistory();
+    showEventEntryView(false, { skipHistorySync: true });
   </script>
 </body>
 </html>
