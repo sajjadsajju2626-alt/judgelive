@@ -31,6 +31,12 @@
           "pattern": "^[a-zA-Z0-9_\\-]+$",
           "description": "Per-event Admin PIN assigned to unlock the campus Admin Panel."
         },
+        "activeItemId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64,
+          "description": "Competition item ID currently pushed live to all connected Judge Portal screens."
+        },
         "chartType": {
           "type": "string",
           "enum": ["bar", "horizontal", "doughnut"],
@@ -75,7 +81,7 @@
     },
     "EventConfig": {
       "title": "EventConfig",
-      "description": "Isolated campus or festival configuration including display title, subtitle, and custom event admin PIN stored at events/{festivalCode}/settings/config.",
+      "description": "Isolated campus or festival configuration including display title, subtitle, active live item, and custom event admin PIN stored at events/{festivalCode}/settings/config.",
       "type": "object",
       "properties": {
         "id": {
@@ -109,6 +115,12 @@
           "maxLength": 16,
           "pattern": "^[a-zA-Z0-9_\\-]+$",
           "description": "Custom event-specific Admin PIN for unlocking the campus Admin Panel."
+        },
+        "activeItemId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64,
+          "description": "Competition item ID currently live on stage and synced to Judge Portal devices."
         },
         "chartType": {
           "type": "string",
@@ -156,6 +168,73 @@
         }
       },
       "required": ["id", "eventCode", "title", "subtitle", "adminPin", "createdAt", "updatedAt"]
+    },
+    "JudgeSlotConfig": {
+      "title": "JudgeSlotConfig",
+      "description": "Assigned official judge name and 4-digit access PIN for a single judge slot (J1, J2, or J3).",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Admin-configured official judge display name."
+        },
+        "pin": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 4,
+          "pattern": "^\\d{4}$",
+          "description": "4-digit PIN required to unlock this judge slot on Judge Portal devices."
+        }
+      },
+      "required": ["name", "pin"]
+    },
+    "JudgePanelSettings": {
+      "title": "JudgePanelSettings",
+      "description": "PIN-protected judge panel assignments (J1, J2, J3) stored at events/{festivalCode}/settings/judges.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^judges$",
+          "description": "Fixed document identifier ('judges')."
+        },
+        "eventCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9_\\-]+$",
+          "description": "Normalized uppercase event/campus code."
+        },
+        "J1": {
+          "type": "object",
+          "$ref": "#/entities/JudgeSlotConfig",
+          "description": "Judge 1 slot configuration."
+        },
+        "J2": {
+          "type": "object",
+          "$ref": "#/entities/JudgeSlotConfig",
+          "description": "Judge 2 slot configuration."
+        },
+        "J3": {
+          "type": "object",
+          "$ref": "#/entities/JudgeSlotConfig",
+          "description": "Judge 3 slot configuration."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Optional device or creator identifier."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest judge panel update."
+        }
+      },
+      "required": ["id", "eventCode", "J1", "J2", "J3", "updatedAt"]
     },
     "Group": {
       "title": "Group",
@@ -417,7 +496,7 @@
     },
     "/events/{festivalCode}/settings/{settingId}": {
       "schema": { "$ref": "#/entities/EventConfig" },
-      "description": "Stores isolated institution config (title, subtitle, adminPin, chartType, grading rules, license) for a specific festivalCode."
+      "description": "Stores isolated institution config (settingId='config': title, subtitle, adminPin, activeItemId, chartType, grading rules, license) and Judge Panel PIN configuration (settingId='judges') for a specific festivalCode."
     },
     "/events/{festivalCode}/groups/{groupId}": {
       "schema": { "$ref": "#/entities/Group" },

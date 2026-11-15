@@ -335,7 +335,7 @@ export function validateScoreInput(input: {
     { label: 'Overall Presentation (അവതരണം)', val: input.overall },
   ];
   for (const c of criteria) {
-    if (Number.isNaN(c.val) || c.val < 0 || c.val > 25) {
+    if (!Number.isFinite(c.val) || c.val < 0 || c.val > 25) {
       return {
         valid: false,
         error: `${c.label} must be between 0 and 25 marks.`,

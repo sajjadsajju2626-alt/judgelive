@@ -31,6 +31,7 @@ function evaluateCampusRegistryWrite(
   const allowedKeys = [
     ...reqKeys,
     'subtitle',
+    'activeItemId',
     'chartType',
     'gradeA',
     'gradeB',
@@ -55,6 +56,9 @@ function evaluateCampusRegistryWrite(
     incoming.adminPin.length > 16 ||
     !/^[a-zA-Z0-9_\-]+$/.test(incoming.adminPin)
   ) {
+    return 'PERMISSION_DENIED';
+  }
+  if ('activeItemId' in incoming && (typeof incoming.activeItemId !== 'string' || incoming.activeItemId.length > 64)) {
     return 'PERMISSION_DENIED';
   }
   if (typeof incoming.isActive !== 'boolean') return 'PERMISSION_DENIED';
@@ -117,6 +121,13 @@ test('CampusRegistry allows valid cross-device registration, PIN assignment, and
     }),
     'ALLOW'
   );
+});
+
+test('CampusRegistry validates optional activeItemId string bounds', () => {
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 'item_1' }), 'ALLOW');
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: '' }), 'ALLOW');
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 'x'.repeat(65) }), 'PERMISSION_DENIED');
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 123 }), 'PERMISSION_DENIED');
 });
 
 test('CampusRegistry rejects lowercase codes, mismatched festivalCode, shadow fields, and short PINs', () => {

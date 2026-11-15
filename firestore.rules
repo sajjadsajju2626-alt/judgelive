@@ -24,7 +24,7 @@ service cloud.firestore {
       return data.keys().hasAll(['festivalCode', 'title', 'adminPin', 'isActive', 'expiresAt']) &&
         data.keys().hasOnly([
           'festivalCode', 'title', 'subtitle', 'adminPin',
-          'chartType', 'gradeA', 'gradeB', 'gradeC',
+          'activeItemId', 'chartType', 'gradeA', 'gradeB', 'gradeC',
           'isActive', 'expiresAt', 'createdAt', 'updatedAt'
         ]) &&
         data.festivalCode is string &&
@@ -39,6 +39,7 @@ service cloud.firestore {
         data.adminPin.size() >= 4 &&
         data.adminPin.size() <= 16 &&
         data.adminPin.matches('^[a-zA-Z0-9_\\-]+$') &&
+        (!('activeItemId' in data) || (data.activeItemId is string && data.activeItemId.size() <= 64)) &&
         data.isActive is bool &&
         data.expiresAt is string &&
         data.expiresAt.size() == 10 &&
