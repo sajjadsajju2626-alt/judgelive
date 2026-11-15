@@ -241,5 +241,23 @@ test('normalizeItemCategory preserves junior, senior, sub-junior, hs, hss, and c
   assert.equal(normalizeItemCategory(''), 'General');
   assert.equal(normalizeItemCategory('upper primary'), 'Upper Primary');
   assert.equal(normalizeItemCategory('SUPER-SENIOR boys'), 'Super-Senior Boys');
+
+  const noSchoolOk = validateParticipantInput(
+    { itemId: 'item1', chestNo: '103', name: 'Muhammed Falah', school: '' },
+    [],
+    [
+      {
+        id: 'item1',
+        name: 'Arabic Song',
+        malayalamName: '',
+        category: 'Junior',
+        stage: 'Stage 1',
+        maxMarks: 100,
+        authorId: 'u1',
+        createdAt: '2026-11-12T00:00:00Z',
+      },
+    ]
+  );
+  assert.equal(noSchoolOk.valid, true);
 });
 

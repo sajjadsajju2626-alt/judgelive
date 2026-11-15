@@ -1157,8 +1157,8 @@
             </div>
           </div>
           <div>
-            <label for="admin-part-school" class="block text-xs font-semibold text-stone-700 mb-1">School / Institution</label>
-            <input id="admin-part-school" type="text" required placeholder="GHSS Kozhikode" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <label for="admin-part-school" class="block text-xs font-semibold text-stone-700 mb-1">School / Institution <span class="font-normal text-stone-400">(Optional)</span></label>
+            <input id="admin-part-school" type="text" placeholder="Optional for intra-campus / house events" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
           <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Register Participant</button>
         </form>
@@ -1206,7 +1206,7 @@
         </div>
 
         <div id="csv-format-hint" class="text-xs text-stone-600 bg-stone-50 border border-stone-200 rounded-lg px-3.5 py-2.5">
-          Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name, School</span> (optional: <span class="font-medium text-stone-800">Group, Category, Stage, Malayalam Name</span>).
+          Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name</span> (optional: <span class="font-medium text-stone-800">Group, Category, School, Stage, Malayalam Name</span>).
         </div>
 
         <label id="csv-auto-create-wrap" class="inline-flex items-center gap-2 text-xs font-medium text-stone-700 cursor-pointer select-none">
@@ -4251,7 +4251,11 @@
           if (metaRow) {
             metaRow.className = `flex flex-wrap items-center gap-x-2 gap-y-0.5 ${dark ? "text-xs sm:text-sm text-stone-400" : "text-xs text-stone-500"}`;
           }
-          tr.querySelector('[data-col="school"]').textContent = r.p.school;
+          const schoolEl = tr.querySelector('[data-col="school"]');
+          if (schoolEl) {
+            schoolEl.textContent = r.p.school || "";
+            schoolEl.classList.toggle("hidden", !r.p.school);
+          }
 
           const grpWrap = tr.querySelector('[data-col="group"]');
           grpWrap.className = `${groupLabel ? "inline-flex" : "hidden"} items-center gap-1 font-semibold ${dark ? "text-stone-200" : "text-stone-700"}`;
@@ -4495,7 +4499,7 @@
                   <span class="tabular-nums text-amber-800">#${escapeHtml(p.chestNo)}</span> — ${escapeHtml(p.name)}
                 </div>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
-                  <span class="truncate">${escapeHtml(item ? item.name : "Event")} · ${escapeHtml(p.school)}</span>
+                  <span class="truncate">${escapeHtml(item ? item.name : "Event")}${p.school ? " · " + escapeHtml(p.school) : ""}</span>
                   ${groupLabel ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700 shrink-0"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(groupColor)}"></span>${escapeHtml(groupLabel)}</span>` : ""}
                 </div>
               </div>
@@ -5630,6 +5634,14 @@
       return result;
     }
 
+    function normalizeCsvLookupKey(raw) {
+      return String(raw || "")
+        .normalize("NFC")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+    }
+
     function sanitizeChestNo(raw) {
       return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 20);
     }
@@ -5663,7 +5675,7 @@
       if (hintEl) {
         hintEl.innerHTML = mode === "items"
           ? `Expected columns: <span class="font-semibold text-stone-900">Item Name, Malayalam Name, Category, Stage</span> (supports Junior, Senior, Sub-Junior, HS, HSS, High School, Higher Secondary, General, or custom categories; blank defaults to General).`
-          : `Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name, School</span> (optional: <span class="font-medium text-stone-800">Group, Category, Stage, Malayalam Name</span>).`;
+          : `Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name</span> (optional: <span class="font-medium text-stone-800">Group, Category, School, Stage, Malayalam Name</span>).`;
       }
       if (autoWrap) {
         autoWrap.classList.toggle("hidden", mode === "items");
@@ -5683,10 +5695,10 @@
             "Mappilappattu,മാപ്പിളപ്പാട്ട്,Senior,Stage 3 — Kabani"
           ].join("\n")
         : [
-            "Item Name,Chest No,Participant Name,School,Group,Category,Stage",
-            "Bharatanatyam,101,Meenakshi S. Nair,\"Providence Girls HSS, Kozhikode\",Red House,High School,Stage 1 — Nila",
-            "Bharatanatyam,102,Devika R. Menon,\"Sacred Heart CGHSS, Thrissur\",Blue House,High School,Stage 1 — Nila",
-            "Mohiniyattam,201,Parvathy Warrier,\"St. Teresa's CGHSS, Ernakulam\",Green House,Higher Secondary,Stage 2 — Periyar"
+            "Item Name,Chest No,Participant Name,Group,Category,School,Stage",
+            "Bharatanatyam,101,Meenakshi S. Nair,Red House,High School,\"Providence Girls HSS, Kozhikode\",Stage 1 — Nila",
+            "Arabic Song,102,Muhammed Nihal,فلاح,Junior,,Stage 2 — Periyar",
+            "Malayalam Song,201,Fathima Zoya,نجاح,Senior,,Stage 3 — Kabani"
           ].join("\n");
       const blob = new Blob(["\uFEFF" + content], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -5836,17 +5848,17 @@
         const stageIdx = findColIndex(headers, ["stage", "venue"]);
         const mlIdx = findColIndex(headers, ["malayalamname", "malayalam", "mlname"]);
 
-        if (itemIdx === -1 || chestIdx === -1 || nameIdx === -1 || schoolIdx === -1) {
+        if (itemIdx === -1 || chestIdx === -1 || nameIdx === -1) {
           previewBox?.classList.add("hidden");
-          showCsvError('CSV header must include "Item Name", "Chest No", "Participant Name", and "School" columns.');
+          showCsvError('CSV header must include "Item Name", "Chest No", and "Participant Name" columns.');
           return;
         }
 
         const itemLookup = new Map();
         (window.state.items || []).forEach(it => {
-          itemLookup.set(it.id.toLowerCase(), it);
-          const normName = it.name.trim().toLowerCase();
-          const normCat = String(it.category || "General").trim().toLowerCase();
+          itemLookup.set(normalizeCsvLookupKey(it.id), it);
+          const normName = normalizeCsvLookupKey(it.name);
+          const normCat = normalizeCsvLookupKey(it.category || "General");
           if (!itemLookup.has(normName)) itemLookup.set(normName, it);
           itemLookup.set(`${normName}__${normCat}`, it);
         });
@@ -5854,8 +5866,8 @@
         const groupLookup = new Map();
         const combinedGroups = [...(window.state.groups || [])];
         combinedGroups.forEach(g => {
-          groupLookup.set(g.id.toLowerCase(), g);
-          groupLookup.set(g.name.trim().toLowerCase(), g);
+          groupLookup.set(normalizeCsvLookupKey(g.id), g);
+          groupLookup.set(normalizeCsvLookupKey(g.name), g);
         });
 
         const existingChestByItem = new Set(
@@ -5864,24 +5876,26 @@
 
         rows.slice(1).forEach((cols, rIdx) => {
           const lineNum = rIdx + 2;
-          const rawItem = String(cols[itemIdx] || "").trim().slice(0, 120);
+          const rawItem = String(cols[itemIdx] || "").normalize("NFC").trim().replace(/\s+/g, " ").slice(0, 120);
           const chestNo = sanitizeChestNo(cols[chestIdx]);
-          const partName = String(cols[nameIdx] || "").trim().slice(0, 120);
-          const school = String(cols[schoolIdx] || "").trim().slice(0, 160);
-          const rawGroup = groupIdx !== -1 ? String(cols[groupIdx] || "").trim().slice(0, 80) : "";
+          const partName = String(cols[nameIdx] || "").normalize("NFC").trim().replace(/\s+/g, " ").slice(0, 120);
+          const school = schoolIdx !== -1 ? String(cols[schoolIdx] || "").normalize("NFC").trim().slice(0, 160) : "";
+          const rawGroup = groupIdx !== -1 ? String(cols[groupIdx] || "").normalize("NFC").trim().replace(/\s+/g, " ").slice(0, 80) : "";
 
-          if (!rawItem || !chestNo || !partName || !school) {
-            warnings.push(`Row ${lineNum}: Missing Item, valid Chest No (A-Z/0-9/-), Name, or School — skipped.`);
+          if (!rawItem || !chestNo || !partName) {
+            warnings.push(`Row ${lineNum}: Missing Item Name, valid Chest No (A-Z/0-9/-), or Participant Name — skipped.`);
             return;
           }
 
-          const rawRowCat = catIdx !== -1 ? String(cols[catIdx] || "").trim() : "";
+          const rawItemKey = normalizeCsvLookupKey(rawItem);
+          const rawRowCat = catIdx !== -1 ? String(cols[catIdx] || "").normalize("NFC").trim() : "";
           const rowCat = rawRowCat ? normalizeItemCategory(rawRowCat) : "";
-          let itemObj = rowCat
-            ? (itemLookup.get(`${rawItem.toLowerCase()}__${rowCat.toLowerCase()}`) || itemLookup.get(rawItem.toLowerCase()))
-            : itemLookup.get(rawItem.toLowerCase());
-          if (itemObj && rowCat && String(itemObj.category || "").trim().toLowerCase() !== rowCat.toLowerCase()) {
-            const exactCatMatch = itemLookup.get(`${rawItem.toLowerCase()}__${rowCat.toLowerCase()}`);
+          const rowCatKey = rowCat ? normalizeCsvLookupKey(rowCat) : "";
+          let itemObj = rowCatKey
+            ? (itemLookup.get(`${rawItemKey}__${rowCatKey}`) || itemLookup.get(rawItemKey))
+            : itemLookup.get(rawItemKey);
+          if (itemObj && rowCatKey && normalizeCsvLookupKey(itemObj.category || "General") !== rowCatKey) {
+            const exactCatMatch = itemLookup.get(`${rawItemKey}__${rowCatKey}`);
             itemObj = exactCatMatch || null;
           }
           if (!itemObj) {
@@ -5890,8 +5904,8 @@
               return;
             }
             const category = rowCat || "General";
-            const stage = (stageIdx !== -1 ? String(cols[stageIdx] || "").trim() : "") || "Stage 1 — Nila";
-            const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").trim().slice(0, 120) : "";
+            const stage = (stageIdx !== -1 ? String(cols[stageIdx] || "").normalize("NFC").trim() : "") || "Stage 1 — Nila";
+            const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").normalize("NFC").trim().slice(0, 120) : "";
             itemObj = {
               id: `item_csv_${baseTs}_${itemsToCreate.length}`,
               name: rawItem,
@@ -5901,9 +5915,11 @@
               criteria: normalizeCriteriaArray(null, rawItem, malayalamName)
             };
             itemsToCreate.push(itemObj);
-            itemLookup.set(itemObj.id.toLowerCase(), itemObj);
-            if (!itemLookup.has(itemObj.name.toLowerCase())) itemLookup.set(itemObj.name.toLowerCase(), itemObj);
-            itemLookup.set(`${itemObj.name.toLowerCase()}__${category.toLowerCase()}`, itemObj);
+            itemLookup.set(normalizeCsvLookupKey(itemObj.id), itemObj);
+            const createdNameKey = normalizeCsvLookupKey(itemObj.name);
+            const createdCatKey = normalizeCsvLookupKey(category);
+            if (!itemLookup.has(createdNameKey)) itemLookup.set(createdNameKey, itemObj);
+            itemLookup.set(`${createdNameKey}__${createdCatKey}`, itemObj);
           }
 
           const chestKey = `${itemObj.id}__${chestNo}`;
@@ -5916,7 +5932,8 @@
           let groupId = "";
           let groupName = "";
           if (rawGroup) {
-            let grpObj = groupLookup.get(rawGroup.toLowerCase());
+            const rawGroupKey = normalizeCsvLookupKey(rawGroup);
+            let grpObj = groupLookup.get(rawGroupKey);
             if (!grpObj && autoCreate) {
               grpObj = {
                 id: `grp_csv_${baseTs}_${groupsToCreate.length}`,
@@ -5925,8 +5942,8 @@
               };
               groupsToCreate.push(grpObj);
               combinedGroups.push(grpObj);
-              groupLookup.set(grpObj.id.toLowerCase(), grpObj);
-              groupLookup.set(grpObj.name.toLowerCase(), grpObj);
+              groupLookup.set(normalizeCsvLookupKey(grpObj.id), grpObj);
+              groupLookup.set(normalizeCsvLookupKey(grpObj.name), grpObj);
             }
             if (grpObj) {
               groupId = grpObj.id;
@@ -5940,6 +5957,7 @@
             id: `part_csv_${baseTs}_${participantsToCreate.length}`,
             itemId: itemObj.id,
             itemName: itemObj.name,
+            itemCategory: itemObj.category,
             chestNo,
             name: partName,
             school,
@@ -5952,9 +5970,9 @@
         previewBody.innerHTML = participantsToCreate.slice(0, 8).map(p => `
           <tr>
             <td class="py-2 px-3 font-bold tabular-nums text-amber-800">#${escapeHtml(p.chestNo)}</td>
-            <td class="py-2 px-3 font-medium text-stone-800">${escapeHtml(p.itemName)}</td>
+            <td class="py-2 px-3 font-medium text-stone-800">${escapeHtml(p.itemName)} <span class="text-stone-500 font-normal">(${escapeHtml(p.itemCategory)})</span></td>
             <td class="py-2 px-3 font-semibold text-stone-900">${escapeHtml(p.name)}</td>
-            <td class="py-2 px-3 text-stone-600">${escapeHtml(p.school)}</td>
+            <td class="py-2 px-3 text-stone-600">${escapeHtml(p.school || "—")}</td>
             <td class="py-2 px-3 text-stone-700">${escapeHtml(p.groupName || "Unassigned")}</td>
           </tr>
         `).join("") || `<tr><td colspan="5" class="py-4 px-3 text-center text-stone-500">No new participants to import.</td></tr>`;
@@ -6006,7 +6024,7 @@
         submitBtn.textContent = "Importing...";
       }
 
-      const cleanParticipants = participantsToCreate.map(({ itemName, ...rest }) => rest);
+      const cleanParticipants = participantsToCreate.map(({ itemName, itemCategory, ...rest }) => rest);
 
       // Update local state immediately scoped to activeEventCode
       window.state.groups = [...(window.state.groups || []), ...groupsToCreate];

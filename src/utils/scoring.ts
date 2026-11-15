@@ -298,10 +298,10 @@ export function validateParticipantInput(
       error: 'Participant name is required and must be under 120 characters.',
     };
   }
-  if (school.length < 1 || school.length > 160) {
+  if (school.length > 160) {
     return {
       valid: false,
-      error: 'School / Institution name is required and must be under 160 characters.',
+      error: 'School / Institution name must be under 160 characters.',
     };
   }
   return { valid: true, normalizedChestNo };
