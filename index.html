@@ -1588,7 +1588,10 @@
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import {
-      getFirestore,
+      initializeFirestore,
+      persistentLocalCache,
+      persistentMultipleTabManager,
+      memoryLocalCache,
       collection,
       query,
       where,
@@ -1602,24 +1605,51 @@
       deleteDoc,
       writeBatch,
       onSnapshot,
-      enableIndexedDbPersistence,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // Exact Embedded Firebase Configuration (judgelive-7a621)
+    // Firebase Configuration synced with firebase-applet-config.json (judgelive-7a621)
     const firebaseConfig = {
       apiKey: "AIzaSyCkJuoYBM0JpCygr7ippauAr1vta_EHHOs",
       authDomain: "judgelive-7a621.firebaseapp.com",
       projectId: "judgelive-7a621",
       storageBucket: "judgelive-7a621.firebasestorage.app",
       messagingSenderId: "33980204166",
-      appId: "1:33980204166:web:5fd31578977729d5337d07",
-      measurementId: "G-4FGPKBC4EM"
+      appId: "1:33980204166:web:9d23f8ccceda4a74337d07"
     };
+    const FIRESTORE_DATABASE_ID = "ai-studio-0c89871c-a58f-46bc-9586-a86ffacd8fa2";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app, "ai-studio-0c89871c-a58f-46bc-9586-a86ffacd8fa2");
+    let db;
+    const persistenceStatusEl = document.getElementById("persistence-status");
+    try {
+      db = initializeFirestore(
+        app,
+        {
+          experimentalForceLongPolling: true,
+          localCache: persistentLocalCache({
+            tabManager: persistentMultipleTabManager()
+          })
+        },
+        FIRESTORE_DATABASE_ID
+      );
+      if (persistenceStatusEl) {
+        persistenceStatusEl.textContent = "Offline Persistence Enabled (IndexedDB)";
+      }
+    } catch (err) {
+      db = initializeFirestore(
+        app,
+        {
+          experimentalForceLongPolling: true,
+          localCache: memoryLocalCache()
+        },
+        FIRESTORE_DATABASE_ID
+      );
+      if (persistenceStatusEl) {
+        persistenceStatusEl.textContent = "Persistence Mode: " + (err?.code || "Memory");
+      }
+    }
     const CAMPUS_REGISTRY_COLLECTION = "campus_registry";
 
     let currentUser = null;
@@ -1645,18 +1675,24 @@
       console.error("Firestore Error:", JSON.stringify(errInfo));
     }
 
-    enableIndexedDbPersistence(db).then(() => {
-      document.getElementById("persistence-status").textContent = "Offline Persistence Enabled (IndexedDB)";
-    }).catch((err) => {
-      document.getElementById("persistence-status").textContent = "Persistence Mode: " + (err.code || "Local");
-    });
-
     async function testConnection() {
-      try {
-        await getDocFromServer(doc(db, "test", "connection"));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes("the client is offline")) {
-          console.error("Please check your Firebase configuration.");
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        return;
+      }
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await getDocFromServer(doc(db, "test", "connection"));
+          return;
+        } catch (error) {
+          const isOfflineErr = error instanceof Error && error.message.includes("the client is offline");
+          if (isOfflineErr && attempt === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            continue;
+          }
+          if (isOfflineErr && (typeof navigator === "undefined" || navigator.onLine !== false)) {
+            console.error("Please check your Firebase configuration.");
+          }
+          return;
         }
       }
     }

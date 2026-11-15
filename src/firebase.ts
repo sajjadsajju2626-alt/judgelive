@@ -2,32 +2,24 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import {
   doc,
-  enableIndexedDbPersistence,
   getDocFromServer,
-  getFirestore,
+  initializeFirestore,
+  memoryLocalCache,
+  persistentLocalCache,
+  persistentMultipleTabManager,
 } from 'firebase/firestore';
 import appletConfig from '../firebase-applet-config.json';
 
-// Exact user-provided Firebase configuration embedded directly into the code:
 export const firebaseConfig = {
-  apiKey: 'AIzaSyCkJuoYBM0JpCygr7ippauAr1vta_EHHOs',
-  authDomain: 'judgelive-7a621.firebaseapp.com',
-  projectId: 'judgelive-7a621',
-  storageBucket: 'judgelive-7a621.firebasestorage.app',
-  messagingSenderId: '33980204166',
-  appId: '1:33980204166:web:5fd31578977729d5337d07',
-  measurementId: 'G-4FGPKBC4EM',
+  apiKey: appletConfig.apiKey,
+  authDomain: appletConfig.authDomain,
+  projectId: appletConfig.projectId,
+  storageBucket: appletConfig.storageBucket,
+  messagingSenderId: appletConfig.messagingSenderId,
+  appId: appletConfig.appId,
 };
 
-const app = initializeApp({
-  ...appletConfig,
-  ...firebaseConfig,
-});
-
-// Initialize Firestore with the provisioned database ID from firebase-applet-config.json
-export const db = getFirestore(app, appletConfig.firestoreDatabaseId);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+const app = initializeApp(appletConfig);
 
 export type PersistenceStatus = 'initializing' | 'enabled' | 'multi-tab' | 'unsupported';
 
@@ -51,26 +43,58 @@ function updatePersistenceStatus(status: PersistenceStatus) {
   persistenceListeners.forEach((cb) => cb(status));
 }
 
-// Enable offline IndexedDB persistence so judges can input marks seamlessly even if network drops temporarily
-enableIndexedDbPersistence(db)
-  .then(() => {
+function createFirestoreClient() {
+  try {
+    const instance = initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      },
+      appletConfig.firestoreDatabaseId
+    );
     updatePersistenceStatus('enabled');
-  })
-  .catch((err: { code?: string }) => {
-    if (err?.code === 'failed-precondition') {
-      updatePersistenceStatus('multi-tab');
-    } else {
-      updatePersistenceStatus('unsupported');
-    }
-  });
+    return instance;
+  } catch {
+    updatePersistenceStatus('unsupported');
+    return initializeFirestore(
+      app,
+      {
+        experimentalForceLongPolling: true,
+        localCache: memoryLocalCache(),
+      },
+      appletConfig.firestoreDatabaseId
+    );
+  }
+}
+
+// Initialize Firestore with the provisioned database ID from firebase-applet-config.json
+export const db = createFirestoreClient();
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 
 // Validate connection to Firestore on boot per firebase-integration-rpc
 async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error('Please check your Firebase configuration.');
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return;
+  }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await getDocFromServer(doc(db, 'test', 'connection'));
+      return;
+    } catch (error) {
+      const isOfflineErr =
+        error instanceof Error && error.message.includes('the client is offline');
+      if (isOfflineErr && attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        continue;
+      }
+      if (isOfflineErr && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
+        console.error('Please check your Firebase configuration.');
+      }
+      return;
     }
   }
 }

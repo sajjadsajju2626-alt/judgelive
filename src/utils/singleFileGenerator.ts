@@ -241,7 +241,7 @@ export const SINGLE_FILE_HTML_SOURCE = `<!DOCTYPE html>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import {
-      getFirestore,
+      initializeFirestore,
       collection,
       doc,
       setDoc,
@@ -250,19 +250,22 @@ export const SINGLE_FILE_HTML_SOURCE = `<!DOCTYPE html>
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // Exact Embedded Firebase Configuration
+    // Firebase Configuration synced with firebase-applet-config.json
     const firebaseConfig = {
       apiKey: "AIzaSyCkJuoYBM0JpCygr7ippauAr1vta_EHHOs",
       authDomain: "judgelive-7a621.firebaseapp.com",
       projectId: "judgelive-7a621",
       storageBucket: "judgelive-7a621.firebasestorage.app",
       messagingSenderId: "33980204166",
-      appId: "1:33980204166:web:5fd31578977729d5337d07",
-      measurementId: "G-4FGPKBC4EM"
+      appId: "1:33980204166:web:9d23f8ccceda4a74337d07"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = initializeFirestore(
+      app,
+      { experimentalForceLongPolling: true },
+      "ai-studio-0c89871c-a58f-46bc-9586-a86ffacd8fa2"
+    );
 
     enableIndexedDbPersistence(db).then(() => {
       document.getElementById("persistence-status").textContent = "Offline Persistence Enabled (IndexedDB)";
