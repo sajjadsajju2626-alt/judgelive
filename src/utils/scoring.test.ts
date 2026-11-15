@@ -261,3 +261,81 @@ test('normalizeItemCategory preserves junior, senior, sub-junior, hs, hss, and c
   assert.equal(noSchoolOk.valid, true);
 });
 
+test('tabulateItemLeaderboard respects 2-judge panel configuration and divides by 2', () => {
+  const participants: Participant[] = [
+    {
+      id: 'p1',
+      itemId: 'item1',
+      chestNo: '101',
+      name: 'Amina',
+      school: '',
+      authorId: 'u1',
+      createdAt: '2026-11-12T00:00:00Z',
+    },
+  ];
+  const scores: JudgeScore[] = [
+    {
+      id: 'item1_p1_J1',
+      itemId: 'item1',
+      participantId: 'p1',
+      chestNo: '101',
+      judgeSlot: 'J1',
+      judgeName: 'Judge 1',
+      rhythm: 22,
+      expression: 22,
+      perfection: 22,
+      overall: 22,
+      total: 88,
+      remarks: '',
+      authorId: 'u1',
+      createdAt: '2026-11-12T00:00:00Z',
+      updatedAt: '2026-11-12T00:00:00Z',
+    },
+    {
+      id: 'item1_p1_J2',
+      itemId: 'item1',
+      participantId: 'p1',
+      chestNo: '101',
+      judgeSlot: 'J2',
+      judgeName: 'Judge 2',
+      rhythm: 20,
+      expression: 20,
+      perfection: 20,
+      overall: 20,
+      total: 80,
+      remarks: '',
+      authorId: 'u1',
+      createdAt: '2026-11-12T00:00:00Z',
+      updatedAt: '2026-11-12T00:00:00Z',
+    },
+    {
+      id: 'item1_p1_J3',
+      itemId: 'item1',
+      participantId: 'p1',
+      chestNo: '101',
+      judgeSlot: 'J3',
+      judgeName: 'Judge 3',
+      rhythm: 15,
+      expression: 15,
+      perfection: 15,
+      overall: 15,
+      total: 60,
+      remarks: '',
+      authorId: 'u1',
+      createdAt: '2026-11-12T00:00:00Z',
+      updatedAt: '2026-11-12T00:00:00Z',
+    },
+  ];
+
+  const twoJudgeRows = tabulateItemLeaderboard('item1', participants, scores, 2);
+  assert.equal(twoJudgeRows[0].judgesCount, 2);
+  assert.equal(twoJudgeRows[0].averageScore, 84);
+  assert.equal(twoJudgeRows[0].grade, 'A');
+  assert.equal(twoJudgeRows[0].scoresByJudge.J3, undefined);
+
+  const threeJudgeRows = tabulateItemLeaderboard('item1', participants, scores, 3);
+  assert.equal(threeJudgeRows[0].judgesCount, 3);
+  assert.equal(threeJudgeRows[0].averageScore, 76);
+  assert.equal(threeJudgeRows[0].grade, 'B');
+});
+

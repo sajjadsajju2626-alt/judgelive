@@ -35,7 +35,17 @@
           "type": "string",
           "minLength": 0,
           "maxLength": 64,
-          "description": "Competition item ID currently pushed live to all connected Judge Portal screens."
+          "description": "Competition item ID currently pushed live to all connected Judge Portal screens (legacy/fallback)."
+        },
+        "judgesCount": {
+          "type": "number",
+          "enum": [2, 3],
+          "description": "Configured number of judges per competition item (2 or 3)."
+        },
+        "stageLiveItems": {
+          "type": "object",
+          "$ref": "#/entities/StageLiveItemsMap",
+          "description": "Per-stage live competition item IDs (Stage 1, Stage 2, Stage 3) synced to Judge Portal devices."
         },
         "chartType": {
           "type": "string",
@@ -120,7 +130,17 @@
           "type": "string",
           "minLength": 0,
           "maxLength": 64,
-          "description": "Competition item ID currently live on stage and synced to Judge Portal devices."
+          "description": "Competition item ID currently live on stage and synced to Judge Portal devices (legacy/fallback)."
+        },
+        "judgesCount": {
+          "type": "number",
+          "enum": [2, 3],
+          "description": "Configured number of judges per competition item (2 or 3)."
+        },
+        "stageLiveItems": {
+          "type": "object",
+          "$ref": "#/entities/StageLiveItemsMap",
+          "description": "Per-stage live competition item IDs (Stage 1, Stage 2, Stage 3) synced to Judge Portal devices."
         },
         "chartType": {
           "type": "string",
@@ -169,9 +189,34 @@
       },
       "required": ["id", "eventCode", "title", "subtitle", "adminPin", "createdAt", "updatedAt"]
     },
+    "StageLiveItemsMap": {
+      "title": "StageLiveItemsMap",
+      "description": "Per-stage active live competition item IDs for Stage 1, Stage 2, and Stage 3.",
+      "type": "object",
+      "properties": {
+        "Stage 1": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64,
+          "description": "Active competition item ID pushed live for Stage 1."
+        },
+        "Stage 2": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64,
+          "description": "Active competition item ID pushed live for Stage 2."
+        },
+        "Stage 3": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 64,
+          "description": "Active competition item ID pushed live for Stage 3."
+        }
+      }
+    },
     "JudgeSlotConfig": {
       "title": "JudgeSlotConfig",
-      "description": "Assigned official judge name and 4-digit access PIN for a single judge slot (J1, J2, or J3).",
+      "description": "Assigned official judge name, 4-digit access PIN, and stage assignment for a single judge slot (J1, J2, or J3).",
       "type": "object",
       "properties": {
         "name": {
@@ -186,6 +231,12 @@
           "maxLength": 4,
           "pattern": "^\\d{4}$",
           "description": "4-digit PIN required to unlock this judge slot on Judge Portal devices."
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["All Stages", "Stage 1", "Stage 2", "Stage 3"],
+          "maxLength": 32,
+          "description": "Assigned stage for this judge (Stage 1, Stage 2, Stage 3, or All Stages)."
         }
       },
       "required": ["name", "pin"]

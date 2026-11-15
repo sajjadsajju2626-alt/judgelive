@@ -24,7 +24,8 @@ service cloud.firestore {
       return data.keys().hasAll(['festivalCode', 'title', 'adminPin', 'isActive', 'expiresAt']) &&
         data.keys().hasOnly([
           'festivalCode', 'title', 'subtitle', 'adminPin',
-          'activeItemId', 'chartType', 'gradeA', 'gradeB', 'gradeC',
+          'activeItemId', 'judgesCount', 'stageLiveItems',
+          'chartType', 'gradeA', 'gradeB', 'gradeC',
           'isActive', 'expiresAt', 'createdAt', 'updatedAt'
         ]) &&
         data.festivalCode is string &&
@@ -40,6 +41,14 @@ service cloud.firestore {
         data.adminPin.size() <= 16 &&
         data.adminPin.matches('^[a-zA-Z0-9_\\-]+$') &&
         (!('activeItemId' in data) || (data.activeItemId is string && data.activeItemId.size() <= 64)) &&
+        (!('judgesCount' in data) || (data.judgesCount is number && (data.judgesCount == 2 || data.judgesCount == 3))) &&
+        (!('stageLiveItems' in data) || (
+          data.stageLiveItems is map &&
+          data.stageLiveItems.keys().hasOnly(['Stage 1', 'Stage 2', 'Stage 3']) &&
+          (!('Stage 1' in data.stageLiveItems) || (data.stageLiveItems['Stage 1'] is string && data.stageLiveItems['Stage 1'].size() <= 64)) &&
+          (!('Stage 2' in data.stageLiveItems) || (data.stageLiveItems['Stage 2'] is string && data.stageLiveItems['Stage 2'].size() <= 64)) &&
+          (!('Stage 3' in data.stageLiveItems) || (data.stageLiveItems['Stage 3'] is string && data.stageLiveItems['Stage 3'].size() <= 64))
+        )) &&
         data.isActive is bool &&
         data.expiresAt is string &&
         data.expiresAt.size() == 10 &&

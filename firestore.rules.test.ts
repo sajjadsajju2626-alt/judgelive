@@ -32,6 +32,8 @@ function evaluateCampusRegistryWrite(
     ...reqKeys,
     'subtitle',
     'activeItemId',
+    'judgesCount',
+    'stageLiveItems',
     'chartType',
     'gradeA',
     'gradeB',
@@ -60,6 +62,25 @@ function evaluateCampusRegistryWrite(
   }
   if ('activeItemId' in incoming && (typeof incoming.activeItemId !== 'string' || incoming.activeItemId.length > 64)) {
     return 'PERMISSION_DENIED';
+  }
+  if ('judgesCount' in incoming && (typeof incoming.judgesCount !== 'number' || (incoming.judgesCount !== 2 && incoming.judgesCount !== 3))) {
+    return 'PERMISSION_DENIED';
+  }
+  if ('stageLiveItems' in incoming) {
+    const map = incoming.stageLiveItems;
+    if (!map || typeof map !== 'object' || Array.isArray(map)) {
+      return 'PERMISSION_DENIED';
+    }
+    const mapKeys = Object.keys(map as Record<string, unknown>);
+    if (!mapKeys.every((k) => ['Stage 1', 'Stage 2', 'Stage 3'].includes(k))) {
+      return 'PERMISSION_DENIED';
+    }
+    for (const k of mapKeys) {
+      const v = (map as Record<string, unknown>)[k];
+      if (typeof v !== 'string' || v.length > 64) {
+        return 'PERMISSION_DENIED';
+      }
+    }
   }
   if (typeof incoming.isActive !== 'boolean') return 'PERMISSION_DENIED';
   if (
@@ -123,11 +144,38 @@ test('CampusRegistry allows valid cross-device registration, PIN assignment, and
   );
 });
 
-test('CampusRegistry validates optional activeItemId string bounds', () => {
+test('CampusRegistry validates optional activeItemId, judgesCount, and stageLiveItems bounds', () => {
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 'item_1' }), 'ALLOW');
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: '' }), 'ALLOW');
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 'x'.repeat(65) }), 'PERMISSION_DENIED');
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 123 }), 'PERMISSION_DENIED');
+
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, judgesCount: 2 }), 'ALLOW');
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, judgesCount: 3 }), 'ALLOW');
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, judgesCount: 4 }), 'PERMISSION_DENIED');
+  assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, judgesCount: '2' }), 'PERMISSION_DENIED');
+
+  assert.equal(
+    evaluateCampusRegistryWrite('AS143', {
+      ...baseValidRegistry,
+      stageLiveItems: { 'Stage 1': 'item_1', 'Stage 2': 'item_2', 'Stage 3': '' },
+    }),
+    'ALLOW'
+  );
+  assert.equal(
+    evaluateCampusRegistryWrite('AS143', {
+      ...baseValidRegistry,
+      stageLiveItems: { 'Stage 4': 'item_4' },
+    }),
+    'PERMISSION_DENIED'
+  );
+  assert.equal(
+    evaluateCampusRegistryWrite('AS143', {
+      ...baseValidRegistry,
+      stageLiveItems: { 'Stage 1': 'x'.repeat(65) },
+    }),
+    'PERMISSION_DENIED'
+  );
 });
 
 test('CampusRegistry rejects lowercase codes, mismatched festivalCode, shadow fields, and short PINs', () => {

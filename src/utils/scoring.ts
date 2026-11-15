@@ -126,23 +126,25 @@ export function formatOrdinalRank(rank: number | null): string {
 export function tabulateItemLeaderboard(
   itemId: string,
   participants: Participant[],
-  scores: JudgeScore[]
+  scores: JudgeScore[],
+  panelJudgesCount: 2 | 3 = 3
 ): TabulatedParticipant[] {
   const itemParticipants = participants.filter((p) => p.itemId === itemId);
   const itemScores = scores.filter((s) => s.itemId === itemId);
+  const allowedSlots: JudgeSlot[] = panelJudgesCount === 2 ? ['J1', 'J2'] : ['J1', 'J2', 'J3'];
 
   const rawRows: TabulatedParticipant[] = itemParticipants.map((participant) => {
     const pScores = itemScores.filter((s) => s.participantId === participant.id);
     const scoresByJudge: TabulatedParticipant['scoresByJudge'] = {};
     for (const s of pScores) {
-      if (s.judgeSlot === 'J1' || s.judgeSlot === 'J2' || s.judgeSlot === 'J3') {
+      if (allowedSlots.includes(s.judgeSlot)) {
         scoresByJudge[s.judgeSlot] = s;
       }
     }
 
-    const activeScores = Object.values(scoresByJudge).filter(
-      (s): s is JudgeScore => Boolean(s)
-    );
+    const activeScores = allowedSlots
+      .map((slot) => scoresByJudge[slot])
+      .filter((s): s is JudgeScore => Boolean(s));
     const judgesCount = activeScores.length;
 
     let averageScore: number | null = null;
