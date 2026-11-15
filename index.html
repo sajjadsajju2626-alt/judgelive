@@ -631,7 +631,7 @@
 
       <form onsubmit="handleScoreSubmit(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-6">
         <!-- PIN-Protected Judge Session Unlock -->
-        <div id="judge-session-editor" class="space-y-3 pb-5 border-b border-stone-200">
+        <div id="judge-session-editor" class="space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 class="text-sm font-bold text-stone-900">Unlock Judge Session</h2>
@@ -652,7 +652,7 @@
             </div>
             <div>
               <label for="judge-pin-input" class="block text-xs font-semibold text-stone-700 mb-1.5">4-Digit Judge PIN</label>
-              <input id="judge-pin-input" type="password" inputmode="numeric" maxlength="16" autocomplete="off" oninput="hideJudgePinError()" onkeydown="if (event.key === 'Enter') { event.preventDefault(); unlockJudgeSession(); }" placeholder="Enter 4-digit Judge PIN" class="w-full px-3 py-2 text-sm tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <input id="judge-pin-input" type="password" inputmode="numeric" maxlength="16" autocomplete="off" oninput="hideJudgePinError()" onkeydown="if (event.key === 'Enter') { event.preventDefault(); unlockJudgeSession(); }" placeholder="Enter 4-digit PIN" class="w-full px-3 py-2 text-sm tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
             </div>
             <div class="flex items-center">
               <button type="button" id="judge-unlock-btn" onclick="unlockJudgeSession()" class="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
@@ -666,6 +666,12 @@
           </div>
         </div>
 
+        <div id="judge-scoring-locked-notice" class="hidden p-3 rounded-lg bg-stone-50 border border-stone-200 text-xs font-medium text-stone-600">
+          <span id="judge-locked-notice-text">🔒 Judge Session is locked. Select your slot (J1, J2, or J3) and enter your 4-digit Judge PIN above to unlock score entry.</span>
+        </div>
+
+        <!-- Scoring Workspace (Hidden until Judge Session is unlocked with valid 4-digit PIN) -->
+        <div id="judge-scoring-workspace" class="hidden space-y-6">
         <!-- Event & Blind Chest Number Selection -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
           <div>
@@ -693,10 +699,6 @@
             <label for="judge-participant" class="block text-xs font-semibold text-stone-700 mb-1.5">Chest Number (Blind Judging)</label>
             <select id="judge-participant" onchange="loadExistingJudgeScore()" class="w-full px-3 py-2.5 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
           </div>
-        </div>
-
-        <div id="judge-scoring-locked-notice" class="hidden p-3 rounded-lg bg-stone-50 border border-stone-200 text-xs font-medium text-stone-600">
-          <span id="judge-locked-notice-text">🔒 Judge Session is locked. Select your slot (J1, J2, or J3) and enter your 4-digit Judge PIN above to unlock score entry.</span>
         </div>
 
         <!-- Criterion-wise Marks (Empty by default with 0-25 placeholder, labels adapt dynamically per item) -->
@@ -735,6 +737,7 @@
               Submit &amp; Sync Marks
             </button>
           </div>
+        </div>
         </div>
       </form>
     </section>
@@ -3056,6 +3059,7 @@
     function applyJudgeSessionLockUI() {
       const lockedBox = document.getElementById("judge-session-locked");
       const editorBox = document.getElementById("judge-session-editor");
+      const scoringWorkspace = document.getElementById("judge-scoring-workspace");
       const displayEl = document.getElementById("judge-session-display");
       const lockedNotice = document.getElementById("judge-scoring-locked-notice");
       const lockedNoticeText = document.getElementById("judge-locked-notice-text");
@@ -3087,6 +3091,7 @@
           lockedBox.classList.add("flex");
         }
         if (editorBox) editorBox.classList.add("hidden");
+        if (scoringWorkspace) scoringWorkspace.classList.remove("hidden");
         if (lockedNotice) lockedNotice.classList.add("hidden");
         const slotEl = document.getElementById("judge-slot");
         if (slotEl) slotEl.value = encodeJudgeSelectionValue(assignedStage, activeJudgeSession.judgeSlot);
@@ -3096,7 +3101,8 @@
           lockedBox.classList.remove("flex");
         }
         if (editorBox) editorBox.classList.remove("hidden");
-        if (lockedNotice) lockedNotice.classList.remove("hidden");
+        if (scoringWorkspace) scoringWorkspace.classList.add("hidden");
+        if (lockedNotice) lockedNotice.classList.add("hidden");
       }
 
       CRITERION_INPUT_IDS.forEach((id) => {
@@ -3721,17 +3727,44 @@
       const stages = getConfiguredStages();
       const items = Array.isArray(window.state?.items) ? window.state.items : [];
       const isUnlocked = Boolean(activeJudgeSession && activeJudgeSession.judgeSlot);
-      const assignedStage = isUnlocked ? normalizeStageName(activeJudgeSession.judgeStage) : "";
-      const isSpecificStage = Boolean(assignedStage && stages.some(s => s.toLowerCase() === assignedStage.toLowerCase()));
-
-      const stageItems = isSpecificStage
-        ? items.filter(it => resolveItemStageTarget(it.stage, stages) === assignedStage)
-        : items;
-      const visibleItems = stageItems.length > 0 ? stageItems : items;
       const prevJudgeItem = judgeItemEl.value;
 
+      if (!isUnlocked) {
+        judgeItemAdminOverride = false;
+        judgeItemEl.innerHTML = `<option value="">Unlock Judge Session first</option>`;
+        judgeItemEl.value = "";
+        judgeItemEl.disabled = true;
+        if (liveBadgeEl) {
+          liveBadgeEl.classList.add("hidden");
+          liveBadgeEl.classList.remove("inline-flex");
+        }
+        if (allStagesBadgeEl) {
+          allStagesBadgeEl.classList.add("hidden");
+          allStagesBadgeEl.classList.remove("inline-flex");
+        }
+        if (overrideBtnEl) overrideBtnEl.classList.add("hidden");
+        if (overrideNoticeEl) {
+          overrideNoticeEl.classList.add("hidden");
+          overrideNoticeEl.classList.remove("inline-flex");
+        }
+        if (judgeItemEl.value !== prevJudgeItem) {
+          window.populateJudgeParticipants();
+        }
+        return;
+      }
+
+      const rawStage = normalizeStageName(activeJudgeSession.judgeStage);
+      const assignedStage = stages.find(s => s.toLowerCase() === rawStage.toLowerCase()) || "";
+      const isSpecificStage = Boolean(assignedStage);
+
+      const visibleItems = isSpecificStage
+        ? items.filter(it => resolveItemStageTarget(it.stage, stages) === assignedStage)
+        : items;
+
       if (visibleItems.length === 0) {
-        judgeItemEl.innerHTML = `<option value="">No competition items available</option>`;
+        judgeItemEl.innerHTML = isSpecificStage
+          ? `<option value="">No competition items assigned to ${escapeHtml(assignedStage)}</option>`
+          : `<option value="">No competition items available</option>`;
       } else {
         judgeItemEl.innerHTML = visibleItems
           .map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage)})</option>`)
@@ -3742,26 +3775,19 @@
       }
 
       const stageMap = getResolvedStageLiveMap();
-      let targetLiveId = "";
-      if (isUnlocked && isSpecificStage) {
-        targetLiveId = stageMap[assignedStage] || "";
-      } else if (!isUnlocked) {
-        targetLiveId = String(window.state?.config?.activeItemId || "").trim();
-      }
+      const targetLiveId = isSpecificStage ? (stageMap[assignedStage] || "") : "";
       const liveItem = targetLiveId ? items.find(it => it.id === targetLiveId) : null;
 
-      if (liveItem && !judgeItemAdminOverride && (isSpecificStage || !isUnlocked)) {
+      if (liveItem && !judgeItemAdminOverride && isSpecificStage) {
         if (!visibleItems.some(it => it.id === liveItem.id)) {
           judgeItemEl.innerHTML =
             `<option value="${escapeHtml(liveItem.id)}">${escapeHtml(liveItem.name)} (${escapeHtml(liveItem.category)} · ${escapeHtml(liveItem.stage)})</option>` +
-            judgeItemEl.innerHTML;
+            (visibleItems.length > 0 ? judgeItemEl.innerHTML : "");
         }
         judgeItemEl.value = liveItem.id;
         judgeItemEl.disabled = true;
         if (liveBadgeEl) {
-          liveBadgeEl.textContent = isSpecificStage
-            ? `🔴 LIVE ON STAGE (${assignedStage} · Set by Admin)`
-            : "🔴 LIVE ON STAGE (Set by Admin)";
+          liveBadgeEl.textContent = `🔴 LIVE ON STAGE (${assignedStage} · Set by Admin)`;
           liveBadgeEl.classList.remove("hidden");
           liveBadgeEl.classList.add("inline-flex");
         }
@@ -3769,7 +3795,7 @@
           allStagesBadgeEl.classList.add("hidden");
           allStagesBadgeEl.classList.remove("inline-flex");
         }
-        if (overrideBtnEl) overrideBtnEl.classList.toggle("hidden", !isUnlocked);
+        if (overrideBtnEl) overrideBtnEl.classList.remove("hidden");
         if (overrideNoticeEl) {
           overrideNoticeEl.classList.add("hidden");
           overrideNoticeEl.classList.remove("inline-flex");
