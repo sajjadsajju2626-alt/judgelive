@@ -635,7 +635,7 @@
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 class="text-sm font-bold text-stone-900">Unlock Judge Session</h2>
-              <p id="judge-slot-desc" class="text-xs text-stone-500">Select your assigned panel slot (J1, J2, or J3) and enter your secret 4-digit Judge PIN.</p>
+              <p id="judge-slot-desc" class="text-xs text-stone-500">Select your assigned Stage &amp; Judge slot (J1, J2, or J3) and enter your secret 4-digit Judge PIN.</p>
             </div>
             <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded">
               PIN-Protected Panel
@@ -643,11 +643,11 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div>
-              <label for="judge-slot" class="block text-xs font-semibold text-stone-700 mb-1.5">Judge Panel Slot</label>
+              <label for="judge-slot" class="block text-xs font-semibold text-stone-700 mb-1.5">Stage &amp; Judge Panel Slot</label>
               <select id="judge-slot" onchange="handleJudgeSlotChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                <option value="J1">J1 — Judge 1</option>
-                <option value="J2">J2 — Judge 2</option>
-                <option value="J3">J3 — Judge 3</option>
+                <option value="Stage 1:::J1">Stage 1 · J1 — Judge 1</option>
+                <option value="Stage 1:::J2">Stage 1 · J2 — Judge 2</option>
+                <option value="Stage 1:::J3">Stage 1 · J3 — Judge 3</option>
               </select>
             </div>
             <div>
@@ -662,7 +662,7 @@
           </div>
           <div id="judge-pin-error" role="alert" class="hidden p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
           <div id="judge-demo-pins-hint" class="hidden p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900">
-            Demo Judge PINs: <span class="font-bold tabular-nums">J1: 1111</span> · <span class="font-bold tabular-nums">J2: 2222</span> · <span class="font-bold tabular-nums">J3: 3333</span>
+            Demo Judge PINs (Stage 1): <span class="font-bold tabular-nums">J1: 1111</span> · <span class="font-bold tabular-nums">J2: 2222</span> · <span class="font-bold tabular-nums">J3: 3333</span>
           </div>
         </div>
 
@@ -1042,75 +1042,36 @@
 
       <!-- 2. Live Stage Control & PIN-Protected Judge Panel (Campus Admin Panel) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Live Active Item Sync Card (Per Stage) -->
+        <!-- Live Active Item Sync & Dynamic Stage Manager Card -->
         <div class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
           <div class="space-y-4">
             <div class="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <h2 class="text-lg font-bold text-stone-900">Current Live Competition Item (Sync to Judges)</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Push a live competition item per stage. Judges assigned to that stage lock automatically to their stage’s live item.</p>
+                <p class="text-xs text-stone-500 mt-0.5">Add unlimited festival stages and push live competition items per stage. Judges on that stage lock automatically.</p>
               </div>
               <span class="text-xs font-semibold text-amber-800 tabular-nums shrink-0">Scoped to <span id="admin-live-item-scope-code">—</span></span>
             </div>
+
+            <!-- Dynamic Stage Manager -->
+            <div class="p-3.5 rounded-lg bg-stone-50 border border-stone-200 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs font-bold text-stone-800">Active Festival Stages</div>
+                <span id="admin-stages-count" class="text-[11px] font-semibold text-stone-500 tabular-nums">3 stages</span>
+              </div>
+              <div id="admin-stages-list" class="flex flex-wrap gap-1.5"></div>
+              <div class="flex flex-col sm:flex-row gap-2 pt-0.5">
+                <input id="admin-new-stage-name" type="text" maxlength="60" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleAddStage(); }" placeholder="Add stage (e.g. Stage 4 or Stage 4 - Kabani)" class="flex-1 min-w-0 px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <button type="button" id="admin-add-stage-btn" onclick="handleAddStage()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                  + Add Stage
+                </button>
+              </div>
+            </div>
+
             <div id="admin-live-item-status-badge" class="px-3 py-2 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
               No live stage items pushed (Judges can select manually)
             </div>
-            <div class="space-y-2.5">
-              <!-- Stage 1 -->
-              <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 space-y-1.5">
-                <div class="flex items-center justify-between gap-2">
-                  <label for="admin-live-item-stage-1" class="text-xs font-bold text-stone-800">Stage 1 Live Item</label>
-                  <span id="admin-live-badge-stage-1" class="text-[11px] font-semibold text-stone-500">Not Pushed</span>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-2">
-                  <select id="admin-live-item-stage-1" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    <button type="button" id="admin-push-live-stage-1" onclick="handlePushStageLiveItem('Stage 1')" class="px-3 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-                      Push Live
-                    </button>
-                    <button type="button" id="admin-clear-live-stage-1" onclick="handleClearStageLiveItem('Stage 1')" class="px-2.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <!-- Stage 2 -->
-              <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 space-y-1.5">
-                <div class="flex items-center justify-between gap-2">
-                  <label for="admin-live-item-stage-2" class="text-xs font-bold text-stone-800">Stage 2 Live Item</label>
-                  <span id="admin-live-badge-stage-2" class="text-[11px] font-semibold text-stone-500">Not Pushed</span>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-2">
-                  <select id="admin-live-item-stage-2" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    <button type="button" id="admin-push-live-stage-2" onclick="handlePushStageLiveItem('Stage 2')" class="px-3 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-                      Push Live
-                    </button>
-                    <button type="button" id="admin-clear-live-stage-2" onclick="handleClearStageLiveItem('Stage 2')" class="px-2.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <!-- Stage 3 -->
-              <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 space-y-1.5">
-                <div class="flex items-center justify-between gap-2">
-                  <label for="admin-live-item-stage-3" class="text-xs font-bold text-stone-800">Stage 3 Live Item</label>
-                  <span id="admin-live-badge-stage-3" class="text-[11px] font-semibold text-stone-500">Not Pushed</span>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-2">
-                  <select id="admin-live-item-stage-3" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    <button type="button" id="admin-push-live-stage-3" onclick="handlePushStageLiveItem('Stage 3')" class="px-3 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-                      Push Live
-                    </button>
-                    <button type="button" id="admin-clear-live-stage-3" onclick="handleClearStageLiveItem('Stage 3')" class="px-2.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="admin-live-stages-container" class="space-y-2.5 max-h-[26rem] overflow-y-auto pr-0.5"></div>
           </div>
           <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
             <button type="button" id="admin-clear-live-item-btn" onclick="handleClearLiveItem()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1122,12 +1083,12 @@
           </div>
         </div>
 
-        <!-- Manage Judges & Panel Size Card -->
+        <!-- Manage Judges & Dynamic Per-Stage Panel Size Card -->
         <form id="admin-judges-form" onsubmit="handleSaveJudgesConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <div class="flex flex-wrap items-start justify-between gap-2">
             <div>
               <h2 id="admin-judges-heading" class="text-lg font-bold text-stone-900">Manage Judges (J1, J2, J3)</h2>
-              <p class="text-xs text-stone-500 mt-0.5">Configure panel size (2 or 3 judges), assign official Names, Stage Assignments, and unique 4-digit PINs.</p>
+              <p class="text-xs text-stone-500 mt-0.5">Select any stage tab below to configure independent judge panels &amp; unique 4-digit PINs per stage.</p>
             </div>
             <span class="text-xs font-semibold text-amber-800 tabular-nums shrink-0">Scoped to <span id="admin-judges-scope-code">—</span></span>
           </div>
@@ -1148,63 +1109,45 @@
             </div>
           </div>
 
+          <!-- Dynamic Stage Selector Tabs for Judge Panels -->
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-stone-800">Select Stage Panel to Configure:</span>
+              <span id="admin-judge-active-stage-badge" class="text-[11px] font-semibold text-amber-800">Stage 1</span>
+            </div>
+            <div id="admin-judges-stage-tabs" role="tablist" aria-label="Judge Panel Stage Tabs" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
           <div class="space-y-2.5">
             <div class="grid grid-cols-12 gap-2 items-center">
               <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J1</div>
-              <div class="col-span-10 sm:col-span-5">
+              <div class="col-span-6 sm:col-span-8">
                 <label for="admin-judge-name-J1" class="sr-only">Judge 1 Official Name</label>
                 <input id="admin-judge-name-J1" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 1 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
-              <div class="col-span-7 sm:col-span-3">
-                <label for="admin-judge-stage-J1" class="sr-only">Judge 1 Stage Assignment</label>
-                <select id="admin-judge-stage-J1" onchange="hideAdminJudgesError()" class="w-full px-2.5 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                  <option value="All Stages">All Stages</option>
-                  <option value="Stage 1">Stage 1</option>
-                  <option value="Stage 2">Stage 2</option>
-                  <option value="Stage 3">Stage 3</option>
-                </select>
-              </div>
-              <div class="col-span-5 sm:col-span-3">
+              <div class="col-span-4 sm:col-span-3">
                 <label for="admin-judge-pin-J1" class="sr-only">Judge 1 4-digit PIN</label>
                 <input id="admin-judge-pin-J1" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
             </div>
             <div class="grid grid-cols-12 gap-2 items-center">
               <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J2</div>
-              <div class="col-span-10 sm:col-span-5">
+              <div class="col-span-6 sm:col-span-8">
                 <label for="admin-judge-name-J2" class="sr-only">Judge 2 Official Name</label>
                 <input id="admin-judge-name-J2" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 2 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
-              <div class="col-span-7 sm:col-span-3">
-                <label for="admin-judge-stage-J2" class="sr-only">Judge 2 Stage Assignment</label>
-                <select id="admin-judge-stage-J2" onchange="hideAdminJudgesError()" class="w-full px-2.5 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                  <option value="All Stages">All Stages</option>
-                  <option value="Stage 1">Stage 1</option>
-                  <option value="Stage 2">Stage 2</option>
-                  <option value="Stage 3">Stage 3</option>
-                </select>
-              </div>
-              <div class="col-span-5 sm:col-span-3">
+              <div class="col-span-4 sm:col-span-3">
                 <label for="admin-judge-pin-J2" class="sr-only">Judge 2 4-digit PIN</label>
                 <input id="admin-judge-pin-J2" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
             </div>
             <div id="admin-judge-row-J3" class="grid grid-cols-12 gap-2 items-center">
               <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J3</div>
-              <div class="col-span-10 sm:col-span-5">
+              <div class="col-span-6 sm:col-span-8">
                 <label for="admin-judge-name-J3" class="sr-only">Judge 3 Official Name</label>
                 <input id="admin-judge-name-J3" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 3 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
-              <div class="col-span-7 sm:col-span-3">
-                <label for="admin-judge-stage-J3" class="sr-only">Judge 3 Stage Assignment</label>
-                <select id="admin-judge-stage-J3" onchange="hideAdminJudgesError()" class="w-full px-2.5 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                  <option value="All Stages">All Stages</option>
-                  <option value="Stage 1">Stage 1</option>
-                  <option value="Stage 2">Stage 2</option>
-                  <option value="Stage 3">Stage 3</option>
-                </select>
-              </div>
-              <div class="col-span-5 sm:col-span-3">
+              <div class="col-span-4 sm:col-span-3">
                 <label for="admin-judge-pin-J3" class="sr-only">Judge 3 4-digit PIN</label>
                 <input id="admin-judge-pin-J3" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
@@ -1216,7 +1159,7 @@
               Generate New PINs
             </button>
             <button type="submit" id="admin-save-judges-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
-              Save Judge Panel
+              Save Stage Panel
             </button>
           </div>
         </form>
@@ -1352,7 +1295,8 @@
             </div>
             <div>
               <label for="admin-item-stage" class="block text-xs font-semibold text-stone-700 mb-1">Stage</label>
-              <input id="admin-item-stage" type="text" required value="Stage 1 — Nila" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <input id="admin-item-stage" type="text" list="admin-stages-datalist" required maxlength="60" value="Stage 1" placeholder="e.g. Stage 1 or Stage 4 - Kabani" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <datalist id="admin-stages-datalist"></datalist>
             </div>
           </div>
           <div class="pt-2 border-t border-stone-200 space-y-2.5">
@@ -1675,11 +1619,13 @@
     let unsubCampusRegistry = null;
     let unsubActiveRegistry = null;
     let unsubBranding = null;
+    let unsubStages = null;
     let unsubJudges = null;
     let unsubGroups = null;
     let unsubItems = null;
     let unsubParticipants = null;
     let unsubScores = null;
+    let hasCloudStagesDoc = false;
 
     function handleFirestoreError(error, operationType, path) {
       const errInfo = {
@@ -1988,12 +1934,29 @@
     }
 
     const JUDGE_SLOTS = ["J1", "J2", "J3"];
-    const STAGE_SLOTS = ["Stage 1", "Stage 2", "Stage 3"];
-    const JUDGE_STAGE_OPTIONS = ["All Stages", "Stage 1", "Stage 2", "Stage 3"];
+    const DEFAULT_STAGES = ["Stage 1", "Stage 2", "Stage 3"];
+    const MAX_STAGES = 50;
     const DEMO_JUDGES_PRESET = {
-      J1: { name: "Kalamandalam Hymavathy", pin: "1111", stage: "All Stages" },
-      J2: { name: "Prof. M. Jayachandran", pin: "2222", stage: "All Stages" },
-      J3: { name: "Dr. Kavitha Balakrishnan", pin: "3333", stage: "All Stages" }
+      J1: { name: "Kalamandalam Hymavathy", pin: "1111" },
+      J2: { name: "Prof. M. Jayachandran", pin: "2222" },
+      J3: { name: "Dr. Kavitha Balakrishnan", pin: "3333" }
+    };
+    const DEMO_STAGE_PANELS = {
+      "Stage 1": {
+        J1: { name: "Kalamandalam Hymavathy", pin: "1111" },
+        J2: { name: "Prof. M. Jayachandran", pin: "2222" },
+        J3: { name: "Dr. Kavitha Balakrishnan", pin: "3333" }
+      },
+      "Stage 2": {
+        J1: { name: "Ustad Fayaz Khan", pin: "2111" },
+        J2: { name: "Smt. Sujatha Mohan", pin: "2223" },
+        J3: { name: "Prof. K. Sachidanandan", pin: "2333" }
+      },
+      "Stage 3": {
+        J1: { name: "Vidwan Nellai Krishnan", pin: "3111" },
+        J2: { name: "Dr. Rajashree Warrier", pin: "3222" },
+        J3: { name: "Sri. Peruvanam Kuttan", pin: "3334" }
+      }
     };
 
     function normalizeJudgesCount(raw) {
@@ -2004,77 +1967,161 @@
       return normalizeJudgesCount(cfg?.judgesCount) === 2 ? ["J1", "J2"] : ["J1", "J2", "J3"];
     }
 
-    function resolveCanonicalStage(stageStr = "") {
-      const clean = String(stageStr || "").trim();
+    function normalizeStageName(raw) {
+      return String(raw || "").normalize("NFC").trim().replace(/\s+/g, " ").slice(0, 60);
+    }
+
+    function extractStageNumber(stageStr = "") {
+      const clean = normalizeStageName(stageStr);
+      if (!clean) return null;
+      const match = /(?:\bstage[\s\-_]*0*(\d+)\b|^s0*(\d+)$|^0*(\d+)$)/i.exec(clean);
+      if (!match) return null;
+      const num = Number(match[1] || match[2] || match[3]);
+      return Number.isFinite(num) && num > 0 ? num : null;
+    }
+
+    function normalizeStagesList(rawStages, fallbackToDefaults = true) {
+      const seen = new Set();
+      const result = [];
+      if (Array.isArray(rawStages)) {
+        for (const item of rawStages) {
+          const clean = normalizeStageName(item);
+          if (!clean) continue;
+          const key = clean.toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          result.push(clean);
+          if (result.length >= MAX_STAGES) break;
+        }
+      }
+      if (result.length === 0 && fallbackToDefaults) {
+        return [...DEFAULT_STAGES];
+      }
+      return result;
+    }
+
+    function getConfiguredStages() {
+      return normalizeStagesList(window.state?.stages, true);
+    }
+
+    function resolveItemStageTarget(rawStage, configuredStages = getConfiguredStages()) {
+      const clean = normalizeStageName(rawStage);
       if (!clean) return "";
-      if (/(?:\bstage[\s\-_]*0?1\b|^s0?1$|^0?1$)/i.test(clean)) return "Stage 1";
-      if (/(?:\bstage[\s\-_]*0?2\b|^s0?2$|^0?2$)/i.test(clean)) return "Stage 2";
-      if (/(?:\bstage[\s\-_]*0?3\b|^s0?3$|^0?3$)/i.test(clean)) return "Stage 3";
+      const stages = normalizeStagesList(configuredStages, true);
+      const exact = stages.find(s => s.toLowerCase() === clean.toLowerCase());
+      if (exact) return exact;
+      const num = extractStageNumber(clean);
+      if (num !== null) {
+        const matchedByNum = stages.find(s => extractStageNumber(s) === num);
+        if (matchedByNum) return matchedByNum;
+      }
       return "";
     }
 
-    function normalizeJudgeStage(raw) {
-      const clean = String(raw || "").trim();
-      if (!clean || /^all(\s*stages)?$/i.test(clean)) return "All Stages";
-      const canonical = resolveCanonicalStage(clean);
-      return canonical || "All Stages";
-    }
+    function normalizeStageLiveItems(rawMap, fallbackActiveItemId = "", configuredStages = null) {
+      const stages = configuredStages ? normalizeStagesList(configuredStages, true) : getConfiguredStages();
+      const out = {};
+      stages.forEach((st) => { out[st] = ""; });
 
-    function normalizeStageLiveItems(rawMap, fallbackActiveItemId = "") {
-      const out = { "Stage 1": "", "Stage 2": "", "Stage 3": "" };
       if (rawMap && typeof rawMap === "object") {
-        STAGE_SLOTS.forEach((slot) => {
-          if (typeof rawMap[slot] === "string") {
-            out[slot] = rawMap[slot].trim().slice(0, 64);
+        Object.entries(rawMap).forEach(([rawKey, rawVal]) => {
+          const key = normalizeStageName(rawKey);
+          if (!key || typeof rawVal !== "string") return;
+          const resolvedKey = resolveItemStageTarget(key, stages) || key;
+          if (!Object.prototype.hasOwnProperty.call(out, resolvedKey) && Object.keys(out).length >= MAX_STAGES) {
+            return;
+          }
+          const cleanVal = rawVal.trim().slice(0, 64);
+          if (cleanVal || Object.prototype.hasOwnProperty.call(out, resolvedKey)) {
+            out[resolvedKey] = cleanVal;
           }
         });
       }
-      if (fallbackActiveItemId && !out["Stage 1"] && !out["Stage 2"] && !out["Stage 3"]) {
+
+      const hasAnyLive = Object.values(out).some(Boolean);
+      if (fallbackActiveItemId && !hasAnyLive) {
         const cleanFallback = String(fallbackActiveItemId).trim().slice(0, 64);
         const matchedItem = Array.isArray(window.state?.items)
           ? window.state.items.find(it => it.id === cleanFallback)
           : null;
-        const itemStage = resolveCanonicalStage(matchedItem?.stage);
-        if (itemStage && out[itemStage] !== undefined) {
+        const itemStage = resolveItemStageTarget(matchedItem?.stage, stages) || stages[0] || "Stage 1";
+        if (itemStage && cleanFallback) {
           out[itemStage] = cleanFallback;
         }
       }
       return out;
     }
 
-    function generateDistinct4DigitPins() {
+    function generateDistinct4DigitPins(excludeSet = null) {
       const used = new Set(["0000", "1234", "2026"]);
+      if (excludeSet) {
+        excludeSet.forEach(p => used.add(String(p)));
+      }
       const pins = [];
-      while (pins.length < 3) {
+      let guard = 0;
+      while (pins.length < 3 && guard < 500) {
+        guard += 1;
         const candidate = String(Math.floor(1000 + Math.random() * 9000));
         if (!used.has(candidate)) {
           used.add(candidate);
           pins.push(candidate);
         }
       }
+      while (pins.length < 3) {
+        const candidate = String(1000 + ((pins.length * 137 + guard++) % 8999));
+        if (!pins.includes(candidate)) pins.push(candidate);
+      }
       return pins;
     }
 
-    function getDefaultJudgesConfig(code = "", randomizePins = false) {
-      if (code === DEMO_EVENT_CODE) {
+    function getDeterministicStageFallbackPins(stageIdx = 0) {
+      if (stageIdx === 0) return ["1111", "2222", "3333"];
+      const forbidden = new Set(["0000", "1234", "2026"]);
+      const out = [];
+      for (let slotIdx = 0; slotIdx < 3; slotIdx++) {
+        let codeNum = 1000 + ((stageIdx * 317 + slotIdx * 131 + 109) % 8999);
+        let candidate = String(codeNum).padStart(4, "0");
+        while (forbidden.has(candidate) || out.includes(candidate)) {
+          codeNum = 1000 + ((codeNum - 1000 + 73) % 8999);
+          candidate = String(codeNum).padStart(4, "0");
+        }
+        out.push(candidate);
+      }
+      return out;
+    }
+
+    function getDefaultStagePanel(stageName, stageIdx = 0, code = "", randomizePins = false, usedPins = null) {
+      if (code === DEMO_EVENT_CODE && DEMO_STAGE_PANELS[stageName]) {
         return {
-          J1: { ...DEMO_JUDGES_PRESET.J1 },
-          J2: { ...DEMO_JUDGES_PRESET.J2 },
-          J3: { ...DEMO_JUDGES_PRESET.J3 }
+          J1: { ...DEMO_STAGE_PANELS[stageName].J1 },
+          J2: { ...DEMO_STAGE_PANELS[stageName].J2 },
+          J3: { ...DEMO_STAGE_PANELS[stageName].J3 }
         };
       }
-      if (randomizePins) {
-        const [p1, p2, p3] = generateDistinct4DigitPins();
-        return {
-          J1: { name: "Judge 1", pin: p1, stage: "All Stages" },
-          J2: { name: "Judge 2", pin: p2, stage: "All Stages" },
-          J3: { name: "Judge 3", pin: p3, stage: "All Stages" }
-        };
-      }
+      const pins = randomizePins
+        ? generateDistinct4DigitPins(usedPins)
+        : getDeterministicStageFallbackPins(stageIdx);
+      if (usedPins) pins.forEach(p => usedPins.add(p));
       return {
-        J1: { name: "Judge 1", pin: "1111", stage: "All Stages" },
-        J2: { name: "Judge 2", pin: "2222", stage: "All Stages" },
-        J3: { name: "Judge 3", pin: "3333", stage: "All Stages" }
+        J1: { name: "Judge 1", pin: pins[0] },
+        J2: { name: "Judge 2", pin: pins[1] },
+        J3: { name: "Judge 3", pin: pins[2] }
+      };
+    }
+
+    function getDefaultJudgesConfig(code = "", randomizePins = false, stages = DEFAULT_STAGES) {
+      const stageList = normalizeStagesList(stages, true);
+      const stagePanels = {};
+      const usedPins = new Set();
+      stageList.forEach((stageName, idx) => {
+        stagePanels[stageName] = getDefaultStagePanel(stageName, idx, code, randomizePins, usedPins);
+      });
+      const firstPanel = stagePanels[stageList[0]] || getDefaultStagePanel("Stage 1", 0, code, randomizePins);
+      return {
+        stagePanels,
+        J1: { ...firstPanel.J1 },
+        J2: { ...firstPanel.J2 },
+        J3: { ...firstPanel.J3 }
       };
     }
 
@@ -2082,20 +2129,64 @@
       return /^\d{4}$/.test(String(pin || "").trim());
     }
 
-    function normalizeJudgesConfig(raw, code = "") {
-      const defaults = getDefaultJudgesConfig(code, false);
+    function normalizeStagePanelSlots(rawPanel, fallbackPanel) {
       const out = {};
       JUDGE_SLOTS.forEach((slot) => {
-        const entry = raw?.[slot];
+        const entry = rawPanel?.[slot];
         const rawName = String(entry?.name || "").trim().slice(0, 100);
         const rawPin = String(entry?.pin || "").trim();
         out[slot] = {
-          name: rawName || defaults[slot].name,
-          pin: isValidJudge4DigitPin(rawPin) ? rawPin : defaults[slot].pin,
-          stage: normalizeJudgeStage(entry?.stage ?? defaults[slot].stage)
+          name: rawName || fallbackPanel[slot].name,
+          pin: isValidJudge4DigitPin(rawPin) ? rawPin : fallbackPanel[slot].pin
         };
       });
       return out;
+    }
+
+    function normalizeJudgesConfig(raw, code = "", stagesInput = null) {
+      const stageList = normalizeStagesList(stagesInput || window.state?.stages, true);
+      const defaults = getDefaultJudgesConfig(code, false, stageList);
+      const stagePanels = {};
+      const rawStagePanels = raw?.stagePanels && typeof raw.stagePanels === "object" ? raw.stagePanels : null;
+
+      stageList.forEach((stageName, idx) => {
+        const directRaw = rawStagePanels?.[stageName]
+          || (rawStagePanels ? Object.entries(rawStagePanels).find(([k]) => normalizeStageName(k).toLowerCase() === stageName.toLowerCase())?.[1] : null);
+        // Legacy compatibility: if no stagePanels stored yet, seed Stage 1 (index 0) from legacy top-level J1/J2/J3
+        const legacyFallbackRaw = (!directRaw && idx === 0 && raw && (raw.J1 || raw.J2 || raw.J3)) ? raw : null;
+        const fallbackPanel = defaults.stagePanels[stageName] || getDefaultStagePanel(stageName, idx, code, false);
+        stagePanels[stageName] = normalizeStagePanelSlots(directRaw || legacyFallbackRaw, fallbackPanel);
+      });
+
+      const firstPanel = stagePanels[stageList[0]] || defaults.stagePanels[stageList[0]];
+      return {
+        stagePanels,
+        J1: { ...firstPanel.J1 },
+        J2: { ...firstPanel.J2 },
+        J3: { ...firstPanel.J3 }
+      };
+    }
+
+    function getStageJudgePanel(judgesCfg, stageName, code = activeEventCode) {
+      const normalized = normalizeJudgesConfig(judgesCfg, code, getConfiguredStages());
+      const cleanStage = normalizeStageName(stageName);
+      if (normalized.stagePanels[cleanStage]) return normalized.stagePanels[cleanStage];
+      const matched = Object.entries(normalized.stagePanels).find(([k]) => k.toLowerCase() === cleanStage.toLowerCase());
+      if (matched) return matched[1];
+      const firstKey = Object.keys(normalized.stagePanels)[0];
+      return normalized.stagePanels[firstKey] || getDefaultStagePanel(cleanStage || "Stage 1", 0, code, false);
+    }
+
+    function getAllUsedJudgePinsExcludingStage(judgesCfg, excludeStage = "") {
+      const normalized = normalizeJudgesConfig(judgesCfg, activeEventCode, getConfiguredStages());
+      const used = new Set();
+      Object.entries(normalized.stagePanels).forEach(([st, panel]) => {
+        if (st.toLowerCase() === normalizeStageName(excludeStage).toLowerCase()) return;
+        JUDGE_SLOTS.forEach((slot) => {
+          if (isValidJudge4DigitPin(panel?.[slot]?.pin)) used.add(panel[slot].pin);
+        });
+      });
+      return used;
     }
 
     function getDefaultConfig(defaultTitle = DEFAULT_HEADER_TITLE, adminPin = DEFAULT_EVENT_PIN) {
@@ -2118,7 +2209,8 @@
     function getEmptyEventState(defaultTitle = DEFAULT_HEADER_TITLE) {
       return {
         config: getDefaultConfig(defaultTitle),
-        judges: getDefaultJudgesConfig(),
+        stages: [...DEFAULT_STAGES],
+        judges: getDefaultJudgesConfig("", false, DEFAULT_STAGES),
         groups: [],
         items: [],
         participants: [],
@@ -2224,16 +2316,18 @@
     }
 
     function getSampleData(currentConfig) {
+      const stages = getConfiguredStages();
       return {
         config: {
           ...(currentConfig || getDefaultConfig()),
           judgesCount: normalizeJudgesCount(currentConfig?.judgesCount),
           activeItemId: String(currentConfig?.activeItemId || "").trim(),
-          stageLiveItems: normalizeStageLiveItems(currentConfig?.stageLiveItems),
+          stageLiveItems: normalizeStageLiveItems(currentConfig?.stageLiveItems, "", stages),
           chartType: normalizeChartType(currentConfig?.chartType),
           ...normalizeGradeThresholds(currentConfig)
         },
-        judges: normalizeJudgesConfig(window.state?.judges, activeEventCode),
+        stages,
+        judges: normalizeJudgesConfig(window.state?.judges, activeEventCode, stages),
         groups: [
           { id: "grp_red", name: "Red House", color: "#DC2626" },
           { id: "grp_blue", name: "Blue House", color: "#2563EB" },
@@ -2254,13 +2348,14 @@
           { id: "item_1_p_101_J1", itemId: "item_1", participantId: "p_101", chestNo: "101", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 24, expression: 23, perfection: 23, overall: 24, total: 94 },
           { id: "item_1_p_102_J1", itemId: "item_1", participantId: "p_102", chestNo: "102", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 22, perfection: 21, overall: 22, total: 87 },
           { id: "item_1_p_105_J1", itemId: "item_1", participantId: "p_105", chestNo: "105", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 21, expression: 21, perfection: 20, overall: 20, total: 82 },
-          { id: "item_2_p_201_J1", itemId: "item_2", participantId: "p_201", chestNo: "201", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 23, expression: 23, perfection: 22, overall: 22, total: 90 }
+          { id: "item_2_p_201_J1", itemId: "item_2", participantId: "p_201", chestNo: "201", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 23, expression: 23, perfection: 22, overall: 22, total: 90 }
         ]
       };
     }
 
     function getDemoPresentationData(currentConfig) {
       const baseCfg = currentConfig || getDefaultConfig("Kalolsavam Showcase (Demo)", DEMO_EVENT_PIN);
+      const demoStages = [...DEFAULT_STAGES];
       return {
         config: {
           ...baseCfg,
@@ -2275,7 +2370,8 @@
           isActive: true,
           expiresAt: getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS)
         },
-        judges: getDefaultJudgesConfig(DEMO_EVENT_CODE, false),
+        stages: demoStages,
+        judges: getDefaultJudgesConfig(DEMO_EVENT_CODE, false, demoStages),
         groups: [
           { id: "demo_grp_red", name: "Red House", color: "#DC2626" },
           { id: "demo_grp_blue", name: "Blue House", color: "#2563EB" },
@@ -2307,16 +2403,16 @@
           { id: "demo_item_1_demo_p_101_J2", itemId: "demo_item_1", participantId: "demo_p_101", chestNo: "101", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 23, expression: 22, perfection: 23, overall: 23, total: 91 },
           { id: "demo_item_1_demo_p_102_J1", itemId: "demo_item_1", participantId: "demo_p_102", chestNo: "102", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 22, perfection: 21, overall: 22, total: 87 },
           { id: "demo_item_1_demo_p_102_J2", itemId: "demo_item_1", participantId: "demo_p_102", chestNo: "102", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 22, expression: 22, perfection: 22, overall: 22, total: 88 },
-          { id: "demo_item_2_demo_p_104_J1", itemId: "demo_item_2", participantId: "demo_p_104", chestNo: "104", judgeSlot: "J1", judgeName: "Dr. Kavitha Balakrishnan", rhythm: 23, expression: 22, perfection: 22, overall: 23, total: 90 },
-          { id: "demo_item_2_demo_p_104_J2", itemId: "demo_item_2", participantId: "demo_p_104", chestNo: "104", judgeSlot: "J2", judgeName: "Prof. K. Sachidanandan", rhythm: 22, expression: 23, perfection: 22, overall: 23, total: 90 },
-          { id: "demo_item_2_demo_p_105_J1", itemId: "demo_item_2", participantId: "demo_p_105", chestNo: "105", judgeSlot: "J1", judgeName: "Dr. Kavitha Balakrishnan", rhythm: 21, expression: 21, perfection: 21, overall: 22, total: 85 },
-          { id: "demo_item_2_demo_p_105_J2", itemId: "demo_item_2", participantId: "demo_p_105", chestNo: "105", judgeSlot: "J2", judgeName: "Prof. K. Sachidanandan", rhythm: 21, expression: 21, perfection: 21, overall: 21, total: 84 },
-          { id: "demo_item_3_demo_p_107_J1", itemId: "demo_item_3", participantId: "demo_p_107", chestNo: "107", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 24, expression: 23, perfection: 23, overall: 23, total: 93 },
-          { id: "demo_item_3_demo_p_107_J2", itemId: "demo_item_3", participantId: "demo_p_107", chestNo: "107", judgeSlot: "J2", judgeName: "Smt. Sujatha Mohan", rhythm: 23, expression: 24, perfection: 23, overall: 23, total: 93 },
-          { id: "demo_item_3_demo_p_108_J1", itemId: "demo_item_3", participantId: "demo_p_108", chestNo: "108", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 22, expression: 22, perfection: 22, overall: 22, total: 88 },
-          { id: "demo_item_3_demo_p_108_J2", itemId: "demo_item_3", participantId: "demo_p_108", chestNo: "108", judgeSlot: "J2", judgeName: "Smt. Sujatha Mohan", rhythm: 22, expression: 23, perfection: 22, overall: 22, total: 89 },
-          { id: "demo_item_4_demo_p_111_J1", itemId: "demo_item_4", participantId: "demo_p_111", chestNo: "111", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 21, perfection: 21, overall: 22, total: 86 },
-          { id: "demo_item_4_demo_p_111_J2", itemId: "demo_item_4", participantId: "demo_p_111", chestNo: "111", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 21, expression: 22, perfection: 21, overall: 22, total: 86 }
+          { id: "demo_item_2_demo_p_104_J1", itemId: "demo_item_2", participantId: "demo_p_104", chestNo: "104", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 23, expression: 22, perfection: 22, overall: 23, total: 90 },
+          { id: "demo_item_2_demo_p_104_J2", itemId: "demo_item_2", participantId: "demo_p_104", chestNo: "104", judgeSlot: "J2", judgeName: "Smt. Sujatha Mohan", rhythm: 22, expression: 23, perfection: 22, overall: 23, total: 90 },
+          { id: "demo_item_2_demo_p_105_J1", itemId: "demo_item_2", participantId: "demo_p_105", chestNo: "105", judgeSlot: "J1", judgeName: "Ustad Fayaz Khan", rhythm: 21, expression: 21, perfection: 21, overall: 22, total: 85 },
+          { id: "demo_item_2_demo_p_105_J2", itemId: "demo_item_2", participantId: "demo_p_105", chestNo: "105", judgeSlot: "J2", judgeName: "Smt. Sujatha Mohan", rhythm: 21, expression: 21, perfection: 21, overall: 21, total: 84 },
+          { id: "demo_item_3_demo_p_107_J1", itemId: "demo_item_3", participantId: "demo_p_107", chestNo: "107", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 24, expression: 23, perfection: 23, overall: 23, total: 93 },
+          { id: "demo_item_3_demo_p_107_J2", itemId: "demo_item_3", participantId: "demo_p_107", chestNo: "107", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 23, expression: 24, perfection: 23, overall: 23, total: 93 },
+          { id: "demo_item_3_demo_p_108_J1", itemId: "demo_item_3", participantId: "demo_p_108", chestNo: "108", judgeSlot: "J1", judgeName: "Kalamandalam Hymavathy", rhythm: 22, expression: 22, perfection: 22, overall: 22, total: 88 },
+          { id: "demo_item_3_demo_p_108_J2", itemId: "demo_item_3", participantId: "demo_p_108", chestNo: "108", judgeSlot: "J2", judgeName: "Prof. M. Jayachandran", rhythm: 22, expression: 23, perfection: 22, overall: 22, total: 89 },
+          { id: "demo_item_4_demo_p_111_J1", itemId: "demo_item_4", participantId: "demo_p_111", chestNo: "111", judgeSlot: "J1", judgeName: "Vidwan Nellai Krishnan", rhythm: 22, expression: 21, perfection: 21, overall: 22, total: 86 },
+          { id: "demo_item_4_demo_p_111_J2", itemId: "demo_item_4", participantId: "demo_p_111", chestNo: "111", judgeSlot: "J2", judgeName: "Dr. Rajashree Warrier", rhythm: 21, expression: 22, perfection: 21, overall: 22, total: 86 }
         ]
       };
     }
@@ -2331,6 +2427,7 @@
     let isSwitchingEvent = false;
     let isDemoActionBusy = false;
     let activeJudgeSession = null;
+    let activeAdminJudgeStageTab = "Stage 1";
     let judgeItemAdminOverride = false;
     let editingAdminItemId = null;
     let extendingExpiryEventCode = "";
@@ -2353,12 +2450,13 @@
         if (raw !== null) {
           const saved = JSON.parse(raw);
           if (saved && Array.isArray(saved.items) && Array.isArray(saved.participants) && Array.isArray(saved.scores)) {
+            const legacyStages = normalizeStagesList(saved.stages, true);
             const legacyTitle = saved.config?.title || saved.branding?.festivalName || DEFAULT_HEADER_TITLE;
             const legacySub = saved.config?.subtitle ?? saved.branding?.subtitle ?? DEFAULT_SUBTITLE;
             const legacyPin = saved.config?.adminPin || DEFAULT_EVENT_PIN;
             const legacyJudgesCount = normalizeJudgesCount(saved.config?.judgesCount);
             const legacyActiveItemId = String(saved.config?.activeItemId || "").trim().slice(0, 64);
-            const legacyStageLiveItems = normalizeStageLiveItems(saved.config?.stageLiveItems);
+            const legacyStageLiveItems = normalizeStageLiveItems(saved.config?.stageLiveItems, "", legacyStages);
             const legacyChart = normalizeChartType(saved.config?.chartType);
             const legacyGrades = normalizeGradeThresholds(saved.config);
             const legacyIsActive = typeof saved.config?.isActive === "boolean" ? saved.config.isActive : false;
@@ -2378,7 +2476,8 @@
                 expiresAt: legacyExpiresAt,
                 authorId: legacyAuthor
               },
-              judges: normalizeJudgesConfig(saved.judges, code),
+              stages: legacyStages,
+              judges: normalizeJudgesConfig(saved.judges, code, legacyStages),
               groups: Array.isArray(saved.groups) ? saved.groups : [],
               items: saved.items,
               participants: saved.participants,
@@ -2582,13 +2681,27 @@
     }
 
     function buildJudgesSettingsPayload(code, judgesObj) {
-      const normalized = normalizeJudgesConfig(judgesObj, code);
+      const stages = getConfiguredStages();
+      const normalized = normalizeJudgesConfig(judgesObj, code, stages);
+      const firstStage = stages[0] || "Stage 1";
+      const firstPanel = normalized.stagePanels[firstStage] || { J1: normalized.J1, J2: normalized.J2, J3: normalized.J3 };
       return {
         id: "judges",
         eventCode: code,
-        J1: { ...normalized.J1 },
-        J2: { ...normalized.J2 },
-        J3: { ...normalized.J3 },
+        stagePanels: normalized.stagePanels,
+        J1: { ...firstPanel.J1, stage: firstStage },
+        J2: { ...firstPanel.J2, stage: firstStage },
+        J3: { ...firstPanel.J3, stage: firstStage },
+        authorId: getDeviceAuthorId(),
+        updatedAt: serverTimestamp()
+      };
+    }
+
+    function buildStagesSettingsPayload(code, stagesList) {
+      return {
+        id: "stages",
+        eventCode: code,
+        stages: normalizeStagesList(stagesList, true),
         authorId: getDeviceAuthorId(),
         updatedAt: serverTimestamp()
       };
@@ -2604,7 +2717,11 @@
     }
 
     async function syncJudgesSettingsToCloud(code, judgesObj) {
-      await setDoc(doc(db, "events", code, "settings", "judges"), buildJudgesSettingsPayload(code, judgesObj), { merge: true });
+      await setDoc(doc(db, "events", code, "settings", "judges"), buildJudgesSettingsPayload(code, judgesObj));
+    }
+
+    async function syncStagesSettingsToCloud(code, stagesList) {
+      await setDoc(doc(db, "events", code, "settings", "stages"), buildStagesSettingsPayload(code, stagesList));
     }
 
     async function getDocPreferServer(ref) {
@@ -2670,6 +2787,7 @@
     function detachListeners() {
       if (unsubActiveRegistry) { unsubActiveRegistry(); unsubActiveRegistry = null; }
       if (unsubBranding) { unsubBranding(); unsubBranding = null; }
+      if (unsubStages) { unsubStages(); unsubStages = null; }
       if (unsubJudges) { unsubJudges(); unsubJudges = null; }
       if (unsubGroups) { unsubGroups(); unsubGroups = null; }
       if (unsubItems) { unsubItems(); unsubItems = null; }
@@ -2697,6 +2815,7 @@
 
       applyBrandingUI();
       applyAdminAccessUI();
+      renderAdminStagesManager();
       renderJudgeSlotOptions();
       renderAdminJudgesForm();
       syncLockedJudgeSessionWithConfig();
@@ -2727,11 +2846,35 @@
         }
       }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/config`));
 
+      unsubStages = onSnapshot(eventDocument("settings", "stages"), (snap) => {
+        if (snap.exists()) {
+          hasCloudStagesDoc = true;
+          const nextStages = normalizeStagesList(snap.data()?.stages, true);
+          window.state.stages = nextStages;
+          window.state.judges = normalizeJudgesConfig(window.state?.judges, activeEventCode, nextStages);
+          if (window.state.config) {
+            window.state.config.stageLiveItems = normalizeStageLiveItems(window.state.config.stageLiveItems, "", nextStages);
+          }
+          if (!nextStages.includes(activeAdminJudgeStageTab)) {
+            activeAdminJudgeStageTab = nextStages[0] || "Stage 1";
+          }
+          saveLocalState();
+          renderAdminStagesManager();
+          syncAdminLiveItemUI();
+          renderAdminJudgesForm();
+          renderJudgeSlotOptions();
+          syncLockedJudgeSessionWithConfig();
+          syncJudgeActiveItemUI();
+          window.refreshAllSelects();
+        }
+      }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/stages`));
+
       unsubJudges = onSnapshot(eventDocument("settings", "judges"), (snap) => {
         if (snap.exists()) {
-          window.state.judges = normalizeJudgesConfig(snap.data(), activeEventCode);
+          window.state.judges = normalizeJudgesConfig(snap.data(), activeEventCode, getConfiguredStages());
           saveLocalState();
           renderAdminJudgesForm();
+          renderJudgeSlotOptions();
           syncLockedJudgeSessionWithConfig();
         }
       }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/judges`));
@@ -2746,6 +2889,9 @@
 
       unsubItems = onSnapshot(eventCollection("items"), (snap) => {
         window.state.items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (!hasCloudStagesDoc && window.state.items.length > 0) {
+          autoRegisterStagesFromNames(window.state.items.map(it => it.stage), { persist: false });
+        }
         saveLocalState();
         window.refreshAllSelects();
         window.renderAdminLists();
@@ -2835,24 +2981,76 @@
       }
     }
 
+    function encodeJudgeSelectionValue(stageName, slot) {
+      return `${stageName}:::${slot}`;
+    }
+
+    function decodeJudgeSelectionValue(rawVal, stages = getConfiguredStages(), activeSlots = getActiveJudgeSlots()) {
+      const str = String(rawVal || "");
+      const sepIdx = str.lastIndexOf(":::");
+      const fallbackStage = stages[0] || "Stage 1";
+      const fallbackSlot = activeSlots[0] || "J1";
+      if (sepIdx === -1) {
+        return {
+          stage: fallbackStage,
+          slot: activeSlots.includes(str) ? str : fallbackSlot
+        };
+      }
+      const rawStage = normalizeStageName(str.slice(0, sepIdx));
+      const rawSlot = str.slice(sepIdx + 3).trim();
+      const matchedStage = stages.find(s => s.toLowerCase() === rawStage.toLowerCase()) || fallbackStage;
+      const matchedSlot = activeSlots.includes(rawSlot) ? rawSlot : fallbackSlot;
+      return { stage: matchedStage, slot: matchedSlot };
+    }
+
+    function updateJudgeDemoPinsHint() {
+      const demoHint = document.getElementById("judge-demo-pins-hint");
+      if (!demoHint) return;
+      demoHint.classList.toggle("hidden", activeEventCode !== DEMO_EVENT_CODE);
+      if (activeEventCode !== DEMO_EVENT_CODE) return;
+      const stages = getConfiguredStages();
+      const slotEl = document.getElementById("judge-slot");
+      const { stage } = decodeJudgeSelectionValue(slotEl?.value, stages);
+      const panel = getStageJudgePanel(window.state?.judges, stage, DEMO_EVENT_CODE);
+      const judgesCount = normalizeJudgesCount(window.state?.config?.judgesCount);
+      demoHint.innerHTML = judgesCount === 2
+        ? `Demo Judge PINs (${escapeHtml(stage)}): <span class="font-bold tabular-nums">J1: ${escapeHtml(panel.J1.pin)}</span> · <span class="font-bold tabular-nums">J2: ${escapeHtml(panel.J2.pin)}</span>`
+        : `Demo Judge PINs (${escapeHtml(stage)}): <span class="font-bold tabular-nums">J1: ${escapeHtml(panel.J1.pin)}</span> · <span class="font-bold tabular-nums">J2: ${escapeHtml(panel.J2.pin)}</span> · <span class="font-bold tabular-nums">J3: ${escapeHtml(panel.J3.pin)}</span>`;
+    }
+
     function renderJudgeSlotOptions() {
       const slotEl = document.getElementById("judge-slot");
       if (!slotEl) return;
+      const stages = getConfiguredStages();
       const activeSlots = getActiveJudgeSlots();
-      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
       const prevVal = slotEl.value;
-      slotEl.innerHTML = activeSlots.map((slot) => {
-        const cfg = judgesCfg[slot];
-        const stageLabel = cfg?.stage && cfg.stage !== "All Stages" ? ` · ${cfg.stage}` : " · All Stages";
-        return `<option value="${escapeHtml(slot)}">${escapeHtml(slot)} — ${escapeHtml(cfg?.name || slot)}${escapeHtml(stageLabel)}</option>`;
+
+      slotEl.innerHTML = stages.map((stageName) => {
+        const panel = getStageJudgePanel(judgesCfg, stageName, activeEventCode);
+        const optionsHtml = activeSlots.map((slot) => {
+          const val = encodeJudgeSelectionValue(stageName, slot);
+          return `<option value="${escapeHtml(val)}">${escapeHtml(stageName)} · ${escapeHtml(slot)} — ${escapeHtml(panel[slot]?.name || slot)}</option>`;
+        }).join("");
+        return `<optgroup label="${escapeHtml(stageName)}">${optionsHtml}</optgroup>`;
       }).join("");
-      if (activeJudgeSession?.judgeSlot && activeSlots.includes(activeJudgeSession.judgeSlot)) {
-        slotEl.value = activeJudgeSession.judgeSlot;
-      } else if (prevVal && activeSlots.includes(prevVal)) {
+
+      const allValidValues = [];
+      stages.forEach((stageName) => {
+        activeSlots.forEach((slot) => allValidValues.push(encodeJudgeSelectionValue(stageName, slot)));
+      });
+
+      const sessionVal = activeJudgeSession
+        ? encodeJudgeSelectionValue(activeJudgeSession.judgeStage, activeJudgeSession.judgeSlot)
+        : "";
+      if (sessionVal && allValidValues.includes(sessionVal)) {
+        slotEl.value = sessionVal;
+      } else if (prevVal && allValidValues.includes(prevVal)) {
         slotEl.value = prevVal;
-      } else {
-        slotEl.value = activeSlots[0] || "J1";
+      } else if (allValidValues.length > 0) {
+        slotEl.value = allValidValues[0];
       }
+      updateJudgeDemoPinsHint();
     }
 
     function applyJudgeSessionLockUI() {
@@ -2862,7 +3060,6 @@
       const lockedNotice = document.getElementById("judge-scoring-locked-notice");
       const lockedNoticeText = document.getElementById("judge-locked-notice-text");
       const slotDescEl = document.getElementById("judge-slot-desc");
-      const demoHint = document.getElementById("judge-demo-pins-hint");
       const resetBtn = document.getElementById("judge-reset-btn");
       const submitBtn = document.getElementById("judge-submit-btn");
       const judgesCount = normalizeJudgesCount(window.state?.config?.judgesCount);
@@ -2871,24 +3068,19 @@
       renderJudgeSlotOptions();
 
       if (slotDescEl) {
-        slotDescEl.textContent = `Select your assigned panel slot (${slotSummary}) and enter your secret 4-digit Judge PIN.`;
+        slotDescEl.textContent = `Select your assigned Stage & Judge slot (${slotSummary}) and enter your secret 4-digit Judge PIN.`;
       }
       if (lockedNoticeText) {
-        lockedNoticeText.textContent = `🔒 Judge Session is locked. Select your slot (${slotSummary}) and enter your 4-digit Judge PIN above to unlock score entry.`;
+        lockedNoticeText.textContent = `🔒 Judge Session is locked. Select your Stage & slot (${slotSummary}) and enter your 4-digit Judge PIN above to unlock score entry.`;
       }
-      if (demoHint) {
-        demoHint.classList.toggle("hidden", activeEventCode !== DEMO_EVENT_CODE);
-        demoHint.innerHTML = judgesCount === 2
-          ? `Demo Judge PINs: <span class="font-bold tabular-nums">J1: 1111</span> · <span class="font-bold tabular-nums">J2: 2222</span>`
-          : `Demo Judge PINs: <span class="font-bold tabular-nums">J1: 1111</span> · <span class="font-bold tabular-nums">J2: 2222</span> · <span class="font-bold tabular-nums">J3: 3333</span>`;
-      }
+      updateJudgeDemoPinsHint();
 
       const isUnlocked = Boolean(activeJudgeSession && activeJudgeSession.judgeSlot && activeJudgeSession.judgeName);
 
       if (isUnlocked) {
-        const assignedStage = normalizeJudgeStage(activeJudgeSession.judgeStage);
+        const assignedStage = normalizeStageName(activeJudgeSession.judgeStage) || "Stage 1";
         if (displayEl) {
-          displayEl.textContent = `${activeJudgeSession.judgeSlot} — ${activeJudgeSession.judgeName} · ${assignedStage}`;
+          displayEl.textContent = `${assignedStage} · ${activeJudgeSession.judgeSlot} — ${activeJudgeSession.judgeName}`;
         }
         if (lockedBox) {
           lockedBox.classList.remove("hidden");
@@ -2897,7 +3089,7 @@
         if (editorBox) editorBox.classList.add("hidden");
         if (lockedNotice) lockedNotice.classList.add("hidden");
         const slotEl = document.getElementById("judge-slot");
-        if (slotEl) slotEl.value = activeJudgeSession.judgeSlot;
+        if (slotEl) slotEl.value = encodeJudgeSelectionValue(assignedStage, activeJudgeSession.judgeSlot);
       } else {
         if (lockedBox) {
           lockedBox.classList.add("hidden");
@@ -2916,18 +3108,23 @@
     }
 
     function verifySavedSessionAgainstJudges(saved, judgesCfg, eventCfg) {
+      const stages = getConfiguredStages();
       const activeSlots = getActiveJudgeSlots(eventCfg);
       if (!saved || !activeSlots.includes(saved.judgeSlot) || !saved.pin) return null;
-      const slotCfg = judgesCfg?.[saved.judgeSlot];
+      const savedStage = normalizeStageName(saved.judgeStage) || stages[0] || "Stage 1";
+      const matchedStage = stages.find(s => s.toLowerCase() === savedStage.toLowerCase());
+      if (!matchedStage) return null;
+      const panel = getStageJudgePanel(judgesCfg, matchedStage, activeEventCode);
+      const slotCfg = panel?.[saved.judgeSlot];
       if (!slotCfg) return null;
       const storedAdminPin = String(eventCfg?.adminPin || DEFAULT_EVENT_PIN).trim();
       const matchesJudgePin = String(saved.pin).trim() === String(slotCfg.pin).trim();
       const matchesAdminPin = Boolean(saved.unlockedViaAdmin) && (String(saved.pin).trim() === storedAdminPin || String(saved.pin).trim() === MASTER_PIN);
       if (matchesJudgePin || matchesAdminPin) {
         return {
+          judgeStage: matchedStage,
           judgeSlot: saved.judgeSlot,
           judgeName: slotCfg.name,
-          judgeStage: normalizeJudgeStage(slotCfg.stage),
           pinUsed: String(saved.pin).trim(),
           unlockedViaAdmin: !matchesJudgePin
         };
@@ -2945,7 +3142,8 @@
         syncJudgeActiveItemUI();
         return;
       }
-      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+      const stages = getConfiguredStages();
+      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
       window.state.judges = judgesCfg;
       try {
         const saved = JSON.parse(localStorage.getItem(getJudgeSessionKey(activeEventCode)) || "null");
@@ -2955,15 +3153,14 @@
         }
       } catch {}
       renderJudgeSlotOptions();
-      const slotEl = document.getElementById("judge-slot");
-      if (slotEl) slotEl.value = activeJudgeSession?.judgeSlot || "J1";
       applyJudgeSessionLockUI();
       syncJudgeActiveItemUI();
     }
 
     function syncLockedJudgeSessionWithConfig() {
       if (!activeEventCode) return;
-      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+      const stages = getConfiguredStages();
+      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
       const activeSlots = getActiveJudgeSlots(window.state?.config);
       renderJudgeSlotOptions();
       if (activeJudgeSession) {
@@ -2977,7 +3174,19 @@
           window.showToast("Judge 3 slot hidden (2-Judge panel enabled by Admin)");
           return;
         }
-        const slotCfg = judgesCfg[activeJudgeSession.judgeSlot];
+        const matchedStage = stages.find(s => s.toLowerCase() === normalizeStageName(activeJudgeSession.judgeStage).toLowerCase());
+        if (!matchedStage) {
+          activeJudgeSession = null;
+          try { localStorage.removeItem(getJudgeSessionKey(activeEventCode)); } catch {}
+          window.resetScoreInputs();
+          applyJudgeSessionLockUI();
+          syncJudgeActiveItemUI();
+          window.populateJudgeParticipants();
+          window.showToast("Assigned stage removed by Admin — please unlock again");
+          return;
+        }
+        const panel = getStageJudgePanel(judgesCfg, matchedStage, activeEventCode);
+        const slotCfg = panel?.[activeJudgeSession.judgeSlot];
         const storedAdminPin = String(window.state?.config?.adminPin || DEFAULT_EVENT_PIN).trim();
         const stillValidJudge = slotCfg && activeJudgeSession.pinUsed === slotCfg.pin;
         const stillValidAdmin = activeJudgeSession.unlockedViaAdmin && (activeJudgeSession.pinUsed === storedAdminPin || activeJudgeSession.pinUsed === MASTER_PIN);
@@ -2991,14 +3200,13 @@
           window.showToast("Judge PIN updated by Admin — please unlock again");
           return;
         }
-        const nextStage = normalizeJudgeStage(slotCfg?.stage);
         let changed = false;
         if (slotCfg && activeJudgeSession.judgeName !== slotCfg.name) {
           activeJudgeSession.judgeName = slotCfg.name;
           changed = true;
         }
-        if (activeJudgeSession.judgeStage !== nextStage) {
-          activeJudgeSession.judgeStage = nextStage;
+        if (activeJudgeSession.judgeStage !== matchedStage) {
+          activeJudgeSession.judgeStage = matchedStage;
           judgeItemAdminOverride = false;
           changed = true;
         }
@@ -3024,6 +3232,7 @@
 
     window.handleJudgeSlotChange = () => {
       window.hideJudgePinError();
+      updateJudgeDemoPinsHint();
     };
 
     window.unlockJudgeSession = async () => {
@@ -3031,12 +3240,15 @@
       const slotEl = document.getElementById("judge-slot");
       const pinEl = document.getElementById("judge-pin-input");
       const btnEl = document.getElementById("judge-unlock-btn");
+      let stages = getConfiguredStages();
       const activeSlots = getActiveJudgeSlots();
-      const slot = activeSlots.includes(slotEl?.value) ? slotEl.value : "J1";
+      const decoded = decodeJudgeSelectionValue(slotEl?.value, stages, activeSlots);
+      const targetStage = decoded.stage;
+      const slot = decoded.slot;
       const enteredPin = String(pinEl?.value || "").trim();
 
       if (!enteredPin) {
-        showJudgePinError(`Please enter the 4-digit Judge PIN for ${slot}.`);
+        showJudgePinError(`Please enter the 4-digit Judge PIN for ${targetStage} · ${slot}.`);
         if (pinEl) pinEl.focus();
         return;
       }
@@ -3047,16 +3259,22 @@
         btnEl.textContent = "Verifying PIN...";
       }
 
-      let judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+      let judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
       let eventCfg = window.state?.config || getDefaultConfig(activeEventCode);
 
       try {
-        const [judgesSnap, resolvedCfg] = await Promise.all([
+        const [stagesSnap, judgesSnap, resolvedCfg] = await Promise.all([
+          getDocPreferServer(eventDocument("settings", "stages")).catch(() => null),
           getDocPreferServer(eventDocument("settings", "judges")).catch(() => null),
           resolveCloudEventConfig(activeEventCode).catch(() => ({ exists: false }))
         ]);
+        if (stagesSnap && stagesSnap.exists()) {
+          hasCloudStagesDoc = true;
+          stages = normalizeStagesList(stagesSnap.data()?.stages, true);
+          window.state.stages = stages;
+        }
         if (judgesSnap && judgesSnap.exists()) {
-          judgesCfg = normalizeJudgesConfig(judgesSnap.data(), activeEventCode);
+          judgesCfg = normalizeJudgesConfig(judgesSnap.data(), activeEventCode, stages);
           window.state.judges = judgesCfg;
           saveLocalState();
           renderAdminJudgesForm();
@@ -3081,13 +3299,15 @@
         return;
       }
 
-      const slotCfg = judgesCfg[slot];
+      const resolvedStage = stages.find(s => s.toLowerCase() === targetStage.toLowerCase()) || stages[0] || "Stage 1";
+      const panel = getStageJudgePanel(judgesCfg, resolvedStage, activeEventCode);
+      const slotCfg = panel?.[slot];
       const storedAdminPin = String(eventCfg?.adminPin || DEFAULT_EVENT_PIN).trim();
       const matchesJudgePin = Boolean(slotCfg && enteredPin === String(slotCfg.pin).trim());
       const matchesAdminOverride = enteredPin === storedAdminPin || enteredPin === MASTER_PIN;
 
       if (!matchesJudgePin && !matchesAdminOverride) {
-        showJudgePinError(`Incorrect PIN for ${slot}. Enter the secret 4-digit Judge PIN assigned by the Admin.`);
+        showJudgePinError(`Incorrect PIN for ${resolvedStage} · ${slot}. Enter the secret 4-digit Judge PIN assigned by the Admin.`);
         if (pinEl) {
           pinEl.focus();
           pinEl.select();
@@ -3095,12 +3315,11 @@
         return;
       }
 
-      const assignedStage = normalizeJudgeStage(slotCfg.stage);
       judgeItemAdminOverride = false;
       activeJudgeSession = {
+        judgeStage: resolvedStage,
         judgeSlot: slot,
         judgeName: slotCfg.name,
-        judgeStage: assignedStage,
         pinUsed: enteredPin,
         unlockedViaAdmin: !matchesJudgePin
       };
@@ -3108,6 +3327,7 @@
         localStorage.setItem(
           getJudgeSessionKey(activeEventCode),
           JSON.stringify({
+            judgeStage: resolvedStage,
             judgeSlot: slot,
             pin: enteredPin,
             unlockedViaAdmin: !matchesJudgePin
@@ -3120,7 +3340,7 @@
       applyJudgeSessionLockUI();
       syncJudgeActiveItemUI();
       window.populateJudgeParticipants();
-      window.showToast(`Unlocked ${slot} — ${slotCfg.name} (${assignedStage})`);
+      window.showToast(`Unlocked ${resolvedStage} · ${slot} — ${slotCfg.name}`);
     };
 
     window.lockAndSwitchJudgeSession = () => {
@@ -3142,21 +3362,219 @@
       setTimeout(() => pinEl?.focus(), 30);
     };
 
-    // Live Competition Item Lock & Admin Override Controls (Per-Stage)
-    function getStageLiveSelectId(stageSlot) {
-      if (stageSlot === "Stage 1") return "admin-live-item-stage-1";
-      if (stageSlot === "Stage 2") return "admin-live-item-stage-2";
-      return "admin-live-item-stage-3";
+    // Dynamic Stage Manager & Per-Stage Live Competition Item Sync
+    function renderAdminStagesManager() {
+      const stages = getConfiguredStages();
+      const listEl = document.getElementById("admin-stages-list");
+      const countEl = document.getElementById("admin-stages-count");
+      const stageMap = getResolvedStageLiveMap();
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+
+      if (countEl) {
+        countEl.textContent = `${stages.length} ${stages.length === 1 ? "stage" : "stages"}`;
+      }
+      if (!listEl) return;
+
+      listEl.innerHTML = stages.map((stageName, idx) => {
+        const assignedCount = items.filter(it => resolveItemStageTarget(it.stage, stages) === stageName).length;
+        const isLive = Boolean(stageMap[stageName] && items.some(it => it.id === stageMap[stageName]));
+        const canRemove = stages.length > 1;
+        return `
+          <span class="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 text-xs font-semibold rounded-md border ${isLive ? "bg-red-50 text-red-900 border-red-200" : "bg-white text-stone-800 border-stone-300"}">
+            ${isLive ? `<span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shrink-0"></span>` : ""}
+            <span class="truncate max-w-[160px]">${escapeHtml(stageName)}</span>
+            <span class="text-[10px] font-medium text-stone-500 tabular-nums">(${assignedCount})</span>
+            ${canRemove ? `<button type="button" onclick="handleRemoveStageByIdx(${idx})" title="Remove unused stage" aria-label="Remove stage ${escapeHtml(stageName)}" class="ml-0.5 w-4 h-4 inline-flex items-center justify-center rounded hover:bg-stone-200 text-stone-500 hover:text-red-700 transition-colors">×</button>` : ""}
+          </span>
+        `;
+      }).join("");
     }
 
-    function getStageLiveBadgeId(stageSlot) {
-      if (stageSlot === "Stage 1") return "admin-live-badge-stage-1";
-      if (stageSlot === "Stage 2") return "admin-live-badge-stage-2";
-      return "admin-live-badge-stage-3";
+    async function autoRegisterStagesFromNames(rawStageNames, { persist = true } = {}) {
+      if (!Array.isArray(rawStageNames) || rawStageNames.length === 0) return false;
+      const stages = getConfiguredStages();
+      const nextStages = [...stages];
+      const addedStages = [];
+
+      for (const raw of rawStageNames) {
+        const clean = normalizeStageName(raw);
+        if (!clean) continue;
+        if (resolveItemStageTarget(clean, nextStages)) continue;
+        if (nextStages.length >= MAX_STAGES) break;
+        nextStages.push(clean);
+        addedStages.push(clean);
+      }
+
+      if (addedStages.length === 0) return false;
+
+      window.state.stages = nextStages;
+      const currentJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
+      const usedPins = getAllUsedJudgePinsExcludingStage(currentJudges, "");
+      const nextPanels = { ...(currentJudges.stagePanels || {}) };
+      addedStages.forEach((stName, offset) => {
+        if (!nextPanels[stName]) {
+          nextPanels[stName] = getDefaultStagePanel(stName, stages.length + offset, activeEventCode, true, usedPins);
+        }
+      });
+      window.state.judges = normalizeJudgesConfig({ ...currentJudges, stagePanels: nextPanels }, activeEventCode, nextStages);
+      if (window.state.config) {
+        window.state.config.stageLiveItems = normalizeStageLiveItems(window.state.config.stageLiveItems, "", nextStages);
+      }
+      saveLocalState();
+      renderAdminStagesManager();
+      syncAdminLiveItemUI();
+      renderAdminJudgesForm();
+      renderJudgeSlotOptions();
+
+      if (persist && activeEventCode) {
+        try {
+          await Promise.all([
+            syncStagesSettingsToCloud(activeEventCode, nextStages),
+            syncJudgesSettingsToCloud(activeEventCode, window.state.judges)
+          ]);
+        } catch (err) {
+          handleFirestoreError(err, "write", `events/${activeEventCode}/settings/stages`);
+        }
+      }
+      return true;
     }
 
-    function getStageLiveButtons(stageSlot) {
-      const idx = stageSlot === "Stage 1" ? "1" : stageSlot === "Stage 2" ? "2" : "3";
+    window.handleAddStage = async () => {
+      if (!activeEventCode) return;
+      const inputEl = document.getElementById("admin-new-stage-name");
+      const rawName = normalizeStageName(inputEl?.value || "");
+      const stages = getConfiguredStages();
+      if (!rawName) {
+        window.showToast("Please enter a stage name (e.g. Stage 4 or Stage 4 - Kabani)");
+        inputEl?.focus();
+        return;
+      }
+      if (stages.length >= MAX_STAGES) {
+        window.showToast(`Maximum ${MAX_STAGES} stages supported per festival`);
+        return;
+      }
+      const existing = stages.find(s => s.toLowerCase() === rawName.toLowerCase());
+      if (existing) {
+        window.showToast(`Stage "${existing}" is already active`);
+        inputEl?.focus();
+        inputEl?.select();
+        return;
+      }
+
+      const nextStages = [...stages, rawName];
+      const currentJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
+      const usedPins = getAllUsedJudgePinsExcludingStage(currentJudges, "");
+      const newPanel = getDefaultStagePanel(rawName, stages.length, activeEventCode, activeEventCode !== DEMO_EVENT_CODE, usedPins);
+      const nextJudges = normalizeJudgesConfig({
+        ...currentJudges,
+        stagePanels: {
+          ...currentJudges.stagePanels,
+          [rawName]: newPanel
+        }
+      }, activeEventCode, nextStages);
+
+      window.state.stages = nextStages;
+      window.state.judges = nextJudges;
+      if (window.state.config) {
+        window.state.config.stageLiveItems = normalizeStageLiveItems(window.state.config.stageLiveItems, "", nextStages);
+      }
+      hasCloudStagesDoc = true;
+      activeAdminJudgeStageTab = rawName;
+      if (inputEl) inputEl.value = "";
+      saveLocalState();
+      renderAdminStagesManager();
+      syncAdminLiveItemUI();
+      renderAdminJudgesForm();
+      renderJudgeSlotOptions();
+      window.refreshAllSelects();
+      window.showToast(`Added "${rawName}" with independent Judge Panel (${newPanel.J1.pin} / ${newPanel.J2.pin})`);
+
+      try {
+        await Promise.all([
+          syncStagesSettingsToCloud(activeEventCode, nextStages),
+          syncJudgesSettingsToCloud(activeEventCode, nextJudges)
+        ]);
+      } catch (err) {
+        handleFirestoreError(err, "write", `events/${activeEventCode}/settings/stages`);
+      }
+    };
+
+    window.handleRemoveStageByIdx = async (idx) => {
+      if (!activeEventCode) return;
+      const stages = getConfiguredStages();
+      const stageName = stages[idx];
+      if (!stageName) return;
+      if (stages.length <= 1) {
+        window.showToast("At least one active stage is required");
+        return;
+      }
+
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const stageItems = items.filter(it => resolveItemStageTarget(it.stage, stages) === stageName);
+      if (stageItems.length > 0) {
+        window.showToast(`Cannot remove "${stageName}" — ${stageItems.length} ${stageItems.length === 1 ? "item is" : "items are"} still assigned to it`);
+        return;
+      }
+
+      const stageMap = getResolvedStageLiveMap();
+      if (stageMap[stageName]) {
+        window.showToast(`Clear the pushed live item on "${stageName}" before removing it`);
+        return;
+      }
+
+      const nextStages = stages.filter((_, i) => i !== idx);
+      const nextStageLive = { ...stageMap };
+      delete nextStageLive[stageName];
+      const nextFallbackId = nextStages.map(s => nextStageLive[s]).find(Boolean) || "";
+      const updatedCfg = buildNormalizedEventConfig(activeEventCode, {
+        ...(window.state.config || getDefaultConfig(activeEventCode)),
+        stageLiveItems: normalizeStageLiveItems(nextStageLive, "", nextStages),
+        activeItemId: nextFallbackId
+      });
+
+      const currentJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
+      const nextPanels = { ...(currentJudges.stagePanels || {}) };
+      delete nextPanels[stageName];
+      const nextJudges = normalizeJudgesConfig({ ...currentJudges, stagePanels: nextPanels }, activeEventCode, nextStages);
+
+      window.state.stages = nextStages;
+      window.state.config = updatedCfg;
+      window.state.judges = nextJudges;
+      hasCloudStagesDoc = true;
+      if (activeAdminJudgeStageTab === stageName || !nextStages.includes(activeAdminJudgeStageTab)) {
+        activeAdminJudgeStageTab = nextStages[0] || "Stage 1";
+      }
+
+      saveLocalState();
+      renderAdminStagesManager();
+      syncAdminLiveItemUI();
+      renderAdminJudgesForm();
+      renderJudgeSlotOptions();
+      syncLockedJudgeSessionWithConfig();
+      syncJudgeActiveItemUI();
+      window.refreshAllSelects();
+      window.showToast(`Removed unused stage "${stageName}"`);
+
+      try {
+        await Promise.all([
+          syncStagesSettingsToCloud(activeEventCode, nextStages),
+          syncJudgesSettingsToCloud(activeEventCode, nextJudges),
+          syncEventMetadataToCloud(activeEventCode, updatedCfg, false)
+        ]);
+      } catch (err) {
+        handleFirestoreError(err, "write", `events/${activeEventCode}/settings/stages`);
+      }
+    };
+
+    function getStageLiveSelectId(idx) {
+      return `admin-live-item-stage-${idx}`;
+    }
+
+    function getStageLiveBadgeId(idx) {
+      return `admin-live-badge-stage-${idx}`;
+    }
+
+    function getStageLiveButtons(idx) {
       return {
         pushBtn: document.getElementById(`admin-push-live-stage-${idx}`),
         clearBtn: document.getElementById(`admin-clear-live-stage-${idx}`)
@@ -3165,13 +3583,13 @@
 
     function getResolvedStageLiveMap() {
       const cfg = window.state?.config;
+      const stages = getConfiguredStages();
       const items = Array.isArray(window.state?.items) ? window.state.items : [];
-      const map = normalizeStageLiveItems(cfg?.stageLiveItems);
-      // Fallback compatibility: if stageLiveItems has no entry for a stage, check legacy activeItemId if it belongs to that stage
+      const map = normalizeStageLiveItems(cfg?.stageLiveItems, "", stages);
       const legacyId = String(cfg?.activeItemId || "").trim();
       if (legacyId) {
         const legacyItem = items.find(it => it.id === legacyId);
-        const legacyStage = resolveCanonicalStage(legacyItem?.stage);
+        const legacyStage = resolveItemStageTarget(legacyItem?.stage, stages);
         if (legacyStage && !map[legacyStage]) {
           map[legacyStage] = legacyId;
         }
@@ -3181,33 +3599,39 @@
 
     function syncAdminLiveItemUI() {
       const statusBadge = document.getElementById("admin-live-item-status-badge");
+      const containerEl = document.getElementById("admin-live-stages-container");
       const pushAllBtn = document.getElementById("admin-push-live-item-btn");
       const clearAllBtn = document.getElementById("admin-clear-live-item-btn");
+      const stages = getConfiguredStages();
       const items = Array.isArray(window.state?.items) ? window.state.items : [];
       const stageMap = getResolvedStageLiveMap();
       const liveSummaries = [];
 
-      STAGE_SLOTS.forEach((stageSlot) => {
-        const selectEl = document.getElementById(getStageLiveSelectId(stageSlot));
-        const badgeEl = document.getElementById(getStageLiveBadgeId(stageSlot));
-        const { pushBtn, clearBtn } = getStageLiveButtons(stageSlot);
-        const currentLiveId = stageMap[stageSlot] || "";
-        const liveItem = currentLiveId ? items.find(it => it.id === currentLiveId) : null;
+      renderAdminStagesManager();
 
-        if (selectEl) {
+      if (containerEl) {
+        const prevSelectedByStage = {};
+        Array.from(containerEl.querySelectorAll("select[data-stage-name]")).forEach((sel) => {
+          const stName = sel.getAttribute("data-stage-name");
+          if (stName && sel.value) prevSelectedByStage[stName] = sel.value;
+        });
+
+        containerEl.innerHTML = stages.map((stageName, idx) => {
+          const currentLiveId = stageMap[stageName] || "";
+          const liveItem = currentLiveId ? items.find(it => it.id === currentLiveId) : null;
+          let optionsHtml = "";
           if (items.length === 0) {
-            selectEl.innerHTML = `<option value="">Add competition items below first</option>`;
+            optionsHtml = `<option value="">Add competition items below first</option>`;
           } else {
-            const prevVal = selectEl.value;
-            const stageItems = items.filter(it => resolveCanonicalStage(it.stage) === stageSlot);
-            const unassignedItems = items.filter(it => !resolveCanonicalStage(it.stage));
+            const stageItems = items.filter(it => resolveItemStageTarget(it.stage, stages) === stageName);
+            const unassignedItems = items.filter(it => !resolveItemStageTarget(it.stage, stages));
             const otherStageItems = items.filter(it => {
-              const s = resolveCanonicalStage(it.stage);
-              return s && s !== stageSlot;
+              const s = resolveItemStageTarget(it.stage, stages);
+              return s && s !== stageName;
             });
-            let optionsHtml = `<option value="">— Select ${escapeHtml(stageSlot)} Item —</option>`;
+            optionsHtml = `<option value="">— Select ${escapeHtml(stageName)} Item —</option>`;
             if (stageItems.length > 0) {
-              optionsHtml += `<optgroup label="${escapeHtml(stageSlot)} Items (${stageItems.length})">` +
+              optionsHtml += `<optgroup label="${escapeHtml(stageName)} Items (${stageItems.length})">` +
                 stageItems.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage)})</option>`).join("") +
                 `</optgroup>`;
             }
@@ -3221,38 +3645,61 @@
                 otherStageItems.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage)})</option>`).join("") +
                 `</optgroup>`;
             }
-            selectEl.innerHTML = optionsHtml;
-            if (liveItem) {
-              selectEl.value = liveItem.id;
-            } else if (stageItems.length > 0) {
-              selectEl.value = stageItems.some(it => it.id === prevVal) ? prevVal : stageItems[0].id;
-            } else if (prevVal && items.some(it => it.id === prevVal)) {
-              selectEl.value = prevVal;
-            } else {
-              selectEl.value = "";
-            }
           }
-        }
 
-        if (badgeEl) {
           if (liveItem) {
-            badgeEl.className = "text-[11px] font-bold text-red-700 truncate max-w-[180px]";
-            badgeEl.textContent = `🔴 LIVE: ${liveItem.name}`;
-            liveSummaries.push(`${stageSlot}: ${liveItem.name}`);
-          } else {
-            badgeEl.className = "text-[11px] font-semibold text-stone-500";
-            badgeEl.textContent = "Not Pushed";
+            liveSummaries.push(`${stageName}: ${liveItem.name}`);
           }
-        }
 
-        if (pushBtn) pushBtn.disabled = items.length === 0;
-        if (clearBtn) clearBtn.disabled = !liveItem;
-      });
+          const badgeClass = liveItem
+            ? "text-[11px] font-bold text-red-700 truncate max-w-[180px]"
+            : "text-[11px] font-semibold text-stone-500";
+          const badgeText = liveItem ? `🔴 LIVE: ${liveItem.name}` : "Not Pushed";
+
+          return `
+            <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <label for="${getStageLiveSelectId(idx)}" class="text-xs font-bold text-stone-800 truncate">${escapeHtml(stageName)} Live Item</label>
+                <span id="${getStageLiveBadgeId(idx)}" class="${badgeClass}">${escapeHtml(badgeText)}</span>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <select id="${getStageLiveSelectId(idx)}" data-stage-name="${escapeHtml(stageName)}" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">${optionsHtml}</select>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button type="button" id="admin-push-live-stage-${idx}" onclick="handlePushStageLiveItemByIdx(${idx})" ${items.length === 0 ? "disabled" : ""} class="px-3 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                    Push Live
+                  </button>
+                  <button type="button" id="admin-clear-live-stage-${idx}" onclick="handleClearStageLiveItemByIdx(${idx})" ${!liveItem ? "disabled" : ""} class="px-2.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        stages.forEach((stageName, idx) => {
+          const sel = document.getElementById(getStageLiveSelectId(idx));
+          if (!sel || items.length === 0) return;
+          const currentLiveId = stageMap[stageName] || "";
+          const liveItem = currentLiveId ? items.find(it => it.id === currentLiveId) : null;
+          const stageItems = items.filter(it => resolveItemStageTarget(it.stage, stages) === stageName);
+          const prevVal = prevSelectedByStage[stageName] || "";
+          if (liveItem) {
+            sel.value = liveItem.id;
+          } else if (stageItems.length > 0) {
+            sel.value = stageItems.some(it => it.id === prevVal) ? prevVal : stageItems[0].id;
+          } else if (prevVal && items.some(it => it.id === prevVal)) {
+            sel.value = prevVal;
+          } else {
+            sel.value = "";
+          }
+        });
+      }
 
       if (statusBadge) {
         if (liveSummaries.length > 0) {
           statusBadge.className = "px-3 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-900 border border-red-200 flex items-center gap-2";
-          statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-600 animate-pulse shrink-0"></span><span>🔴 LIVE: ${escapeHtml(liveSummaries.join(" · "))}</span>`;
+          statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-600 animate-pulse shrink-0"></span><span class="truncate">🔴 LIVE: ${escapeHtml(liveSummaries.join(" · "))}</span>`;
         } else {
           statusBadge.className = "px-3 py-2 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200";
           statusBadge.textContent = "No live stage items pushed (Judges can select manually)";
@@ -3271,13 +3718,14 @@
       const overrideNoticeEl = document.getElementById("judge-live-item-override-notice");
       if (!judgeItemEl) return;
 
+      const stages = getConfiguredStages();
       const items = Array.isArray(window.state?.items) ? window.state.items : [];
       const isUnlocked = Boolean(activeJudgeSession && activeJudgeSession.judgeSlot);
-      const assignedStage = isUnlocked ? normalizeJudgeStage(activeJudgeSession.judgeStage) : "All Stages";
-      const isSpecificStage = STAGE_SLOTS.includes(assignedStage);
+      const assignedStage = isUnlocked ? normalizeStageName(activeJudgeSession.judgeStage) : "";
+      const isSpecificStage = Boolean(assignedStage && stages.some(s => s.toLowerCase() === assignedStage.toLowerCase()));
 
       const stageItems = isSpecificStage
-        ? items.filter(it => resolveCanonicalStage(it.stage) === assignedStage)
+        ? items.filter(it => resolveItemStageTarget(it.stage, stages) === assignedStage)
         : items;
       const visibleItems = stageItems.length > 0 ? stageItems : items;
       const prevJudgeItem = judgeItemEl.value;
@@ -3349,9 +3797,8 @@
           liveBadgeEl.classList.remove("inline-flex");
         }
         if (allStagesBadgeEl) {
-          const showAllBadge = isUnlocked && !isSpecificStage;
-          allStagesBadgeEl.classList.toggle("hidden", !showAllBadge);
-          allStagesBadgeEl.classList.toggle("inline-flex", showAllBadge);
+          allStagesBadgeEl.classList.add("hidden");
+          allStagesBadgeEl.classList.remove("inline-flex");
         }
         if (overrideBtnEl) overrideBtnEl.classList.add("hidden");
         if (overrideNoticeEl) {
@@ -3368,7 +3815,7 @@
     async function persistStageLiveItemsMap(nextMap, nextActiveItemId, toastMessage, triggerBtn = null, defaultBtnLabel = "") {
       const updatedCfg = buildNormalizedEventConfig(activeEventCode, {
         ...(window.state.config || getDefaultConfig(activeEventCode)),
-        stageLiveItems: nextMap,
+        stageLiveItems: normalizeStageLiveItems(nextMap),
         activeItemId: nextActiveItemId
       });
       window.state.config = updatedCfg;
@@ -3396,59 +3843,66 @@
       }
     }
 
-    window.handlePushStageLiveItem = async (stageSlot) => {
-      if (!activeEventCode || !STAGE_SLOTS.includes(stageSlot)) return;
-      const selectEl = document.getElementById(getStageLiveSelectId(stageSlot));
+    window.handlePushStageLiveItemByIdx = async (idx) => {
+      if (!activeEventCode) return;
+      const stages = getConfiguredStages();
+      const stageName = stages[idx];
+      if (!stageName) return;
+      const selectEl = document.getElementById(getStageLiveSelectId(idx));
       const targetId = String(selectEl?.value || "").trim();
       const targetItem = window.state.items.find(it => it.id === targetId);
       if (!targetItem) {
-        window.showToast(`Please select a competition item for ${stageSlot}`);
+        window.showToast(`Please select a competition item for ${stageName}`);
         return;
       }
       const nextMap = {
         ...getResolvedStageLiveMap(),
-        [stageSlot]: targetItem.id
+        [stageName]: targetItem.id
       };
-      const { pushBtn } = getStageLiveButtons(stageSlot);
+      const { pushBtn } = getStageLiveButtons(idx);
       await persistStageLiveItemsMap(
         nextMap,
         targetItem.id,
-        `Pushed LIVE ON ${stageSlot}: ${targetItem.name}`,
+        `Pushed LIVE ON ${stageName}: ${targetItem.name}`,
         pushBtn,
         "Push Live"
       );
     };
 
-    window.handleClearStageLiveItem = async (stageSlot) => {
-      if (!activeEventCode || !STAGE_SLOTS.includes(stageSlot)) return;
+    window.handleClearStageLiveItemByIdx = async (idx) => {
+      if (!activeEventCode) return;
+      const stages = getConfiguredStages();
+      const stageName = stages[idx];
+      if (!stageName) return;
       const nextMap = {
         ...getResolvedStageLiveMap(),
-        [stageSlot]: ""
+        [stageName]: ""
       };
-      const nextFallbackId = STAGE_SLOTS.map(s => nextMap[s]).find(Boolean) || "";
+      const nextFallbackId = stages.map(s => nextMap[s]).find(Boolean) || "";
       await persistStageLiveItemsMap(
         nextMap,
         nextFallbackId,
-        `Cleared ${stageSlot} live stage lock`
+        `Cleared ${stageName} live stage lock`
       );
     };
 
     window.handlePushLiveItem = async () => {
       if (!activeEventCode) return;
+      const stages = getConfiguredStages();
       const currentMap = getResolvedStageLiveMap();
       const nextMap = { ...currentMap };
       let pushedCount = 0;
       let firstActiveId = "";
 
-      STAGE_SLOTS.forEach((stageSlot) => {
-        const selectEl = document.getElementById(getStageLiveSelectId(stageSlot));
+      stages.forEach((stageName, idx) => {
+        const selectEl = document.getElementById(getStageLiveSelectId(idx));
         const val = String(selectEl?.value || "").trim();
         if (val && window.state.items.some(it => it.id === val)) {
-          nextMap[stageSlot] = val;
+          nextMap[stageName] = val;
           pushedCount += 1;
           if (!firstActiveId) firstActiveId = val;
         } else {
-          nextMap[stageSlot] = "";
+          nextMap[stageName] = "";
         }
       });
 
@@ -3469,8 +3923,10 @@
 
     window.handleClearLiveItem = async () => {
       if (!activeEventCode) return;
+      const clearedMap = {};
+      getConfiguredStages().forEach((s) => { clearedMap[s] = ""; });
       await persistStageLiveItemsMap(
-        { "Stage 1": "", "Stage 2": "", "Stage 3": "" },
+        clearedMap,
         "",
         "Cleared all stage locks — Judges can select items manually"
       );
@@ -3550,7 +4006,7 @@
       window.showToast("Synced back to Admin’s Live Stage Item");
     };
 
-    // Admin Judge Panel Management (2 or 3 Judges + Stage Assignment)
+    // Admin Judge Panel Management (2 or 3 Judges + Dynamic Per-Stage Panels)
     window.hideAdminJudgesError = () => {
       const errEl = document.getElementById("admin-judges-error");
       if (errEl) {
@@ -3559,14 +4015,54 @@
       }
     };
 
-    function renderAdminJudgesForm() {
-      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+    window.selectAdminJudgeStageTabByIdx = (idx) => {
+      const stages = getConfiguredStages();
+      const nextStage = stages[idx];
+      if (!nextStage) return;
+      activeAdminJudgeStageTab = nextStage;
+      window.hideAdminJudgesError();
+      renderAdminJudgesForm(true);
+    };
+
+    function renderAdminJudgesForm(forceSyncInputs = false) {
+      const stages = getConfiguredStages();
+      if (!stages.includes(activeAdminJudgeStageTab)) {
+        activeAdminJudgeStageTab = stages[0] || "Stage 1";
+      }
+      const judgesCfg = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
+      const activePanel = getStageJudgePanel(judgesCfg, activeAdminJudgeStageTab, activeEventCode);
       const judgesCount = normalizeJudgesCount(window.state?.config?.judgesCount);
       const isTwoJudges = judgesCount === 2;
 
       const headingEl = document.getElementById("admin-judges-heading");
       if (headingEl) {
         headingEl.textContent = isTwoJudges ? "Manage Judges (J1, J2)" : "Manage Judges (J1, J2, J3)";
+      }
+
+      const tabsEl = document.getElementById("admin-judges-stage-tabs");
+      if (tabsEl) {
+        tabsEl.innerHTML = stages.map((stageName, idx) => {
+          const isSelected = stageName === activeAdminJudgeStageTab;
+          return `
+            <button type="button" role="tab" aria-selected="${isSelected ? "true" : "false"}" onclick="selectAdminJudgeStageTabByIdx(${idx})" class="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap ${
+              isSelected
+                ? "bg-amber-700 text-white border-amber-700"
+                : "bg-white text-stone-700 border-stone-300 hover:bg-stone-100"
+            }">
+              ${escapeHtml(stageName)}
+            </button>
+          `;
+        }).join("");
+      }
+
+      const activeBadgeEl = document.getElementById("admin-judge-active-stage-badge");
+      if (activeBadgeEl) {
+        activeBadgeEl.textContent = `Editing: ${activeAdminJudgeStageTab}`;
+      }
+
+      const saveBtnEl = document.getElementById("admin-save-judges-btn");
+      if (saveBtnEl) {
+        saveBtnEl.textContent = `Save ${activeAdminJudgeStageTab} Panel`;
       }
 
       const btn2 = document.getElementById("admin-judges-count-2");
@@ -3589,23 +4085,18 @@
 
       JUDGE_SLOTS.forEach((slot) => {
         const nameInp = document.getElementById(`admin-judge-name-${slot}`);
-        const stageSel = document.getElementById(`admin-judge-stage-${slot}`);
         const pinInp = document.getElementById(`admin-judge-pin-${slot}`);
-        if (nameInp && document.activeElement !== nameInp) {
-          nameInp.value = judgesCfg[slot].name;
+        if (nameInp && (forceSyncInputs || document.activeElement !== nameInp)) {
+          nameInp.value = activePanel[slot]?.name || slot;
         }
-        if (stageSel && document.activeElement !== stageSel) {
-          stageSel.value = normalizeJudgeStage(judgesCfg[slot].stage);
-        }
-        if (pinInp && document.activeElement !== pinInp) {
-          pinInp.value = judgesCfg[slot].pin;
+        if (pinInp && (forceSyncInputs || document.activeElement !== pinInp)) {
+          pinInp.value = activePanel[slot]?.pin || "1111";
         }
         if (slot === "J3") {
           if (nameInp) {
             nameInp.disabled = isTwoJudges;
             nameInp.required = !isTwoJudges;
           }
-          if (stageSel) stageSel.disabled = isTwoJudges;
           if (pinInp) {
             pinInp.disabled = isTwoJudges;
             pinInp.required = !isTwoJudges;
@@ -3645,22 +4136,26 @@
     };
 
     window.generateAdminJudgePins = () => {
-      const pins = generateDistinct4DigitPins();
+      const usedOtherPins = getAllUsedJudgePinsExcludingStage(window.state?.judges, activeAdminJudgeStageTab);
+      const pins = generateDistinct4DigitPins(usedOtherPins);
       JUDGE_SLOTS.forEach((slot, idx) => {
         const pinInp = document.getElementById(`admin-judge-pin-${slot}`);
         if (pinInp) pinInp.value = pins[idx];
       });
       window.hideAdminJudgesError();
-      window.showToast("Generated new 4-digit PINs — click Save Judge Panel to apply");
+      window.showToast(`Generated new PINs for ${activeAdminJudgeStageTab} — click Save to apply`);
     };
 
     window.handleSaveJudgesConfig = async (e) => {
       e.preventDefault();
       if (!activeEventCode) return;
+      const stages = getConfiguredStages();
+      const targetStage = stages.includes(activeAdminJudgeStageTab) ? activeAdminJudgeStageTab : (stages[0] || "Stage 1");
       const errEl = document.getElementById("admin-judges-error");
       const saveBtn = document.getElementById("admin-save-judges-btn");
       const activeSlots = getActiveJudgeSlots();
-      const existingJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+      const existingJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
+      const existingPanel = getStageJudgePanel(existingJudges, targetStage, activeEventCode);
       const showJudgesErr = (msg) => {
         if (errEl) {
           errEl.textContent = msg;
@@ -3668,43 +4163,49 @@
         }
       };
 
-      const nextJudges = { ...existingJudges };
+      const nextStagePanel = { ...existingPanel };
       const seenPins = new Set();
       for (const slot of activeSlots) {
         const nameEl = document.getElementById(`admin-judge-name-${slot}`);
-        const stageEl = document.getElementById(`admin-judge-stage-${slot}`);
         const pinEl = document.getElementById(`admin-judge-pin-${slot}`);
         const name = String(nameEl?.value || "").trim().slice(0, 100);
-        const stage = normalizeJudgeStage(stageEl?.value);
         const pin = String(pinEl?.value || "").trim();
         if (!name) {
-          showJudgesErr(`Official Judge Name is required for ${slot}.`);
+          showJudgesErr(`Official Judge Name is required for ${targetStage} · ${slot}.`);
           nameEl?.focus();
           return;
         }
         if (!isValidJudge4DigitPin(pin)) {
-          showJudgesErr(`Judge PIN for ${slot} must be exactly 4 numeric digits (e.g. 4821).`);
+          showJudgesErr(`Judge PIN for ${targetStage} · ${slot} must be exactly 4 numeric digits (e.g. 4821).`);
           pinEl?.focus();
           return;
         }
         if (seenPins.has(pin)) {
-          showJudgesErr(`Each Judge (${activeSlots.join(", ")}) must have a unique 4-digit PIN.`);
+          showJudgesErr(`Each Judge (${activeSlots.join(", ")}) in ${targetStage} must have a unique 4-digit PIN.`);
           pinEl?.focus();
           return;
         }
         seenPins.add(pin);
-        nextJudges[slot] = { name, pin, stage };
+        nextStagePanel[slot] = { name, pin };
       }
 
-      // Preserve unique pin for hidden J3 if user toggled down to 2 judges
-      if (!activeSlots.includes("J3") && seenPins.has(nextJudges.J3.pin)) {
-        const freshPin = generateDistinct4DigitPins().find(p => !seenPins.has(p));
-        if (freshPin) nextJudges.J3 = { ...nextJudges.J3, pin: freshPin };
+      if (!activeSlots.includes("J3") && seenPins.has(nextStagePanel.J3.pin)) {
+        const freshPin = generateDistinct4DigitPins(seenPins)[0];
+        if (freshPin) nextStagePanel.J3 = { ...nextStagePanel.J3, pin: freshPin };
       }
+
+      const nextJudges = normalizeJudgesConfig({
+        ...existingJudges,
+        stagePanels: {
+          ...existingJudges.stagePanels,
+          [targetStage]: nextStagePanel
+        }
+      }, activeEventCode, stages);
 
       window.hideAdminJudgesError();
       window.state.judges = nextJudges;
       saveLocalState();
+      renderJudgeSlotOptions();
       syncLockedJudgeSessionWithConfig();
 
       if (saveBtn) {
@@ -3713,13 +4214,13 @@
       }
       try {
         await syncJudgesSettingsToCloud(activeEventCode, nextJudges);
-        window.showToast(`Saved Judge Panel, Stage Assignments & PINs for ${activeEventCode}`);
+        window.showToast(`Saved ${targetStage} Judge Panel & PINs for ${activeEventCode}`);
       } catch (err) {
         handleFirestoreError(err, "write", `events/${activeEventCode}/settings/judges`);
       } finally {
         if (saveBtn) {
           saveBtn.disabled = false;
-          saveBtn.textContent = "Save Judge Panel";
+          saveBtn.textContent = `Save ${targetStage} Panel`;
         }
       }
     };
@@ -3950,13 +4451,12 @@
       if (typeof window.clearCsvImport === "function") window.clearCsvImport();
       if (typeof window.resetAdminItemsFilterAndEdit === "function") window.resetAdminItemsFilterAndEdit();
 
-      STAGE_SLOTS.forEach((slot) => {
-        const sel = document.getElementById(getStageLiveSelectId(slot));
-        if (sel) sel.value = "";
-      });
+      hasCloudStagesDoc = false;
+      activeAdminJudgeStageTab = getConfiguredStages()[0] || "Stage 1";
       applyBrandingUI();
+      renderAdminStagesManager();
       initJudgeSession();
-      renderAdminJudgesForm();
+      renderAdminJudgesForm(true);
       window.refreshAllSelects();
       applyAdminAccessUI();
       window.switchView(targetView, {
@@ -4391,6 +4891,12 @@
 
       syncAdminLiveItemUI();
       syncJudgeActiveItemUI();
+      const stageDatalistEl = document.getElementById("admin-stages-datalist");
+      if (stageDatalistEl) {
+        stageDatalistEl.innerHTML = getConfiguredStages()
+          .map(st => `<option value="${escapeHtml(st)}"></option>`)
+          .join("");
+      }
       const judgeItemEl = document.getElementById("judge-item");
       if (judgeItemEl && !judgeItemEl.disabled && currentJudgeItem && Array.from(judgeItemEl.options).some(o => o.value === currentJudgeItem)) {
         judgeItemEl.value = currentJudgeItem;
@@ -5869,7 +6375,7 @@
                   </div>
                   <div>
                     <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Stage</label>
-                    <input id="edit-item-stage-${escapeHtml(it.id)}" type="text" required maxlength="60" value="${escapeHtml(it.stage)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="edit-item-stage-${escapeHtml(it.id)}" type="text" list="admin-stages-datalist" required maxlength="60" value="${escapeHtml(it.stage)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
                   </div>
                 </div>
                 <div class="pt-1.5 border-t border-amber-200/70 space-y-2">
@@ -6045,10 +6551,12 @@
         return;
       }
 
-      const assignedStage = normalizeJudgeStage(activeJudgeSession.judgeStage);
-      const isSpecificStage = STAGE_SLOTS.includes(assignedStage);
+      const stages = getConfiguredStages();
+      const assignedStage = normalizeStageName(activeJudgeSession.judgeStage);
+      const matchedStage = stages.find(s => s.toLowerCase() === assignedStage.toLowerCase()) || "";
+      const isSpecificStage = Boolean(matchedStage);
       const stageMap = getResolvedStageLiveMap();
-      const stageLiveId = isSpecificStage ? (stageMap[assignedStage] || "") : "";
+      const stageLiveId = isSpecificStage ? (stageMap[matchedStage] || "") : "";
       const hasLiveItem = Boolean(isSpecificStage && stageLiveId && window.state.items.some(it => it.id === stageLiveId));
       const judgeItemEl = document.getElementById("judge-item");
       let itemId = judgeItemEl.value;
@@ -6499,6 +7007,7 @@
 
       errEl.classList.add("hidden");
 
+      const initialStages = [...DEFAULT_STAGES];
       const newCfg = {
         title: newCode,
         subtitle: DEFAULT_SUBTITLE,
@@ -6514,10 +7023,11 @@
         expiresAt,
         authorId: getDeviceAuthorId()
       };
-      const initialJudges = getDefaultJudgesConfig(newCode, true);
+      const initialJudges = getDefaultJudgesConfig(newCode, true, initialStages);
 
       const newState = {
         config: newCfg,
+        stages: initialStages,
         judges: initialJudges,
         groups: [],
         items: [],
@@ -6531,6 +7041,7 @@
       try {
         await Promise.all([
           syncEventMetadataToCloud(newCode, newCfg, true),
+          syncStagesSettingsToCloud(newCode, initialStages),
           syncJudgesSettingsToCloud(newCode, initialJudges)
         ]);
       } catch (err) {
@@ -6999,19 +7510,23 @@
         resolvedCategory = normalizeItemCategory(resolvedCategory);
       }
 
+      const stageRaw = normalizeStageName(document.getElementById("admin-item-stage").value) || (getConfiguredStages()[0] || "Stage 1");
       const id = "item_" + Date.now();
       const item = {
         id,
         name: document.getElementById("admin-item-name").value.trim(),
         malayalamName: document.getElementById("admin-item-ml").value.trim(),
         category: resolvedCategory,
-        stage: document.getElementById("admin-item-stage").value.trim(),
+        stage: stageRaw,
         criteria: rawCriteria
       };
       window.state.items.push(item);
+      await autoRegisterStagesFromNames([item.stage], { persist: true });
       saveLocalState();
       window.refreshAllSelects();
       e.target.reset();
+      const stageInputEl = document.getElementById("admin-item-stage");
+      if (stageInputEl) stageInputEl.value = getConfiguredStages()[0] || "Stage 1";
       if (customCatInput) {
         customCatInput.value = "";
         customCatInput.required = false;
@@ -7581,6 +8096,8 @@
       window.state.groups = [...(window.state.groups || []), ...groupsToCreate];
       window.state.items = [...(window.state.items || []), ...itemsToCreate];
       window.state.participants = [...(window.state.participants || []), ...cleanParticipants];
+      const discoveredStages = itemsToCreate.map(it => it.stage).filter(Boolean);
+      await autoRegisterStagesFromNames(discoveredStages, { persist: true });
       saveLocalState();
       window.refreshAllSelects();
 
@@ -7715,7 +8232,7 @@
       const name = (document.getElementById(`edit-item-name-${itemId}`)?.value || "").trim().slice(0, 120);
       const malayalamName = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim().slice(0, 120);
       const category = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || existingItem.category);
-      const stage = ((document.getElementById(`edit-item-stage-${itemId}`)?.value || "").trim() || existingItem.stage || "Stage 1 — Nila").slice(0, 60);
+      const stage = (normalizeStageName(document.getElementById(`edit-item-stage-${itemId}`)?.value || "") || existingItem.stage || (getConfiguredStages()[0] || "Stage 1")).slice(0, 60);
       const criteria = [1, 2, 3, 4].map(i => (document.getElementById(`edit-item-crit-${i}-${itemId}`)?.value || "").trim().slice(0, 80));
 
       if (!name || !stage) {
@@ -7730,6 +8247,7 @@
       const updatedItem = { ...existingItem, name, malayalamName, category, stage, criteria };
       window.state.items = window.state.items.map(it => it.id === itemId ? updatedItem : it);
       editingAdminItemId = null;
+      await autoRegisterStagesFromNames([stage], { persist: true });
       saveLocalState();
       window.refreshAllSelects();
       window.showToast(`Updated "${name}"`);
@@ -7754,17 +8272,18 @@
     window.handleDeleteItem = async (itemId) => {
       if (!activeEventCode) return;
       if (editingAdminItemId === itemId) editingAdminItemId = null;
+      const stages = getConfiguredStages();
       const wasActiveLegacy = String(window.state.config?.activeItemId || "").trim() === itemId;
-      const currentStageMap = normalizeStageLiveItems(window.state.config?.stageLiveItems);
+      const currentStageMap = normalizeStageLiveItems(window.state.config?.stageLiveItems, "", stages);
       let clearedStageLock = wasActiveLegacy;
-      STAGE_SLOTS.forEach((stageSlot) => {
-        if (currentStageMap[stageSlot] === itemId) {
-          currentStageMap[stageSlot] = "";
+      Object.keys(currentStageMap).forEach((stageKey) => {
+        if (currentStageMap[stageKey] === itemId) {
+          currentStageMap[stageKey] = "";
           clearedStageLock = true;
         }
       });
       if (clearedStageLock && window.state.config) {
-        const nextFallback = STAGE_SLOTS.map(s => currentStageMap[s]).find(Boolean) || "";
+        const nextFallback = stages.map(s => currentStageMap[s]).find(Boolean) || Object.values(currentStageMap).find(Boolean) || "";
         window.state.config = buildNormalizedEventConfig(activeEventCode, {
           ...window.state.config,
           activeItemId: wasActiveLegacy ? nextFallback : window.state.config.activeItemId,
@@ -7914,15 +8433,19 @@
         return;
       }
       window.closeClearModal();
+      const stages = getConfiguredStages();
+      const emptyStageLive = {};
+      stages.forEach((s) => { emptyStageLive[s] = ""; });
       const clearedCfg = buildNormalizedEventConfig(activeEventCode, {
         ...(window.state.config || getDefaultConfig(activeEventCode)),
         activeItemId: "",
-        stageLiveItems: { "Stage 1": "", "Stage 2": "", "Stage 3": "" }
+        stageLiveItems: emptyStageLive
       });
-      const preservedJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode);
+      const preservedJudges = normalizeJudgesConfig(window.state?.judges, activeEventCode, stages);
       judgeItemAdminOverride = false;
       window.state = {
         config: clearedCfg,
+        stages,
         judges: preservedJudges,
         groups: [],
         items: [],
@@ -7964,13 +8487,14 @@
       try {
         const grades = normalizeGradeThresholds(demoData.config);
         const targetExpiry = normalizeExpiryDate(demoData.config?.expiresAt) || getDefaultExpiryDate(DEFAULT_SEED_EVENT_DAYS);
+        const demoStages = normalizeStagesList(demoData.stages, true);
         const demoCfg = {
           title: demoData.config.title,
           subtitle: demoData.config.subtitle,
           adminPin: DEMO_EVENT_PIN,
           judgesCount: normalizeJudgesCount(demoData.config?.judgesCount),
           activeItemId: String(demoData.config?.activeItemId ?? "demo_item_1").trim(),
-          stageLiveItems: normalizeStageLiveItems(demoData.config?.stageLiveItems),
+          stageLiveItems: normalizeStageLiveItems(demoData.config?.stageLiveItems, "", demoStages),
           chartType: normalizeChartType(demoData.config.chartType),
           gradeA: grades.gradeA,
           gradeB: grades.gradeB,
@@ -7979,9 +8503,10 @@
           expiresAt: targetExpiry,
           authorId
         };
-        const demoJudges = normalizeJudgesConfig(demoData.judges, DEMO_EVENT_CODE);
+        const demoJudges = normalizeJudgesConfig(demoData.judges, DEMO_EVENT_CODE, demoStages);
         await Promise.all([
           syncEventMetadataToCloud(DEMO_EVENT_CODE, demoCfg, true),
+          syncStagesSettingsToCloud(DEMO_EVENT_CODE, demoStages),
           syncJudgesSettingsToCloud(DEMO_EVENT_CODE, demoJudges)
         ]);
 
@@ -8184,8 +8709,12 @@
         const overall = pickHalf(20.5, 24.5);
         const total = rhythm + expression + perfection + overall;
 
-        const judgesCfg = normalizeJudgesConfig(window.state?.judges, DEMO_EVENT_CODE);
-        const judgeName = judgesCfg[targetSlot]?.name || DEMO_JUDGES_PRESET[targetSlot]?.name || "Demo Judge";
+        const stages = getConfiguredStages();
+        const targetItemObj = window.state.items.find(it => it.id === targetPart.itemId);
+        const itemStage = resolveItemStageTarget(targetItemObj?.stage, stages) || stages[0] || "Stage 1";
+        const judgesCfg = normalizeJudgesConfig(window.state?.judges, DEMO_EVENT_CODE, stages);
+        const stagePanel = getStageJudgePanel(judgesCfg, itemStage, DEMO_EVENT_CODE);
+        const judgeName = stagePanel?.[targetSlot]?.name || DEMO_JUDGES_PRESET[targetSlot]?.name || "Demo Judge";
         const id = `${targetPart.itemId}_${targetPart.id}_${targetSlot}`;
         const authorId = getDeviceAuthorId();
         const docData = {
@@ -8268,10 +8797,12 @@
         });
         freshDemo.config.authorId = window.state?.config?.authorId || getDeviceAuthorId();
         judgeItemAdminOverride = false;
+        activeAdminJudgeStageTab = "Stage 1";
         window.state = freshDemo;
         saveLocalState();
         applyBrandingUI();
-        renderAdminJudgesForm();
+        renderAdminStagesManager();
+        renderAdminJudgesForm(true);
         syncLockedJudgeSessionWithConfig();
         window.refreshAllSelects();
         applyAdminAccessUI();

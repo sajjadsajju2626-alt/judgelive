@@ -44,10 +44,7 @@ service cloud.firestore {
         (!('judgesCount' in data) || (data.judgesCount is number && (data.judgesCount == 2 || data.judgesCount == 3))) &&
         (!('stageLiveItems' in data) || (
           data.stageLiveItems is map &&
-          data.stageLiveItems.keys().hasOnly(['Stage 1', 'Stage 2', 'Stage 3']) &&
-          (!('Stage 1' in data.stageLiveItems) || (data.stageLiveItems['Stage 1'] is string && data.stageLiveItems['Stage 1'].size() <= 64)) &&
-          (!('Stage 2' in data.stageLiveItems) || (data.stageLiveItems['Stage 2'] is string && data.stageLiveItems['Stage 2'].size() <= 64)) &&
-          (!('Stage 3' in data.stageLiveItems) || (data.stageLiveItems['Stage 3'] is string && data.stageLiveItems['Stage 3'].size() <= 64))
+          data.stageLiveItems.size() <= 50
         )) &&
         data.isActive is bool &&
         data.expiresAt is string &&

@@ -191,7 +191,7 @@
     },
     "StageLiveItemsMap": {
       "title": "StageLiveItemsMap",
-      "description": "Per-stage active live competition item IDs for Stage 1, Stage 2, and Stage 3.",
+      "description": "Dynamic map of active live competition item IDs keyed by configured stage name (e.g. Stage 1, Stage 2, Stage 4 - Kabani).",
       "type": "object",
       "properties": {
         "Stage 1": {
@@ -199,24 +199,47 @@
           "minLength": 0,
           "maxLength": 64,
           "description": "Active competition item ID pushed live for Stage 1."
-        },
-        "Stage 2": {
-          "type": "string",
-          "minLength": 0,
-          "maxLength": 64,
-          "description": "Active competition item ID pushed live for Stage 2."
-        },
-        "Stage 3": {
-          "type": "string",
-          "minLength": 0,
-          "maxLength": 64,
-          "description": "Active competition item ID pushed live for Stage 3."
         }
       }
     },
+    "StageSettings": {
+      "title": "StageSettings",
+      "description": "Ordered list of configured parallel festival stages stored at events/{festivalCode}/settings/stages.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32,
+          "pattern": "^stages$",
+          "description": "Fixed document identifier ('stages')."
+        },
+        "eventCode": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 32,
+          "pattern": "^[A-Z0-9_\\-]+$",
+          "description": "Normalized uppercase event/campus code."
+        },
+        "stages": {
+          "type": "array",
+          "description": "Ordered array of active stage names (default ['Stage 1', 'Stage 2', 'Stage 3'], expandable dynamically)."
+        },
+        "authorId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Optional device or creator identifier."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest stages configuration update."
+        }
+      },
+      "required": ["id", "eventCode", "stages", "updatedAt"]
+    },
     "JudgeSlotConfig": {
       "title": "JudgeSlotConfig",
-      "description": "Assigned official judge name, 4-digit access PIN, and stage assignment for a single judge slot (J1, J2, or J3).",
+      "description": "Assigned official judge name, 4-digit access PIN, and optional stage assignment for a judge slot (J1, J2, or J3).",
       "type": "object",
       "properties": {
         "name": {
@@ -234,16 +257,15 @@
         },
         "stage": {
           "type": "string",
-          "enum": ["All Stages", "Stage 1", "Stage 2", "Stage 3"],
-          "maxLength": 32,
-          "description": "Assigned stage for this judge (Stage 1, Stage 2, Stage 3, or All Stages)."
+          "maxLength": 60,
+          "description": "Assigned stage name for this judge."
         }
       },
       "required": ["name", "pin"]
     },
     "JudgePanelSettings": {
       "title": "JudgePanelSettings",
-      "description": "PIN-protected judge panel assignments (J1, J2, J3) stored at events/{festivalCode}/settings/judges.",
+      "description": "Per-stage PIN-protected judge panel assignments (J1, J2, J3) stored at events/{festivalCode}/settings/judges.",
       "type": "object",
       "properties": {
         "id": {
@@ -259,20 +281,24 @@
           "pattern": "^[A-Z0-9_\\-]+$",
           "description": "Normalized uppercase event/campus code."
         },
+        "stagePanels": {
+          "type": "object",
+          "description": "Map of stageName -> { J1, J2, J3 } independent judge panels."
+        },
         "J1": {
           "type": "object",
           "$ref": "#/entities/JudgeSlotConfig",
-          "description": "Judge 1 slot configuration."
+          "description": "Fallback Stage 1 Judge 1 slot configuration."
         },
         "J2": {
           "type": "object",
           "$ref": "#/entities/JudgeSlotConfig",
-          "description": "Judge 2 slot configuration."
+          "description": "Fallback Stage 1 Judge 2 slot configuration."
         },
         "J3": {
           "type": "object",
           "$ref": "#/entities/JudgeSlotConfig",
-          "description": "Judge 3 slot configuration."
+          "description": "Fallback Stage 1 Judge 3 slot configuration."
         },
         "authorId": {
           "type": "string",
@@ -285,7 +311,7 @@
           "description": "Server timestamp of latest judge panel update."
         }
       },
-      "required": ["id", "eventCode", "J1", "J2", "J3", "updatedAt"]
+      "required": ["id", "eventCode", "updatedAt"]
     },
     "Group": {
       "title": "Group",
@@ -547,7 +573,7 @@
     },
     "/events/{festivalCode}/settings/{settingId}": {
       "schema": { "$ref": "#/entities/EventConfig" },
-      "description": "Stores isolated institution config (settingId='config': title, subtitle, adminPin, activeItemId, chartType, grading rules, license) and Judge Panel PIN configuration (settingId='judges') for a specific festivalCode."
+      "description": "Stores isolated institution config (settingId='config'), per-stage Judge Panels (settingId='judges'), and configured Festival Stages list (settingId='stages') for a specific festivalCode."
     },
     "/events/{festivalCode}/groups/{groupId}": {
       "schema": { "$ref": "#/entities/Group" },

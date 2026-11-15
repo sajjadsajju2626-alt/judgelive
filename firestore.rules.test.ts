@@ -72,14 +72,8 @@ function evaluateCampusRegistryWrite(
       return 'PERMISSION_DENIED';
     }
     const mapKeys = Object.keys(map as Record<string, unknown>);
-    if (!mapKeys.every((k) => ['Stage 1', 'Stage 2', 'Stage 3'].includes(k))) {
+    if (mapKeys.length > 50) {
       return 'PERMISSION_DENIED';
-    }
-    for (const k of mapKeys) {
-      const v = (map as Record<string, unknown>)[k];
-      if (typeof v !== 'string' || v.length > 64) {
-        return 'PERMISSION_DENIED';
-      }
     }
   }
   if (typeof incoming.isActive !== 'boolean') return 'PERMISSION_DENIED';
@@ -144,7 +138,7 @@ test('CampusRegistry allows valid cross-device registration, PIN assignment, and
   );
 });
 
-test('CampusRegistry validates optional activeItemId, judgesCount, and stageLiveItems bounds', () => {
+test('CampusRegistry validates optional activeItemId, judgesCount, and dynamic stageLiveItems bounds', () => {
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 'item_1' }), 'ALLOW');
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: '' }), 'ALLOW');
   assert.equal(evaluateCampusRegistryWrite('AS143', { ...baseValidRegistry, activeItemId: 'x'.repeat(65) }), 'PERMISSION_DENIED');
@@ -158,21 +152,23 @@ test('CampusRegistry validates optional activeItemId, judgesCount, and stageLive
   assert.equal(
     evaluateCampusRegistryWrite('AS143', {
       ...baseValidRegistry,
-      stageLiveItems: { 'Stage 1': 'item_1', 'Stage 2': 'item_2', 'Stage 3': '' },
+      stageLiveItems: { 'Stage 1': 'item_1', 'Stage 2': 'item_2', 'Stage 3': '', 'Stage 4 - Kabani': 'item_4' },
     }),
     'ALLOW'
   );
   assert.equal(
     evaluateCampusRegistryWrite('AS143', {
       ...baseValidRegistry,
-      stageLiveItems: { 'Stage 4': 'item_4' },
+      stageLiveItems: ['Stage 1'],
     }),
     'PERMISSION_DENIED'
   );
+  const oversizedStages: Record<string, string> = {};
+  for (let i = 1; i <= 51; i++) oversizedStages[`Stage ${i}`] = '';
   assert.equal(
     evaluateCampusRegistryWrite('AS143', {
       ...baseValidRegistry,
-      stageLiveItems: { 'Stage 1': 'x'.repeat(65) },
+      stageLiveItems: oversizedStages,
     }),
     'PERMISSION_DENIED'
   );
