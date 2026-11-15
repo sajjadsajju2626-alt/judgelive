@@ -341,19 +341,27 @@
   </div>
 
   <!-- Clear Event Data Confirmation Modal -->
-  <div id="clear-modal" role="dialog" aria-modal="true" aria-labelledby="clear-modal-title" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
+  <div id="clear-modal" role="dialog" aria-modal="true" aria-labelledby="clear-modal-title" onclick="if (event.target === this) closeClearModal()" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
     <div class="bg-white border border-stone-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div>
-        <h2 id="clear-modal-title" class="text-lg font-bold text-stone-900 font-display">Clear Data for Event <span id="clear-modal-event-code" class="tabular-nums text-red-700">—</span>?</h2>
+        <div class="text-[11px] font-bold uppercase tracking-wider text-red-700">Danger Zone Confirmation</div>
+        <h2 id="clear-modal-title" class="text-lg font-bold text-stone-900 font-display mt-0.5">Clear Data for Event <span id="clear-modal-event-code" class="tabular-nums text-red-700">—</span>?</h2>
         <p class="text-sm text-stone-600 mt-1">
-          This will permanently remove all competition items, registered chest numbers, and submitted judge scores for this event only. Other institutions and event codes will not be affected.
+          This will permanently delete all competition items, groups, registered chest numbers, and submitted judge scores for this event only. Other campus events will not be affected.
         </p>
+      </div>
+      <div class="space-y-1.5 pt-1">
+        <label for="clear-confirm-input" class="block text-xs font-semibold text-stone-700">
+          Type <span id="clear-confirm-target-code" class="font-bold text-red-700 tabular-nums">—</span> to confirm permanent deletion:
+        </label>
+        <input id="clear-confirm-input" type="text" autocomplete="off" oninput="handleClearConfirmInput()" placeholder="Type Event Code to confirm" class="w-full px-3.5 py-2 text-sm uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600" />
+        <p id="clear-confirm-error" role="alert" class="hidden text-xs font-medium text-red-700">Entered code does not match the active Event Code.</p>
       </div>
       <div class="flex items-center justify-end gap-3 pt-2">
         <button type="button" onclick="closeClearModal()" class="px-4 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
           Cancel
         </button>
-        <button type="button" onclick="confirmClearAllData()" class="px-4 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap">
+        <button type="button" id="clear-confirm-submit-btn" disabled onclick="confirmClearAllData()" class="px-4 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
           Yes, Clear Event Data
         </button>
       </div>
@@ -907,17 +915,14 @@
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console — <span id="admin-event-code-label" class="tabular-nums text-amber-800">—</span></h1>
           <p class="text-sm text-stone-600 mt-1">
-            Create festival workspaces, manage license validity, and configure competition items, chest numbers, and scores.
+            Configure festival branding, live stage sync, judge panels, houses, competition items, chest numbers, and scores.
             <span id="admin-event-license-summary" class="hidden sm:inline font-semibold text-stone-800 ml-1 tabular-nums"></span>
           </p>
         </div>
-        <!-- Testing & Reset Controls -->
+        <!-- Sandbox Sample Controls (Visible ONLY inside DEMOFEST) -->
         <div class="flex flex-wrap items-center gap-3">
-          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="px-3.5 py-2 text-xs font-semibold text-stone-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors whitespace-nowrap shrink-0">
+          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="hidden px-3.5 py-2 text-xs font-semibold text-stone-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors whitespace-nowrap shrink-0">
             Load Sample Data
-          </button>
-          <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-3.5 py-2 text-xs font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
-            Clear Event Data
           </button>
         </div>
       </div>
@@ -1011,7 +1016,31 @@
       </div>
 
       <div id="admin-active-event-sections" class="space-y-8">
-      <!-- Live Stage Control & PIN-Protected Judge Panel (Campus Admin Panel) -->
+      <!-- 1. Festival / Campus Branding Card (First at Top of Campus Admin Panel) -->
+      <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Festival / Campus Branding</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Customize your Institution / Festival Name and Subtitle / Venue shown in the header and print sheets for this Festival Code.</p>
+          </div>
+          <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
+            <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+          <div>
+            <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
+            <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+          </div>
+        </div>
+        <div class="pt-1 flex justify-end">
+          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
+        </div>
+      </form>
+
+      <!-- 2. Live Stage Control & PIN-Protected Judge Panel (Campus Admin Panel) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Live Active Item Sync Card (Per Stage) -->
         <div class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
@@ -1192,30 +1221,6 @@
           </div>
         </form>
       </div>
-
-      <!-- Festival / Campus Branding Card (Campus Admin Panel) -->
-      <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 class="text-lg font-bold text-stone-900">Festival / Campus Branding</h2>
-            <p class="text-xs text-stone-500 mt-0.5">Customize your Institution / Festival Name and Subtitle / Venue shown in the header and print sheets for this Festival Code.</p>
-          </div>
-          <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
-            <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          </div>
-          <div>
-            <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
-            <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          </div>
-        </div>
-        <div class="pt-1 flex justify-end">
-          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
-        </div>
-      </form>
 
       <!-- Manage Groups / Houses & Live Chart Preview -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1576,6 +1581,20 @@
             <tbody id="admin-scores-body" class="divide-y divide-stone-200 text-sm"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Danger Zone (Protected Event Reset at Bottom of Admin Panel) -->
+      <div id="admin-danger-zone" class="bg-red-50/40 border border-red-200/80 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-red-700">Danger Zone</div>
+          <h2 class="text-base font-bold text-stone-900">Clear Event Data</h2>
+          <p class="text-xs text-stone-600 max-w-2xl">
+            Permanently remove all competition items, groups, registered chest numbers, and submitted judge scores for this event only. Strict confirmation is required.
+          </p>
+        </div>
+        <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
+          Clear Event Data
+        </button>
       </div>
       </div>
     </section>
@@ -1988,9 +2007,9 @@
     function resolveCanonicalStage(stageStr = "") {
       const clean = String(stageStr || "").trim();
       if (!clean) return "";
-      if (/\bstage\s*1\b|^stage1$/i.test(clean)) return "Stage 1";
-      if (/\bstage\s*2\b|^stage2$/i.test(clean)) return "Stage 2";
-      if (/\bstage\s*3\b|^stage3$/i.test(clean)) return "Stage 3";
+      if (/(?:\bstage[\s\-_]*0?1\b|^s0?1$|^0?1$)/i.test(clean)) return "Stage 1";
+      if (/(?:\bstage[\s\-_]*0?2\b|^s0?2$|^0?2$)/i.test(clean)) return "Stage 2";
+      if (/(?:\bstage[\s\-_]*0?3\b|^s0?3$|^0?3$)/i.test(clean)) return "Stage 3";
       return "";
     }
 
@@ -2443,7 +2462,10 @@
         demoBar.classList.toggle("hidden", !(hasEvent && activeEventCode === DEMO_EVENT_CODE));
       }
 
-      document.getElementById("admin-load-sample-btn").classList.toggle("hidden", !hasEvent);
+      const isDemoEvent = hasEvent && activeEventCode === DEMO_EVENT_CODE;
+      document.getElementById("admin-load-sample-btn").classList.toggle("hidden", !isDemoEvent);
+      const dangerZoneEl = document.getElementById("admin-danger-zone");
+      if (dangerZoneEl) dangerZoneEl.classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-clear-data-btn").classList.toggle("hidden", !hasEvent);
       // Master Setup sections appear ONLY when unlocked from the welcome screen without an active campus/demo event
       document.getElementById("admin-master-setup-section").classList.toggle("hidden", !(isAdminUnlocked && isMasterAdmin && !hasEvent));
@@ -3178,25 +3200,34 @@
           } else {
             const prevVal = selectEl.value;
             const stageItems = items.filter(it => resolveCanonicalStage(it.stage) === stageSlot);
-            const otherItems = items.filter(it => resolveCanonicalStage(it.stage) !== stageSlot);
+            const unassignedItems = items.filter(it => !resolveCanonicalStage(it.stage));
+            const otherStageItems = items.filter(it => {
+              const s = resolveCanonicalStage(it.stage);
+              return s && s !== stageSlot;
+            });
             let optionsHtml = `<option value="">— Select ${escapeHtml(stageSlot)} Item —</option>`;
             if (stageItems.length > 0) {
-              optionsHtml += `<optgroup label="${escapeHtml(stageSlot)} Items">` +
+              optionsHtml += `<optgroup label="${escapeHtml(stageSlot)} Items (${stageItems.length})">` +
                 stageItems.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage)})</option>`).join("") +
                 `</optgroup>`;
             }
-            if (otherItems.length > 0) {
-              optionsHtml += `<optgroup label="Other Stage Items">` +
-                otherItems.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage)})</option>`).join("") +
+            if (unassignedItems.length > 0) {
+              optionsHtml += `<optgroup label="Custom / Unassigned Venue (${unassignedItems.length})">` +
+                unassignedItems.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage || "Unassigned")})</option>`).join("") +
+                `</optgroup>`;
+            }
+            if (otherStageItems.length > 0) {
+              optionsHtml += `<optgroup label="Other Stages (${otherStageItems.length})">` +
+                otherStageItems.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(it.stage)})</option>`).join("") +
                 `</optgroup>`;
             }
             selectEl.innerHTML = optionsHtml;
             if (liveItem) {
               selectEl.value = liveItem.id;
+            } else if (stageItems.length > 0) {
+              selectEl.value = stageItems.some(it => it.id === prevVal) ? prevVal : stageItems[0].id;
             } else if (prevVal && items.some(it => it.id === prevVal)) {
               selectEl.value = prevVal;
-            } else if (stageItems.length > 0) {
-              selectEl.value = stageItems[0].id;
             } else {
               selectEl.value = "";
             }
@@ -3919,6 +3950,10 @@
       if (typeof window.clearCsvImport === "function") window.clearCsvImport();
       if (typeof window.resetAdminItemsFilterAndEdit === "function") window.resetAdminItemsFilterAndEdit();
 
+      STAGE_SLOTS.forEach((slot) => {
+        const sel = document.getElementById(getStageLiveSelectId(slot));
+        if (sel) sel.value = "";
+      });
       applyBrandingUI();
       initJudgeSession();
       renderAdminJudgesForm();
@@ -5912,6 +5947,7 @@
           String(p.name || "").toLowerCase().includes(partSearchLower) ||
           String(p.school || "").toLowerCase().includes(partSearchLower) ||
           String(item?.name || "").toLowerCase().includes(partSearchLower) ||
+          String(item?.category || "").toLowerCase().includes(partSearchLower) ||
           String(groupLabel || "").toLowerCase().includes(partSearchLower)
         );
       });
@@ -5932,6 +5968,9 @@
       } else {
         partsList.innerHTML = filteredParts.map(p => {
           const item = window.state.items.find(it => it.id === p.itemId);
+          const itemLabel = item
+            ? `${item.name}${item.category ? ` (${item.category})` : ""}`
+            : "Event";
           const grp = p.groupId ? groups.find(g => g.id === p.groupId) : null;
           const groupLabel = grp?.name || p.groupName || "";
           const groupColor = grp?.color || "#78716C";
@@ -5942,7 +5981,7 @@
                   <span class="tabular-nums text-amber-800">#${escapeHtml(p.chestNo)}</span> — ${escapeHtml(p.name)}
                 </div>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
-                  <span class="truncate">${escapeHtml(item ? item.name : "Event")}${p.school ? " · " + escapeHtml(p.school) : ""}</span>
+                  <span class="truncate">${escapeHtml(itemLabel)}${p.school ? " · " + escapeHtml(p.school) : ""}</span>
                   ${groupLabel ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700 shrink-0"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(groupColor)}"></span>${escapeHtml(groupLabel)}</span>` : ""}
                 </div>
               </div>
@@ -5964,9 +6003,10 @@
       } else {
         scoresBody.innerHTML = window.state.scores.map(s => {
           const item = window.state.items.find(it => it.id === s.itemId);
+          const scoreItemLabel = item ? `${item.name}${item.category ? ` (${item.category})` : ""}` : s.itemId;
           return `
             <tr class="hover:bg-stone-50">
-              <td class="py-2.5 px-4 font-medium text-stone-900">${escapeHtml(item ? item.name : s.itemId)}</td>
+              <td class="py-2.5 px-4 font-medium text-stone-900">${escapeHtml(scoreItemLabel)}</td>
               <td class="py-2.5 px-4 font-semibold tabular-nums">#${escapeHtml(s.chestNo)}</td>
               <td class="py-2.5 px-4 text-xs text-stone-700"><span class="font-semibold">${escapeHtml(s.judgeSlot)}</span> · ${escapeHtml(s.judgeName)}</td>
               <td class="py-2.5 px-4 text-right text-xs tabular-nums text-stone-600">${s.rhythm} / ${s.expression} / ${s.perfection} / ${s.overall}</td>
@@ -7793,7 +7833,10 @@
     };
 
     window.handleLoadSampleData = async () => {
-      if (!activeEventCode) return;
+      if (!activeEventCode || activeEventCode !== DEMO_EVENT_CODE) {
+        window.showToast("Sample data is restricted to DEMOFEST sandbox only");
+        return;
+      }
       const sample = getSampleData(window.state.config);
       window.state = sample;
       saveLocalState();
@@ -7826,19 +7869,51 @@
       }
     };
 
+    window.handleClearConfirmInput = () => {
+      const input = document.getElementById("clear-confirm-input");
+      const submitBtn = document.getElementById("clear-confirm-submit-btn");
+      const errEl = document.getElementById("clear-confirm-error");
+      const typed = String(input?.value || "").trim().toUpperCase();
+      const matches = Boolean(activeEventCode) && typed === activeEventCode.toUpperCase();
+      if (submitBtn) submitBtn.disabled = !matches;
+      if (errEl) errEl.classList.add("hidden");
+    };
+
     window.openClearModal = () => {
       if (!activeEventCode) return;
       document.getElementById("clear-modal-event-code").textContent = activeEventCode;
+      const targetEl = document.getElementById("clear-confirm-target-code");
+      if (targetEl) targetEl.textContent = activeEventCode;
+      const inputEl = document.getElementById("clear-confirm-input");
+      if (inputEl) {
+        inputEl.value = "";
+        inputEl.placeholder = `Type ${activeEventCode}`;
+      }
+      const errEl = document.getElementById("clear-confirm-error");
+      if (errEl) errEl.classList.add("hidden");
+      const submitBtn = document.getElementById("clear-confirm-submit-btn");
+      if (submitBtn) submitBtn.disabled = true;
       document.getElementById("clear-modal").classList.remove("hidden");
+      setTimeout(() => inputEl?.focus(), 30);
     };
 
     window.closeClearModal = () => {
+      const inputEl = document.getElementById("clear-confirm-input");
+      if (inputEl) inputEl.value = "";
       document.getElementById("clear-modal").classList.add("hidden");
     };
 
     window.confirmClearAllData = async () => {
-      window.closeClearModal();
       if (!activeEventCode) return;
+      const inputEl = document.getElementById("clear-confirm-input");
+      const typed = String(inputEl?.value || "").trim().toUpperCase();
+      if (typed !== activeEventCode.toUpperCase()) {
+        const errEl = document.getElementById("clear-confirm-error");
+        if (errEl) errEl.classList.remove("hidden");
+        inputEl?.focus();
+        return;
+      }
+      window.closeClearModal();
       const clearedCfg = buildNormalizedEventConfig(activeEventCode, {
         ...(window.state.config || getDefaultConfig(activeEventCode)),
         activeItemId: "",
