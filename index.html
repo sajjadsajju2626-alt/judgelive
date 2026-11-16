@@ -1323,29 +1323,6 @@
                 </button>
               </div>
               <div id="admin-ai-criteria-status" role="status" class="hidden mt-1.5 text-[11px] font-medium"></div>
-              <details id="admin-ai-settings-details" class="mt-2 rounded-lg border border-stone-200 bg-stone-50/70 px-3 py-2">
-                <summary class="cursor-pointer select-none flex items-center justify-between gap-2 text-[11px] font-semibold text-stone-700 list-none">
-                  <span>AI Settings (Optional)</span>
-                  <span id="admin-ai-key-badge" class="px-2 py-0.5 rounded bg-stone-200/80 text-stone-700 text-[10px] font-semibold">Server / Smart Offline</span>
-                </summary>
-                <div class="mt-2 pt-2 border-t border-stone-200/80 space-y-2">
-                  <p class="text-[11px] text-stone-600 leading-relaxed">
-                    Optional for static hosting (e.g., GitHub Pages). If no backend server is running, your browser can call Gemini (<code class="font-mono text-[10px]">gemini-2.5-flash</code>) using a personal API key stored only in this browser&apos;s <code class="font-mono text-[10px]">localStorage</code>. Without a key, the built-in Smart Offline Criteria Engine applies automatically.
-                  </p>
-                  <div class="flex flex-col sm:flex-row gap-2">
-                    <label for="admin-client-gemini-key" class="sr-only">Optional Gemini API Key</label>
-                    <input id="admin-client-gemini-key" type="password" autocomplete="off" placeholder="Optional Gemini API Key (AIza...)" class="flex-1 min-w-0 px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
-                    <div class="flex items-center gap-1.5 shrink-0">
-                      <button type="button" onclick="saveOptionalClientGeminiKey()" class="px-2.5 py-1.5 text-[11px] font-semibold text-white bg-stone-800 hover:bg-stone-900 rounded-md transition-colors whitespace-nowrap">
-                        Save Key
-                      </button>
-                      <button type="button" onclick="clearOptionalClientGeminiKey()" class="px-2.5 py-1.5 text-[11px] font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-md transition-colors whitespace-nowrap">
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </details>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-stone-50 border border-stone-200">
               <div>
@@ -7717,50 +7694,6 @@
         return "";
       }
     }
-
-    function syncClientGeminiKeyUI() {
-      const key = getStoredClientGeminiKey();
-      const inputEl = document.getElementById("admin-client-gemini-key");
-      const badgeEl = document.getElementById("admin-ai-key-badge");
-      if (inputEl && document.activeElement !== inputEl) {
-        inputEl.value = key;
-      }
-      if (badgeEl) {
-        if (key) {
-          badgeEl.textContent = "Browser Key Saved";
-          badgeEl.className = "px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-semibold";
-        } else {
-          badgeEl.textContent = "Server / Smart Offline";
-          badgeEl.className = "px-2 py-0.5 rounded bg-stone-200/80 text-stone-700 text-[10px] font-semibold";
-        }
-      }
-    }
-
-    window.saveOptionalClientGeminiKey = () => {
-      const inputEl = document.getElementById("admin-client-gemini-key");
-      const raw = String(inputEl?.value || "").trim();
-      if (!raw) {
-        window.clearOptionalClientGeminiKey();
-        return;
-      }
-      try {
-        localStorage.setItem(CLIENT_GEMINI_KEY_STORAGE, raw);
-      } catch {}
-      syncClientGeminiKeyUI();
-      window.showToast("Optional Gemini API key saved locally in this browser");
-    };
-
-    window.clearOptionalClientGeminiKey = () => {
-      try {
-        localStorage.removeItem(CLIENT_GEMINI_KEY_STORAGE);
-      } catch {}
-      const inputEl = document.getElementById("admin-client-gemini-key");
-      if (inputEl) inputEl.value = "";
-      syncClientGeminiKeyUI();
-      window.showToast("Cleared browser Gemini API key");
-    };
-
-    syncClientGeminiKeyUI();
 
     function formatClientCriterionLine(raw) {
       let text = String(raw || "").replace(/\s+/g, " ").trim();
