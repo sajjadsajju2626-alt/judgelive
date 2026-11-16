@@ -1274,11 +1274,11 @@
           <h2 class="text-lg font-bold text-stone-900">1. Add Competition Item</h2>
           <div>
             <label for="admin-item-name" class="block text-xs font-semibold text-stone-700 mb-1">Item Name (English)</label>
-            <input id="admin-item-name" type="text" required oninput="handleAddItemNameInput()" placeholder="e.g. Kuchipudi, Elocution, Mappilappattu" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <input id="admin-item-name" type="text" required oninput="handleAddItemNameInput()" onblur="handleAddItemNameBlur()" placeholder="e.g. Duffmuttu, Oppana, Elocution, Kuchipudi" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
           <div>
             <label for="admin-item-ml" class="block text-xs font-semibold text-stone-700 mb-1">Malayalam Name</label>
-            <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" placeholder="e.g. കുച്ചിപ്പുടി" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" onblur="handleAddItemNameBlur()" placeholder="e.g. ദഫ്‌മുട്ട്, ഒപ്പന, കുച്ചിപ്പുടി" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -1305,12 +1305,23 @@
           <div class="pt-2 border-t border-stone-200 space-y-2.5">
             <div>
               <label for="admin-item-criteria-preset" class="block text-xs font-semibold text-stone-700 mb-1">Judging Criteria Template (25 marks each)</label>
-              <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                <option value="dance">Dance &amp; Stage Arts</option>
-                <option value="speech">Speech / Elocution / Literary</option>
-                <option value="music">Music / Singing</option>
-                <option value="custom">Custom Criteria</option>
-              </select>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                  <option value="dance">Dance &amp; Stage Arts</option>
+                  <option value="music">Music / Singing</option>
+                  <option value="speech">Speech / Elocution</option>
+                  <option value="quran">Quran Recitation / Qira'at</option>
+                  <option value="debate">Debate</option>
+                  <option value="kathaprasangam">Kathaprasangam</option>
+                  <option value="drawing">Drawing &amp; Painting</option>
+                  <option value="quiz">Quiz</option>
+                  <option value="custom">Custom / AI Tailored</option>
+                </select>
+                <button type="button" id="admin-ai-criteria-btn" onclick="handleAiGenerateItemCriteria()" class="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+                  ✨ AI Generate Criteria
+                </button>
+              </div>
+              <div id="admin-ai-criteria-status" role="status" class="hidden mt-1.5 text-[11px] font-medium"></div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-stone-50 border border-stone-200">
               <div>
@@ -1426,6 +1437,7 @@
             </button>
           </div>
           <div id="csv-preview-warnings" class="hidden px-4 py-2.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-900 space-y-1"></div>
+          <div id="csv-ai-status" role="status" class="hidden px-4 py-2 bg-amber-50/70 border-b border-amber-200 text-xs font-medium text-amber-900"></div>
           <div class="overflow-x-auto max-h-60 overflow-y-auto">
             <table class="w-full text-left border-collapse text-xs">
               <thead id="csv-preview-head" class="bg-stone-50/80 border-b border-stone-200 text-stone-600 font-semibold"></thead>
@@ -2231,6 +2243,36 @@
     }
 
     const CRITERIA_PRESETS = {
+      quran: [
+        "Tajweed & Makharij / തജ്‌വീദും മഖ്റജും (0-25)",
+        "Qira'at & Melody / ഖിറാഅത്തും ഈണവും (0-25)",
+        "Fluency & Pauses / ഒഴുക്കും നിർത്തലുകളും (0-25)",
+        "Voice & Reverence / ശബ്ദവും അദബും (0-25)"
+      ],
+      debate: [
+        "Argument & Logic / വാദഗതിയും യുക്തിയും (0-25)",
+        "Rebuttal & Spontaneity / പ്രതിവാദവും സമയോചിതത്വവും (0-25)",
+        "Language & Diction / ഭാഷാശുദ്ധി (0-25)",
+        "Confidence & Delivery / ആത്മവിശ്വാസവും അവതരണവും (0-25)"
+      ],
+      kathaprasangam: [
+        "Storytelling & Narration / കഥാഖ്യാനവും ശൈലിയും (0-25)",
+        "Music & Song Integration / സംഗീതവും പാട്ടും (0-25)",
+        "Expression & Voice / ഭാവവും ശബ്ദനിയന്ത്രണവും (0-25)",
+        "Audience Impact / അവതരണ മികവ് (0-25)"
+      ],
+      drawing: [
+        "Creativity & Originality / സർഗ്ഗാത്മകത (0-25)",
+        "Composition & Proportion / ഘടനയും അനുപാതവും (0-25)",
+        "Color & Shading / നിറവിന്യാസവും ഷേഡിംഗും (0-25)",
+        "Neatness & Theme / വൃത്തിയും വിഷയാവിഷ്കാരവും (0-25)"
+      ],
+      quiz: [
+        "Accuracy & Knowledge / അറിവും കൃത്യതയും (0-25)",
+        "Speed & Response Time / വേഗതയും സമയപാലനവും (0-25)",
+        "Analytical Thinking / വിശകലന ശേഷി (0-25)",
+        "Clarity & Confidence / വ്യക്തതയും ആത്മവിശ്വാസവും (0-25)"
+      ],
       speech: [
         "Content & Clarity / ഉള്ളടക്കം (0-25)",
         "Language & Diction / ഭാഷാശുദ്ധി (0-25)",
@@ -2252,21 +2294,48 @@
     };
 
     const CRITERIA_PRESET_LABELS = {
-      speech: "Speech / Elocution / Literary",
-      music: "Music / Singing",
       dance: "Dance & Stage Arts",
-      custom: "Custom Criteria"
+      music: "Music / Singing",
+      speech: "Speech / Elocution",
+      quran: "Quran Recitation / Qira'at",
+      debate: "Debate",
+      kathaprasangam: "Kathaprasangam",
+      drawing: "Drawing & Painting",
+      quiz: "Quiz",
+      custom: "Custom / AI Tailored"
     };
 
-    function inferCriteriaPresetKey(itemName = "", malayalamName = "") {
+    function matchLocalCriteriaPresetKey(itemName = "", malayalamName = "") {
       const text = `${String(itemName || "")} ${String(malayalamName || "")}`.toLowerCase();
-      if (/(elocution|speech|recitation|poetry|essay|story|debate|extempore|quiz|mono\s*act|mimicry|പ്രസംഗം|കവിത|പദ്യം|ഉപന്യാസം|കഥ)/.test(text)) {
+      if (/(quran|qur'an|qira|qiraat|qirath|hifz|tajweed|ഖുർആൻ|ഖിറാഅത്ത്|ഹിഫ്ള്)/.test(text)) {
+        return "quran";
+      }
+      if (/(debate|samvadam|സംവാദം|വാദപ്രതിവാദം)/.test(text)) {
+        return "debate";
+      }
+      if (/(kathaprasangam|katha\s*prasangam|കഥാപ്രസംഗം)/.test(text)) {
+        return "kathaprasangam";
+      }
+      if (/(drawing|painting|watercolor|water\s*colour|pencil\s*sketch|sketching|cartoon|poster\s*design|collage|ചിത്രരചന|പെയിന്റിംഗ്|കാർട്ടൂൺ)/.test(text)) {
+        return "drawing";
+      }
+      if (/(quiz|ക്വിസ്|പ്രശ്നോത്തരി)/.test(text)) {
+        return "quiz";
+      }
+      if (/(elocution|speech|recitation|poetry|essay|story\s*writing|extempore|പ്രസംഗം|കവിത|പദ്യം|ഉപന്യാസം|കഥാരചന)/.test(text)) {
         return "speech";
       }
       if (/(mappila|mappilappattu|music|song|singing|lalitha|ganam|classical|carnatic|hindustani|ghazal|qawwali|violin|flute|tabla|mridangam|guitar|keyboard|harmonium|പാട്ട്|ഗാനം|മാപ്പിളപ്പാട്ട്|ലളിതഗാനം|സംഗീതം)/.test(text)) {
         return "music";
       }
-      return "dance";
+      if (/(bharatanatyam|mohiniyattam|kuchipudi|kathak|folk\s*dance|group\s*dance|nadodi|thiruvathira|margamkali|dance|നൃത്തം|ഭരതനാട്യം|മോഹിനിയാട്ടം|കുച്ചിപ്പുടി|തിരുവാതിര|നാടോടിനൃത്തം)/.test(text)) {
+        return "dance";
+      }
+      return null;
+    }
+
+    function inferCriteriaPresetKey(itemName = "", malayalamName = "") {
+      return matchLocalCriteriaPresetKey(itemName, malayalamName) || "dance";
     }
 
     function normalizeCriteriaArray(rawCriteria, fallbackName = "", fallbackMl = "") {
@@ -2288,7 +2357,7 @@
     function detectCriteriaPresetKey(criteria) {
       if (!Array.isArray(criteria) || criteria.length !== 4) return "custom";
       const normalized = criteria.map(c => String(c || "").trim());
-      for (const key of ["speech", "music", "dance"]) {
+      for (const key of Object.keys(CRITERIA_PRESETS)) {
         const preset = CRITERIA_PRESETS[key];
         if (preset.every((val, idx) => val === normalized[idx])) {
           return key;
@@ -6407,12 +6476,14 @@
                 <div class="pt-1.5 border-t border-amber-200/70 space-y-2">
                   <div>
                     <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Judging Criteria Template</label>
-                    <select id="edit-item-preset-${escapeHtml(it.id)}" onchange="handleEditItemPresetChange('${escapeHtml(it.id)}')" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600">
-                      <option value="dance" ${itemPresetKey === "dance" ? "selected" : ""}>Dance &amp; Stage Arts</option>
-                      <option value="speech" ${itemPresetKey === "speech" ? "selected" : ""}>Speech / Elocution / Literary</option>
-                      <option value="music" ${itemPresetKey === "music" ? "selected" : ""}>Music / Singing</option>
-                      <option value="custom" ${itemPresetKey === "custom" ? "selected" : ""}>Custom Criteria</option>
-                    </select>
+                    <div class="flex flex-wrap gap-2">
+                      <select id="edit-item-preset-${escapeHtml(it.id)}" onchange="handleEditItemPresetChange('${escapeHtml(it.id)}')" class="flex-1 min-w-0 px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600">
+                        ${Object.entries(CRITERIA_PRESET_LABELS).map(([pKey, pLabel]) => `<option value="${escapeHtml(pKey)}" ${itemPresetKey === pKey ? "selected" : ""}>${escapeHtml(pLabel)}</option>`).join("")}
+                      </select>
+                      <button type="button" id="edit-ai-criteria-btn-${escapeHtml(it.id)}" onclick="handleAiGenerateEditItemCriteria('${escapeHtml(it.id)}')" class="px-2.5 py-1.5 text-[11px] font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-md transition-colors whitespace-nowrap disabled:opacity-60">
+                        ✨ AI Generate
+                      </button>
+                    </div>
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     ${itemCriteria.map((critLabel, idx) => `
@@ -7464,24 +7535,188 @@
     };
 
     let addItemCriteriaTouched = false;
+    let addItemAiDebounceTimer = null;
+    let addItemAiLastKey = "";
+    let addItemAiInFlightKey = "";
+    let addItemAiReqSeq = 0;
 
-    window.handleAddItemNameInput = () => {
-      if (addItemCriteriaTouched) return;
-      const nameVal = document.getElementById("admin-item-name")?.value || "";
-      const mlVal = document.getElementById("admin-item-ml")?.value || "";
-      const suggested = inferCriteriaPresetKey(nameVal, mlVal);
+    function getAddFormCategoryValue() {
+      const catSelect = document.getElementById("admin-item-cat");
+      const customCatInput = document.getElementById("admin-item-cat-custom");
+      const val = catSelect?.value || "General";
+      if (val === "__custom__") {
+        return normalizeItemCategory((customCatInput?.value || "").trim() || "General");
+      }
+      return normalizeItemCategory(val);
+    }
+
+    function setAddItemAiStatus(message = "", tone = "info") {
+      const el = document.getElementById("admin-ai-criteria-status");
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        el.className = "hidden mt-1.5 text-[11px] font-medium";
+        return;
+      }
+      const toneClass = tone === "error"
+        ? "text-red-700"
+        : tone === "success"
+          ? "text-emerald-700"
+          : "text-amber-800";
+      el.textContent = message;
+      el.className = `mt-1.5 text-[11px] font-medium ${toneClass}`;
+    }
+
+    function applyAddFormCriteriaList(criteriaList, presetKeyOverride = "") {
       const presetEl = document.getElementById("admin-item-criteria-preset");
-      if (presetEl && presetEl.value !== suggested) {
-        presetEl.value = suggested;
-        CRITERIA_PRESETS[suggested].forEach((label, idx) => {
+      if (Array.isArray(criteriaList) && criteriaList.length === 4) {
+        criteriaList.forEach((label, idx) => {
           const inp = document.getElementById(`admin-item-crit-${idx + 1}`);
           if (inp) inp.value = label;
         });
       }
+      if (presetEl) {
+        presetEl.value = presetKeyOverride || detectCriteriaPresetKey(criteriaList);
+      }
+    }
+
+    async function requestAiCriteriaForAddForm({ manual = false } = {}) {
+      const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
+      const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
+      const category = getAddFormCategoryValue();
+      const aiBtn = document.getElementById("admin-ai-criteria-btn");
+
+      if (!nameVal) {
+        if (manual) {
+          window.showToast("Enter an Item Name first to generate AI criteria");
+          document.getElementById("admin-item-name")?.focus();
+        }
+        return;
+      }
+
+      const reqKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}`;
+      if (!manual && (reqKey === addItemAiLastKey || reqKey === addItemAiInFlightKey)) {
+        return;
+      }
+
+      const seq = ++addItemAiReqSeq;
+      addItemAiInFlightKey = reqKey;
+      setAddItemAiStatus(`✨ Generating tailored bilingual criteria with Gemini AI for "${nameVal}"...`, "info");
+      if (aiBtn) {
+        aiBtn.disabled = true;
+        aiBtn.textContent = "✨ Generating...";
+      }
+
+      try {
+        const res = await fetch("/api/ai/criteria", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemName: nameVal, malayalamName: mlVal, category })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (seq !== addItemAiReqSeq) return;
+
+        if (!res.ok || !Array.isArray(data?.criteria) || data.criteria.length !== 4) {
+          throw new Error(data?.error || "Could not generate AI criteria right now.");
+        }
+
+        const currentName = (document.getElementById("admin-item-name")?.value || "").trim();
+        if (!currentName || currentName.toLowerCase() !== nameVal.toLowerCase()) return;
+        if (!manual && addItemCriteriaTouched) return;
+
+        addItemAiLastKey = reqKey;
+        applyAddFormCriteriaList(data.criteria);
+        if (manual) addItemCriteriaTouched = false;
+        setAddItemAiStatus(`✨ Gemini AI generated 4 tailored criteria for "${nameVal}" (editable below).`, "success");
+        if (manual) {
+          window.showToast(`✨ AI criteria generated for "${nameVal}"`);
+        }
+      } catch (err) {
+        if (seq !== addItemAiReqSeq) return;
+        const msg = err instanceof Error ? err.message : "Gemini AI unavailable";
+        if (manual) {
+          setAddItemAiStatus(msg, "error");
+          window.showToast(msg);
+        } else {
+          const fallbackKey = inferCriteriaPresetKey(nameVal, mlVal);
+          applyAddFormCriteriaList(CRITERIA_PRESETS[fallbackKey], fallbackKey);
+          setAddItemAiStatus("Using offline preset criteria (click ✨ AI Generate Criteria to retry).", "info");
+        }
+      } finally {
+        if (seq === addItemAiReqSeq) {
+          addItemAiInFlightKey = "";
+          if (aiBtn) {
+            aiBtn.disabled = false;
+            aiBtn.textContent = "✨ AI Generate Criteria";
+          }
+        }
+      }
+    }
+
+    window.handleAiGenerateItemCriteria = () => {
+      if (addItemAiDebounceTimer) {
+        clearTimeout(addItemAiDebounceTimer);
+        addItemAiDebounceTimer = null;
+      }
+      requestAiCriteriaForAddForm({ manual: true });
+    };
+
+    window.handleAddItemNameInput = () => {
+      if (addItemAiDebounceTimer) {
+        clearTimeout(addItemAiDebounceTimer);
+        addItemAiDebounceTimer = null;
+      }
+      if (addItemCriteriaTouched) return;
+      const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
+      const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
+
+      if (!nameVal && !mlVal) {
+        addItemAiLastKey = "";
+        setAddItemAiStatus("");
+        applyAddFormCriteriaList(CRITERIA_PRESETS.dance, "dance");
+        return;
+      }
+
+      const matched = matchLocalCriteriaPresetKey(nameVal, mlVal);
+      if (matched) {
+        addItemAiLastKey = "";
+        setAddItemAiStatus("");
+        applyAddFormCriteriaList(CRITERIA_PRESETS[matched], matched);
+        return;
+      }
+
+      const presetEl = document.getElementById("admin-item-criteria-preset");
+      if (presetEl) presetEl.value = "custom";
+      if (nameVal.length >= 3) {
+        addItemAiDebounceTimer = setTimeout(() => {
+          addItemAiDebounceTimer = null;
+          requestAiCriteriaForAddForm({ manual: false });
+        }, 700);
+      }
+    };
+
+    window.handleAddItemNameBlur = () => {
+      if (addItemCriteriaTouched) return;
+      const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
+      const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
+      if (nameVal.length < 3) return;
+      if (matchLocalCriteriaPresetKey(nameVal, mlVal)) return;
+      if (addItemAiDebounceTimer) {
+        clearTimeout(addItemAiDebounceTimer);
+        addItemAiDebounceTimer = null;
+      }
+      requestAiCriteriaForAddForm({ manual: false });
     };
 
     window.handleAddItemPresetChange = (fromReset = false) => {
-      if (!fromReset) addItemCriteriaTouched = true;
+      if (addItemAiDebounceTimer) {
+        clearTimeout(addItemAiDebounceTimer);
+        addItemAiDebounceTimer = null;
+      }
+      if (!fromReset) {
+        addItemCriteriaTouched = true;
+        setAddItemAiStatus("");
+      }
       const presetEl = document.getElementById("admin-item-criteria-preset");
       const key = presetEl?.value || "dance";
       if (key !== "custom" && CRITERIA_PRESETS[key]) {
@@ -7558,6 +7793,14 @@
         customCatInput.required = false;
         customCatInput.classList.add("hidden");
       }
+      if (addItemAiDebounceTimer) {
+        clearTimeout(addItemAiDebounceTimer);
+        addItemAiDebounceTimer = null;
+      }
+      addItemAiLastKey = "";
+      addItemAiInFlightKey = "";
+      addItemAiReqSeq++;
+      setAddItemAiStatus("");
       addItemCriteriaTouched = false;
       const presetEl = document.getElementById("admin-item-criteria-preset");
       if (presetEl) presetEl.value = "dance";
@@ -7803,7 +8046,84 @@
       URL.revokeObjectURL(url);
     };
 
+    let csvAiRunId = 0;
+    let csvAiEnrichmentPromise = null;
+
+    function setCsvAiStatus(message = "") {
+      const el = document.getElementById("csv-ai-status");
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        el.classList.add("hidden");
+      } else {
+        el.textContent = message;
+        el.classList.remove("hidden");
+      }
+    }
+
+    async function enrichCsvCustomItemsWithAi(itemsToEnrich) {
+      const unknownItems = (itemsToEnrich || []).filter(
+        it => matchLocalCriteriaPresetKey(it.name, it.malayalamName) === null
+      );
+      if (unknownItems.length === 0) {
+        setCsvAiStatus("");
+        return;
+      }
+
+      const runId = ++csvAiRunId;
+      setCsvAiStatus(`✨ Gemini AI is generating tailored criteria for ${unknownItems.length} custom ${unknownItems.length === 1 ? "item" : "items"}...`);
+
+      const workPromise = (async () => {
+        let enrichedCount = 0;
+        const CHUNK = 20;
+        for (let i = 0; i < unknownItems.length; i += CHUNK) {
+          if (runId !== csvAiRunId) return;
+          const slice = unknownItems.slice(i, i + CHUNK);
+          const res = await fetch("/api/ai/criteria/batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              items: slice.map(it => ({
+                key: it.id,
+                itemName: it.name,
+                malayalamName: it.malayalamName || "",
+                category: it.category || "General"
+              }))
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (runId !== csvAiRunId) return;
+          if (!res.ok || !data?.results) {
+            throw new Error(data?.error || "AI batch unavailable");
+          }
+          slice.forEach(it => {
+            const generated = data.results[it.id];
+            if (Array.isArray(generated) && generated.length === 4) {
+              it.criteria = generated;
+              enrichedCount++;
+            }
+          });
+        }
+        if (runId !== csvAiRunId) return;
+        if (enrichedCount > 0) {
+          const previewNames = unknownItems.slice(0, 3).map(it => it.name).join(", ");
+          const suffix = unknownItems.length > 3 ? `, +${unknownItems.length - 3} more` : "";
+          setCsvAiStatus(`✨ Gemini AI generated tailored criteria for ${enrichedCount} custom ${enrichedCount === 1 ? "item" : "items"} (${previewNames}${suffix}).`);
+        } else {
+          setCsvAiStatus("");
+        }
+      })().catch(() => {
+        if (runId !== csvAiRunId) return;
+        setCsvAiStatus("Using smart offline preset criteria for custom CSV items (Gemini AI unavailable).");
+      });
+
+      csvAiEnrichmentPromise = workPromise;
+      await workPromise;
+    }
+
     window.clearCsvImport = () => {
+      csvAiRunId++;
+      csvAiEnrichmentPromise = null;
       pendingCsvState = {
         mode: document.getElementById("csv-import-mode")?.value || "participants",
         rawText: "",
@@ -7817,6 +8137,7 @@
       if (fileInput) fileInput.value = "";
       document.getElementById("csv-clear-btn")?.classList.add("hidden");
       document.getElementById("csv-preview-box")?.classList.add("hidden");
+      setCsvAiStatus("");
       hideCsvBanners();
     };
 
@@ -8093,6 +8414,7 @@
       pendingCsvState.participantsToCreate = participantsToCreate;
       pendingCsvState.warnings = warnings;
       previewBox?.classList.remove("hidden");
+      enrichCsvCustomItemsWithAi(itemsToCreate);
     };
 
     async function commitBatchOperations(ops) {
@@ -8114,6 +8436,13 @@
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = "Importing...";
+      }
+
+      if (csvAiEnrichmentPromise) {
+        await Promise.race([
+          csvAiEnrichmentPromise.catch(() => {}),
+          new Promise(resolve => setTimeout(resolve, 6000))
+        ]);
       }
 
       const cleanParticipants = participantsToCreate.map(({ itemName, itemCategory, ...rest }) => rest);
@@ -8226,6 +8555,47 @@
     window.cancelEditItem = () => {
       editingAdminItemId = null;
       window.renderAdminLists();
+    };
+
+    window.handleAiGenerateEditItemCriteria = async (itemId) => {
+      const nameVal = (document.getElementById(`edit-item-name-${itemId}`)?.value || "").trim();
+      const mlVal = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim();
+      const category = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || "General");
+      const btn = document.getElementById(`edit-ai-criteria-btn-${itemId}`);
+      if (!nameVal) {
+        window.showToast("Item name is required to generate AI criteria");
+        return;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "✨ Generating...";
+      }
+      try {
+        const res = await fetch("/api/ai/criteria", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemName: nameVal, malayalamName: mlVal, category })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !Array.isArray(data?.criteria) || data.criteria.length !== 4) {
+          throw new Error(data?.error || "Could not generate AI criteria.");
+        }
+        data.criteria.forEach((label, idx) => {
+          const inp = document.getElementById(`edit-item-crit-${idx + 1}-${itemId}`);
+          if (inp) inp.value = label;
+        });
+        const presetEl = document.getElementById(`edit-item-preset-${itemId}`);
+        if (presetEl) presetEl.value = detectCriteriaPresetKey(data.criteria);
+        window.showToast(`✨ AI criteria generated for "${nameVal}"`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Gemini AI unavailable";
+        window.showToast(msg);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "✨ AI Generate";
+        }
+      }
     };
 
     window.handleEditItemPresetChange = (itemId) => {
