@@ -1272,13 +1272,119 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <form onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <h2 class="text-lg font-bold text-stone-900">1. Add Competition Item</h2>
+          <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80">
+            <label for="admin-manual-event-picker" class="block text-[11px] font-semibold text-amber-950 mb-1">Quick Select Event Preset (College / University Festival Manual)</label>
+            <select id="admin-manual-event-picker" onchange="handleSelectFestivalManualEvent(this.value)" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-amber-300 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-600">
+              <option value="">Or pick from Festival Manual (Auto-fills Name &amp; 4 Criteria)...</option>
+              <optgroup label="Literary &amp; Off-Stage (101–125)">
+                <option value="essay_ml">101 · Essay Writing (Malayalam) / ഉപന്യാസം (മലയാളം)</option>
+                <option value="essay_en">102 · Essay Writing (English) / ഉപന്യാസം (ഇംഗ്ലീഷ്)</option>
+                <option value="essay_hi">103 · Essay Writing (Hindi) / ഉപന്യാസം (ഹിന്ദി)</option>
+                <option value="essay_ar">104 · Essay Writing (Arabic) / ഉപന്യാസം (അറബിക്)</option>
+                <option value="essay_sk">105 · Essay Writing (Sanskrit) / ഉപന്യാസം (സംസ്കൃതം)</option>
+                <option value="essay_ur">106 · Essay Writing (Urdu) / ഉപന്യാസം (ഉറുദു)</option>
+                <option value="story_ml">107 · Story Writing (Malayalam) / കഥാരചന (മലയാളം)</option>
+                <option value="story_en">108 · Story Writing (English) / കഥാരചന (ഇംഗ്ലീഷ്)</option>
+                <option value="story_hi">109 · Story Writing (Hindi) / കഥാരചന (ഹിന്ദി)</option>
+                <option value="story_ar">110 · Story Writing (Arabic) / കഥാരചന (അറബിക്)</option>
+                <option value="story_sk">111 · Story Writing (Sanskrit) / കഥാരചന (സംസ്കൃതം)</option>
+                <option value="story_ur">112 · Story Writing (Urdu) / കഥാരചന (ഉറുദു)</option>
+                <option value="versification_ml">113 · Versification (Malayalam) / കവിതാരചന (മലയാളം)</option>
+                <option value="versification_en">114 · Versification (English) / കവിതാരചന (ഇംഗ്ലീഷ്)</option>
+                <option value="versification_hi">115 · Versification (Hindi) / കവിതാരചന (ഹിന്ദി)</option>
+                <option value="versification_ar">116 · Versification (Arabic) / കവിതാരചന (അറബിക്)</option>
+                <option value="versification_sk">117 · Versification (Sanskrit) / കവിതാരചന (സംസ്കൃതം)</option>
+                <option value="versification_ur">118 · Versification (Urdu) / കവിതാരചന (ഉറുദു)</option>
+                <option value="elocution_ml">119 · Elocution (Malayalam) / പ്രസംഗം (മലയാളം)</option>
+                <option value="elocution_en">120 · Elocution (English) / പ്രസംഗം (ഇംഗ്ലീഷ്)</option>
+                <option value="elocution_hi">121 · Elocution (Hindi) / പ്രസംഗം (ഹിന്ദി)</option>
+                <option value="elocution_ar">122 · Elocution (Arabic) / പ്രസംഗം (അറബിക്)</option>
+                <option value="recitation_ml">123 · Recitation (Malayalam) / പദ്യം ചൊല്ലൽ (മലയാളം)</option>
+                <option value="recitation_en">124 · Recitation (English) / പദ്യം ചൊല്ലൽ (ഇംഗ്ലീഷ്)</option>
+                <option value="recitation_hi">125 · Recitation (Hindi) / പദ്യം ചൊല്ലൽ (ഹിന്ദി)</option>
+                <option value="recitation_ar">126 · Recitation (Arabic) / പദ്യം ചൊല്ലൽ (അറബിക്)</option>
+                <option value="recitation_sk">127 · Recitation (Sanskrit) / പദ്യം ചൊല്ലൽ (സംസ്കൃതം)</option>
+                <option value="recitation_ur">128 · Recitation (Urdu) / പദ്യം ചൊല്ലൽ (ഉറുദു)</option>
+                <option value="kavyakeli">129 · Kavyakeli / കാവ്യകേളി</option>
+                <option value="aksharashlokam">130 · Aksharashlokam / അക്ഷരശ്ലോകം</option>
+                <option value="debate">131 · Debate / സംവാദം</option>
+                <option value="quiz">132 · General Quiz / ക്വിസ്</option>
+                <option value="quran">133 · Quran Recitation (Qira'at) / ഖിറാഅത്ത്</option>
+              </optgroup>
+              <optgroup label="Fine Arts (126–142)">
+                <option value="poster">134 · Poster Making / പോസ്റ്റർ രചന</option>
+                <option value="painting_water">135 · Painting (Water Colour) / ചിത്രരചന (ജലച്ചായം)</option>
+                <option value="painting_oil">136 · Painting (Oil Colour) / ചിത്രരചന (എണ്ണച്ചായം)</option>
+                <option value="cartoon">137 · Cartoon Drawing / കാർട്ടൂൺ</option>
+                <option value="pencil">138 · Pencil Drawing / പെൻസിൽ ഡ്രോയിംഗ്</option>
+                <option value="clay">139 · Clay Modeling / ക്ലേ മോഡലിംഗ്</option>
+                <option value="collage">140 · Collage / കൊളാഷ്</option>
+                <option value="embroidery">141 · Embroidery / എംബ്രോയ്ഡറി</option>
+                <option value="photography">142 · Spot Photography / സ്പോട്ട് ഫോട്ടോഗ്രഫി</option>
+                <option value="rangoli">143 · Rangoli / രംഗോലി</option>
+              </optgroup>
+              <optgroup label="Music &amp; Instrumental (201–230)">
+                <option value="light_music">201 · Light Music / ലളിതഗാനം</option>
+                <option value="classical_music">202 · Classical Music / ശാസ്ത്രീയ സംഗീതം</option>
+                <option value="semi_classical">203 · Semi Classical Solo / സെമി ക്ലാസിക്കൽ</option>
+                <option value="mappilappattu_solo">204 · Mappilappattu (Solo) / മാപ്പിളപ്പാട്ട് (സിംഗിൾ)</option>
+                <option value="mappilappattu_group">205 · Mappilappattu (Group) / മാപ്പിളപ്പാട്ട് (ഗ്രൂപ്പ്)</option>
+                <option value="kathakali_sangeetham">206 · Kathakali Sangeetham / കഥകളി സംഗീതം</option>
+                <option value="group_song_indian">207 · Group Song (Indian) / സംഘഗാനം</option>
+                <option value="group_song_western">208 · Western Group Song / വെസ്റ്റേൺ ഗ്രൂപ്പ് സോങ്</option>
+                <option value="patriotic_song">209 · Patriotic Song / ദേശഭക്തിഗാനം</option>
+                <option value="ganamela">210 · Ganamela / ഗാനമേള</option>
+                <option value="folk_song">211 · Folk Song (Group) / നാടൻപാട്ട്</option>
+                <option value="vanchippattu">212 · Vanchippattu / വഞ്ചിപ്പാട്ട്</option>
+                <option value="chenda_thayambaka">213 · Chenda Thayambaka / ചെണ്ട തായമ്പക</option>
+                <option value="maddalam">214 · Maddalam / മദ്ദളം</option>
+                <option value="chendamelam">215 · Chendamelam / ചെണ്ടമേളം</option>
+                <option value="panchavadyam">216 · Panchavadyam / പഞ്ചവാദ്യം</option>
+                <option value="band_melam">217 · Band Melam / ബാൻഡ് മേളം</option>
+                <option value="violin">218 · Violin / വയലിൻ</option>
+                <option value="guitar">219 · Guitar / ഗിറ്റാർ</option>
+                <option value="veena">220 · Veena / വീണ</option>
+                <option value="harmonium">221 · Harmonium / ഹാർമോണിയം</option>
+                <option value="flute">222 · Flute / ഓടക്കുഴൽ</option>
+              </optgroup>
+              <optgroup label="Dance &amp; Traditional Arts (231–252)">
+                <option value="bharathanatyam">231 · Bharathanatyam / ഭരതനാട്യം</option>
+                <option value="kuchipudi">232 · Kuchipudi / കുച്ചിപ്പുടി</option>
+                <option value="mohiniyattam">233 · Mohiniyattam / മോഹിനിയാട്ടം</option>
+                <option value="keralanatanam">234 · Keralanatanam / കേരളനടനം</option>
+                <option value="kathakali">235 · Kathakali / കഥകളി</option>
+                <option value="ottamthullal">236 · Ottamthullal / ഓട്ടൻതുള്ളൽ</option>
+                <option value="chakyarkoothu">237 · Chakyarkoothu / ചാക്യാർകൂത്ത്</option>
+                <option value="koodiyattam">238 · Koodiyattam / കൂടിയാട്ടം</option>
+                <option value="folk_dance_single">239 · Folk Dance (Single) / നാടോടിനൃത്തം (സിംഗിൾ)</option>
+                <option value="folk_dance_group">240 · Folk Dance (Group) / സംഘനൃത്തം</option>
+                <option value="thiruvathira">241 · Thiruvathirakkali / തിരുവാതിരക്കളി</option>
+                <option value="oppana">242 · Oppana / ഒപ്പന</option>
+                <option value="duffmuttu">243 · Duffmuttu / ദഫ്മുട്ട്</option>
+                <option value="arabanamuttu">244 · Arabanamuttu / അറബനമുട്ട്</option>
+                <option value="vattappattu">245 · Vattappattu / വട്ടപ്പാട്ട്</option>
+                <option value="kolkkali">246 · Kolkkali / കോൽക്കളി</option>
+                <option value="parichamuttukali">247 · Parichamuttukali / പരിചമുട്ടുകളി</option>
+                <option value="poorakkali">248 · Poorakkali / പൂരക്കളി</option>
+                <option value="margamkali">249 · Margamkali / മാർഗ്ഗംകളി</option>
+              </optgroup>
+              <optgroup label="Theatre &amp; Performing Arts (253–265)">
+                <option value="kathaprasangam">253 · Kathaprasangam / കഥാപ്രസംഗം</option>
+                <option value="mono_act">254 · Mono Act / മോണോ ആക്ട്</option>
+                <option value="mimicry">255 · Mimicry / മിമിക്രി</option>
+                <option value="mime">256 · Mime / മൈം</option>
+                <option value="drama">257 · Drama / നാടകം</option>
+                <option value="skit">258 · Skit / സ്കിറ്റ്</option>
+              </optgroup>
+            </select>
+          </div>
           <div>
             <label for="admin-item-name" class="block text-xs font-semibold text-stone-700 mb-1">Item Name (English)</label>
-            <input id="admin-item-name" type="text" required oninput="handleAddItemNameInput()" placeholder="e.g. Duffmuttu, Oppana, Elocution, Kuchipudi" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <input id="admin-item-name" type="text" required oninput="handleAddItemNameInput()" placeholder="e.g. Duffmuttu, Oppana, Elocution, Kuchipudi, Poster Making" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
           <div>
             <label for="admin-item-ml" class="block text-xs font-semibold text-stone-700 mb-1">Malayalam Name</label>
-            <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" placeholder="e.g. ദഫ്‌മുട്ട്, ഒപ്പന, കുച്ചിപ്പുടി" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" placeholder="e.g. ദഫ്‌മുട്ട്, ഒപ്പന, കുച്ചിപ്പുടി, പോസ്റ്റർ രചന" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -1307,43 +1413,76 @@
               <label for="admin-item-criteria-preset" class="block text-xs font-semibold text-stone-700 mb-1">Judging Criteria Template (25 marks each)</label>
               <div class="flex flex-col sm:flex-row gap-2">
                 <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                  <option value="dance">Dance &amp; Stage Arts</option>
-                  <option value="thiruvathira">Thiruvathira / തിരുവാതിര</option>
+                  <option value="dance">Classical Dance (Bharathanatyam / Kuchipudi / Mohiniyattam)</option>
+                  <option value="folk_dance">Folk Dance / നാടോടിനൃത്തം</option>
+                  <option value="thiruvathira">Thiruvathirakkali / തിരുവാതിരക്കളി</option>
                   <option value="oppana">Oppana / ഒപ്പന</option>
-                  <option value="duffmuttu">Duffmuttu / ദഫ്മുട്ട്</option>
-                  <option value="music">Music / Singing</option>
-                  <option value="speech">Speech / Elocution</option>
-                  <option value="writing">Essay &amp; Creative Writing / രചനാ മത്സരങ്ങൾ</option>
+                  <option value="duffmuttu">Duffmuttu &amp; Arabanamuttu / ദഫ്മുട്ട് / അറബനമുട്ട്</option>
+                  <option value="vattappattu">Vattappattu / വട്ടപ്പാട്ട്</option>
+                  <option value="kolkkali">Kolkkali / Parichamuttukali / Poorakkali</option>
+                  <option value="margamkali">Margamkali / മാർഗ്ഗംകളി</option>
+                  <option value="kathakali">Kathakali / കഥകളി</option>
+                  <option value="thullal">Thullal / Chakyarkoothu / Koodiyattam</option>
+                  <option value="mappilappattu">Mappilappattu / മാപ്പിളപ്പാട്ട്</option>
+                  <option value="music">Light Music / ലളിതഗാനം</option>
+                  <option value="classical_music">Classical Music / ശാസ്ത്രീയ സംഗീതം</option>
+                  <option value="semi_classical">Semi Classical Solo / സെമി ക്ലാസിക്കൽ</option>
+                  <option value="kathakali_sangeetham">Kathakali Sangeetham / കഥകളി സംഗീതം</option>
+                  <option value="group_song">Group Song (Indian &amp; Western) / സംഘഗാനം</option>
+                  <option value="patriotic_song">Patriotic Song / ദേശഭക്തിഗാനം</option>
+                  <option value="ganamela">Ganamela / ഗാനമേള</option>
+                  <option value="folk_song">Folk Song (Group) / നാടൻപാട്ട്</option>
+                  <option value="vanchippattu">Vanchippattu / വഞ്ചിപ്പാട്ട്</option>
+                  <option value="percussion">Instrumental Percussion (Chenda / Maddalam / Panchavadyam)</option>
+                  <option value="string_wind">Instrumental String &amp; Wind (Violin / Guitar / Veena / Flute)</option>
+                  <option value="writing">Essay Writing / ഉപന്യാസം</option>
+                  <option value="story">Story Writing / കഥാരചന</option>
+                  <option value="versification">Versification / കവിതാ രചന</option>
+                  <option value="speech">Elocution / Speech / പ്രസംഗം</option>
+                  <option value="recitation">Recitation / പദ്യം ചൊല്ലൽ</option>
+                  <option value="kavyakeli">Kavyakeli / കാവ്യകേളി</option>
+                  <option value="aksharashlokam">Aksharashlokam / അക്ഷരശ്ലോകം</option>
+                  <option value="debate">Debate / സംവാദം</option>
+                  <option value="quiz">General Quiz / ക്വിസ്</option>
                   <option value="quran">Quran Recitation / Qira'at</option>
-                  <option value="debate">Debate</option>
-                  <option value="kathaprasangam">Kathaprasangam</option>
+                  <option value="poster">Poster Making / പോസ്റ്റർ രചന</option>
+                  <option value="drawing">Painting (Water / Oil Colour) / ചിത്രരചന</option>
+                  <option value="cartoon">Cartoon Drawing / കാർട്ടൂൺ</option>
+                  <option value="pencil">Pencil Drawing / പെൻസിൽ ഡ്രോയിംഗ്</option>
+                  <option value="clay">Clay Modeling / ക്ലേ മോഡലിംഗ്</option>
+                  <option value="collage">Collage / കൊളാഷ്</option>
+                  <option value="embroidery">Embroidery / എംബ്രോയ്ഡറി</option>
+                  <option value="photography">Spot Photography / സ്പോട്ട് ഫോട്ടോഗ്രഫി</option>
+                  <option value="rangoli">Rangoli / രംഗോലി</option>
+                  <option value="kathaprasangam">Kathaprasangam / കഥാപ്രസംഗം</option>
+                  <option value="mono_act">Mono Act / മോണോ ആക്ട്</option>
                   <option value="mimicry">Mimicry / മിമിക്രി</option>
-                  <option value="drawing">Drawing &amp; Painting</option>
-                  <option value="quiz">Quiz</option>
-                  <option value="custom">Custom / AI Tailored</option>
+                  <option value="mime">Mime / മൈം</option>
+                  <option value="drama">Drama &amp; Skit / നാടകം / സ്കിറ്റ്</option>
+                  <option value="custom">Custom / Editable Rubric</option>
                 </select>
                 <button type="button" id="admin-ai-criteria-btn" onclick="handleAiGenerateItemCriteria()" class="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
-                  ✨ AI Generate Criteria
+                  ✨ Auto-Fill Criteria
                 </button>
               </div>
               <div id="admin-ai-criteria-status" role="status" class="hidden mt-1.5 text-[11px] font-medium"></div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-stone-50 border border-stone-200">
               <div>
-                <label for="admin-item-crit-1" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 1</label>
-                <input id="admin-item-crit-1" type="text" required maxlength="80" oninput="handleAddItemCriteriaInput()" value="Rhythm / താളം (0-25)" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-1" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 1 (0–25)</label>
+                <input id="admin-item-crit-1" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Nritta (Footwork &amp; Adavus) / നൃത്തവും അടവുകളുടെ കൃത്യതയും" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
               <div>
-                <label for="admin-item-crit-2" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 2</label>
-                <input id="admin-item-crit-2" type="text" required maxlength="80" oninput="handleAddItemCriteriaInput()" value="Expression / ഭാവം (0-25)" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-2" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 2 (0–25)</label>
+                <input id="admin-item-crit-2" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Abhinaya (Facial &amp; Bhava Expression) / മുഖാഭിനയവും ഭാവാവിഷ്കാരവും" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
               <div>
-                <label for="admin-item-crit-3" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 3</label>
-                <input id="admin-item-crit-3" type="text" required maxlength="80" oninput="handleAddItemCriteriaInput()" value="Perfection &amp; Coordination / പൂർണ്ണത (0-25)" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-3" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 3 (0–25)</label>
+                <input id="admin-item-crit-3" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Talam &amp; Laya Precision / താളലയ കൃത്യത" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
               <div>
-                <label for="admin-item-crit-4" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 4</label>
-                <input id="admin-item-crit-4" type="text" required maxlength="80" oninput="handleAddItemCriteriaInput()" value="Presentation / അവതരണം (0-25)" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-4" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 4 (0–25)</label>
+                <input id="admin-item-crit-4" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Aharya (Costume &amp; Stage Presence) / ആഹാര്യവും വേദിയിലെ സാന്നിധ്യവും" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
             </div>
           </div>
@@ -2248,101 +2387,425 @@
     }
 
     const CRITERIA_PRESETS = {
-      quran: [
-        "Tajweed & Makharij / തജ്‌വീദും മഖ്റജും (0-25)",
-        "Qira'at & Melody / ഖിറാഅത്തും ഈണവും (0-25)",
-        "Fluency & Pauses / ഒഴുക്കും നിർത്തലുകളും (0-25)",
-        "Voice & Reverence / ശബ്ദവും അദബും (0-25)"
-      ],
-      debate: [
-        "Argument & Logic / വാദഗതിയും യുക്തിയും (0-25)",
-        "Rebuttal & Spontaneity / പ്രതിവാദവും സമയോചിതത്വവും (0-25)",
-        "Language & Diction / ഭാഷാശുദ്ധി (0-25)",
-        "Confidence & Delivery / ആത്മവിശ്വാസവും അവതരണവും (0-25)"
-      ],
-      kathaprasangam: [
-        "Storytelling & Narration / കഥാഖ്യാനവും ശൈലിയും (0-25)",
-        "Music & Song Integration / സംഗീതവും പാട്ടും (0-25)",
-        "Expression & Voice / ഭാവവും ശബ്ദനിയന്ത്രണവും (0-25)",
-        "Audience Impact / അവതരണ മികവ് (0-25)"
-      ],
-      drawing: [
-        "Creativity & Originality / സർഗ്ഗാത്മകത (0-25)",
-        "Composition & Proportion / ഘടനയും അനുപാതവും (0-25)",
-        "Color & Shading / നിറവിന്യാസവും ഷേഡിംഗും (0-25)",
-        "Neatness & Theme / വൃത്തിയും വിഷയാവിഷ്കാരവും (0-25)"
-      ],
-      quiz: [
-        "Accuracy & Knowledge / അറിവും കൃത്യതയും (0-25)",
-        "Speed & Response Time / വേഗതയും സമയപാലനവും (0-25)",
-        "Analytical Thinking / വിശകലന ശേഷി (0-25)",
-        "Clarity & Confidence / വ്യക്തതയും ആത്മവിശ്വാസവും (0-25)"
-      ],
       writing: [
-        "Content & Theme Relevance / ആശയവും വിഷയബന്ധവും (0-25)",
-        "Structure & Organization / ഘടനയും ക്രമീകരണവും (0-25)",
-        "Language, Grammar & Vocabulary / ഭാഷാശുദ്ധിയും ശൈലിയും (0-25)",
-        "Originality & Neatness / മൗലികതയും അവതരണവും (0-25)"
+        "Content & Depth / വിഷയവും ആശയവ്യക്തതയും",
+        "Structure & Coherence / ഘടനയും അവതരണ ക്രമവും",
+        "Language & Vocabulary / ഭാഷാശുദ്ധിയും പദസമ്പത്തും",
+        "Originality & Conclusion / മൗലികതയും ഉപസംഹാരവും"
+      ],
+      story: [
+        "Plot & Creativity / ഇതിവൃത്തവും സർഗ്ഗാത്മകതയും",
+        "Characterization & Setting / കഥാപാത്രസൃഷ്ടിയും പശ്ചാത്തലവും",
+        "Narrative Style & Language / ആഖ്യാനശൈലിയും ഭാഷയും",
+        "Emotional Impact & Climax / വൈകാരികതയും ക്ലൈമാക്സും"
+      ],
+      versification: [
+        "Poetic Theme & Imagery / കാവ്യഭാവനയും ബിംബകല്പനയും",
+        "Rhythm, Meter & Rhyme / താളവും വൃത്തവും പ്രാസവും",
+        "Diction & Figurative Language / പദഭംഗിയും അലങ്കാരങ്ങളും",
+        "Emotional Depth & Originality / ഭാവതീവ്രതയും മൗലികതയും"
       ],
       speech: [
-        "Content & Clarity / ഉള്ളടക്കം (0-25)",
-        "Language & Diction / ഭാഷാശുദ്ധി (0-25)",
-        "Voice & Modulation / ശബ്ദനിയന്ത്രണം (0-25)",
-        "Presentation / അവതരണം (0-25)"
+        "Content & Relevance / വിഷയവും ആശയഗാംഭീര്യവും",
+        "Voice Modulation & Clarity / ശബ്ദനിയന്ത്രണവും വ്യക്തതയും",
+        "Body Language & Confidence / അംഗവിക്ഷേപവും ആത്മവിശ്വാസവും",
+        "Language & Time Management / ഭാഷാശുദ്ധിയും സമയക്രമവും"
+      ],
+      recitation: [
+        "Pronunciation & Clarity / ഉച്ചാരണശുദ്ധിയും വ്യക്തതയും",
+        "Rhythm, Bhava & Expression / താളവും ഭാവവും ആലാപനവും",
+        "Voice Modulation & Pitch / ശബ്ദസൗകുമാര്യവും ആരോഹണാവരോഹണവും",
+        "Memory & Overall Presentation / ഓർമ്മശക്തിയും സമ്പൂർണ്ണ അവതരണവും"
+      ],
+      kavyakeli: [
+        "Metrical Accuracy & Rules / വൃത്തശുദ്ധിയും നിയമപാലനവും",
+        "Spontaneity & Poetic Wit / സമയോചിതത്വവും കാവ്യഭാവനയും",
+        "Pronunciation & Fluency / ഉച്ചാരണശുദ്ധിയും ഒഴുക്കും",
+        "Literary Richness / സാഹിത്യഭംഗിയും പദസമ്പത്തും"
+      ],
+      aksharashlokam: [
+        "Accuracy of Starting Letter / അക്ഷരശുദ്ധിയും കൃത്യതയും",
+        "Pronunciation & Clarity / ഉച്ചാരണശുദ്ധിയും വ്യക്തതയും",
+        "Metrical Rhythm & Tone / വൃത്തതാളവും ആലാപനഭംഗിയും",
+        "Memory & Poetic Selection / ഓർമ്മശക്തിയും ശ്ലോകതിരഞ്ഞെടുപ്പും"
+      ],
+      debate: [
+        "Logic & Strength of Arguments / യുക്തിഭദ്രതയും വാദഗതികളും",
+        "Rebuttal & Presence of Mind / മറുപടിയും സമയോചിതത്വവും",
+        "Clarity & Persuasion / ആശയവ്യക്തതയും അവതരണമികവും",
+        "Team Coordination & Decorum / ടീം ഏകോപനവും സംവാദമര്യാദയും"
+      ],
+      quiz: [
+        "Accuracy of Answers / ഉത്തരങ്ങളുടെ കൃത്യത",
+        "Speed & Presence of Mind / വേഗതയും സമയോചിതത്വവും",
+        "Buzzer / Round Strategy / റൗണ്ട് തന്ത്രവും കൃത്യതയും",
+        "Teamwork & Discipline / ടീം ഏകോപനവും അച്ചടക്കവും"
+      ],
+      quran: [
+        "Tajweed & Makharij / തജ്‌വീദും മഖ്റജും",
+        "Qira'at & Melody / ഖിറാഅത്തും ഈണവും",
+        "Fluency & Pauses / ഒഴുക്കും നിർത്തലുകളും",
+        "Voice & Reverence / ശബ്ദവും അദബും"
+      ],
+      poster: [
+        "Theme Relevance & Message / ആശയവ്യക്തതയും സന്ദേശവും",
+        "Visual Composition & Layout / രൂപകല്പനയും ലേഔട്ട് മികവും",
+        "Color Harmony & Typography / വർണ്ണവിന്യാസവും അക്ഷരഭംഗിയും",
+        "Creativity & Neatness / സർഗ്ഗാത്മകതയും വൃത്തിയും"
+      ],
+      drawing: [
+        "Composition & Perspective / ചിത്രഘടനയും വീക്ഷണകോണും",
+        "Color Harmony & Brush Technique / വർണ്ണവിന്യാസവും ബ്രഷ് മികവും",
+        "Theme Interpretation / ആശയാവിഷ്കാരം",
+        "Creativity & Overall Finish / സർഗ്ഗാത്മകതയും പൂർണ്ണതയും"
+      ],
+      cartoon: [
+        "Humour & Satirical Concept / നർമ്മബോധവും ആക്ഷേപഹാസ്യവും",
+        "Caricature & Line Quality / വരകളുടെ കൃത്യതയും ശൈലിയും",
+        "Expressiveness & Message / ഭാവാവിഷ്കാരവും സന്ദേശവും",
+        "Neatness & Visual Impact / വൃത്തിയും ദൃശ്യമികവും"
+      ],
+      pencil: [
+        "Proportion & Anatomy / അനുപാതവും രൂപകൃത്യതയും",
+        "Shading, Light & Texture / ഷേഡിംഗും നിഴൽ-വെളിച്ച ക്രമീകരണവും",
+        "Line Precision & Detailing / വരകളുടെ സൂക്ഷ്മതയും വ്യക്തതയും",
+        "Theme & Visual Impact / ആശയവും ദൃശ്യമികവും"
+      ],
+      clay: [
+        "Proportion & 3D Form / രൂപകൃത്യതയും ത്രിമാനഭംഗിയും",
+        "Detailing & Surface Texture / സൂക്ഷ്മതയും ഉപരിതല ഭംഗിയും",
+        "Theme & Creativity / ആശയവും സർഗ്ഗാത്മകതയും",
+        "Structural Balance & Finish / സന്തുലിതാവസ്ഥയും പൂർണ്ണതയും"
+      ],
+      collage: [
+        "Creativity & Material Use / സർഗ്ഗാത്മകതയും സാമഗ്രികളുടെ ഉപയോഗവും",
+        "Composition & Visual Balance / ചിത്രഘടനയും സന്തുലിതാവസ്ഥയും",
+        "Theme Representation / വിഷയാവിഷ്കാരം",
+        "Neatness & Craftsmanship / വൃത്തിയും കരവിരുതും"
+      ],
+      embroidery: [
+        "Stitch Precision & Technique / തുന്നലുകളുടെ കൃത്യതയും വൈദഗ്ധ്യവും",
+        "Color Combination & Design / വർണ്ണസംയോജനവും ഡിസൈൻ ഭംഗിയും",
+        "Neatness (Front & Back) / ഇരുവശങ്ങളിലെയും വൃത്തി",
+        "Creativity & Overall Appeal / സർഗ്ഗാത്മകതയും ആകർഷണീയതയും"
+      ],
+      photography: [
+        "Impact & Storytelling / ദൃശ്യപ്രഭാവവും കഥപറച്ചിലും",
+        "Composition & Framing / ഫ്രെയിമിംഗും ചിത്രഘടനയും",
+        "Technical Quality (Focus & Lighting) / ഫോക്കസും വെളിച്ചനിയന്ത്രണവും",
+        "Suitability to Specific Theme / വിഷയവുമായുള്ള പൊരുത്തം"
+      ],
+      rangoli: [
+        "Design Symmetry & Pattern / രൂപകല്പനയും സന്തുലിതാവസ്ഥയും",
+        "Color Harmony & Shading / വർണ്ണവിന്യാസവും ഷേഡിംഗും",
+        "Medium Control & Neatness / മാധ്യമനിയന്ത്രണവും വൃത്തിയും",
+        "Creativity & Visual Appeal / സർഗ്ഗാത്മകതയും ദൃശ്യഭംഗിയും"
+      ],
+      mappilappattu: [
+        "Ishals & Rhythmic Accuracy / ഇശലുകളുടെ കൃത്യതയും താളവും",
+        "Pronunciation & Arabic-Malayalam Diction / ഉച്ചാരണശുദ്ധിയും അറബിമലയാള ഭംഗിയും",
+        "Voice Quality & Bhava / ശബ്ദസൗകുമാര്യവും ഭാവവും",
+        "Coordination & Presentation / ഏകോപനവും അവതരണമികവും"
       ],
       music: [
-        "Sruti & Melody / ശ്രുതി & സ്വരം (0-25)",
-        "Rhythm / താളം (0-25)",
-        "Expression / ഭാവം (0-25)",
-        "Pronunciation & Presentation / ഉച്ചാരണം (0-25)"
+        "Shruthi & Pitch Accuracy / ശ്രുതിശുദ്ധിയും സ്വരകൃത്യതയും",
+        "Thalam & Rhythm / താളബോധവും ലയവും",
+        "Bhava & Lyric Clarity / ഭാവവും സാഹിത്യവ്യക്തതയും",
+        "Voice Quality & Expression / ശബ്ദഭംഗിയും ആലാപനമികവും"
       ],
-      thiruvathira: [
-        "Chuvadu & Footwork / ചുവടുകളും മെയ്‌വഴക്കവും (0-25)",
-        "Rhythm & Clapping / താളവും കൈകൊട്ടും (0-25)",
-        "Bhava & Group Sync / ഭാവവും ഒത്തിണക്കവും (0-25)",
-        "Traditional Attire & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
+      classical_music: [
+        "Raga Bhava & Manodharma / രാഗഭാവവും മനോധർമ്മവും",
+        "Thalam & Laya Precision / താളലയ കൃത്യത",
+        "Shruthi Alignment & Swara Clarity / ശ്രുതിചേർച്ചയും സ്വരശുദ്ധിയും",
+        "Sahithya & Overall Rendition / സാഹിത്യശുദ്ധിയും ആലാപനമികവും"
       ],
-      oppana: [
-        "Singing & Ishal / ആലാപനവും ഇശലും (0-25)",
-        "Rhythmic Clapping / താളബദ്ധമായ കൈകൊട്ട് (0-25)",
-        "Synchronization & Steps / ചുവടുകളും ഒത്തിണക്കവും (0-25)",
-        "Costume & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
+      semi_classical: [
+        "Raga & Melodic Grace / രാഗഭാവവും നാദസൗകുമാര്യവും",
+        "Thalam & Rhythmic Control / താളനിയന്ത്രണവും ലയവും",
+        "Expression & Lyric Clarity / ഭാവാവിഷ്കാരവും പദവ്യക്തതയും",
+        "Voice Modulation & Appeal / ശബ്ദനിയന്ത്രണവും ആലാപനഭംഗിയും"
       ],
-      duffmuttu: [
-        "Baith & Singing / ബൈത്ത് ആലാപനം (0-25)",
-        "Rhythm & Duff Beats / താളവും ദഫ് മുട്ടും (0-25)",
-        "Synchronization & Steps / ഏകോപനവും ചുവടുകളും (0-25)",
-        "Attire & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
+      kathakali_sangeetham: [
+        "Mudra-Bhava Synchronization / മുദ്രാഭാവ ഏകോപനം",
+        "Traditional Raga & Sopana Style / സോപാനശൈലിയും രാഗഭാവവും",
+        "Thalam & Kalapramanam / താളവും കാലപ്രമാണവും",
+        "Voice Power & Clarity / ശബ്ദഗാംഭീര്യവും വ്യക്തതയും"
       ],
-      mimicry: [
-        "Voice & Sound Accuracy / ശബ്ദാനുകരണ കൃത്യത (0-25)",
-        "Timing & Spontaneity / സമയബന്ധിതവും നർമ്മവും (0-25)",
-        "Variety & Transitions / വൈവിധ്യവും മാറ്റങ്ങളും (0-25)",
-        "Stage Presence / വേദിയിലെ അവതരണം (0-25)"
+      group_song: [
+        "Vocal Harmony & Blend / സ്വരച്ചേർച്ചയും ശബ്ദഏകോപനവും",
+        "Pitch & Rhythmic Tightness / ശ്രുതിശുദ്ധിയും താളകൃത്യതയും",
+        "Song Selection & Arrangement / ഗാനതിരഞ്ഞെടുപ്പും ക്രമീകരണവും",
+        "Stage Discipline & Coordination / വേദിയിലെ അച്ചടക്കവും ഒത്തിണക്കവും"
+      ],
+      patriotic_song: [
+        "Patriotic Bhava & Energy / ദേശഭക്തിഭാവവും ഊർജ്ജസ്വലതയും",
+        "Vocal Synchronization & Pitch / ശബ്ദഏകോപനവും ശ്രുതിശുദ്ധിയും",
+        "Rhythm & Clarity of Lyrics / താളബോധവും വരികളുടെ വ്യക്തതയും",
+        "Group Coordination & Presentation / സംഘഏകോപനവും അവതരണവും"
+      ],
+      ganamela: [
+        "Vocal Quality & Versatility / ആലാപനമികവും വൈവിധ്യവും",
+        "Live Instrumental Accompaniment / ഉപകരണസംഗീത മികവ്",
+        "Rhythm, Tempo & Coordination / താളവും വേഗതയും ഏകോപനവും",
+        "Stage Presence & Audience Connect / സ്റ്റേജ് സാന്നിധ്യവും അവതരണവും"
+      ],
+      folk_song: [
+        "Authenticity of Folk Tune / നാടൻ ഈണത്തിന്റെ തനിമ",
+        "Vocal Energy & Chorus Blend / ആലാപന ഊർജ്ജവും സംഘചേർച്ചയും",
+        "Traditional Rhythm & Instruments / പരമ്പരാഗത താളവും വാദ്യങ്ങളും",
+        "Cultural Presentation & Costume / വേഷവിധാനവും അവതരണഭംഗിയും"
+      ],
+      vanchippattu: [
+        "Vanchippattu Vrutham & Rhythm / വഞ്ചിപ്പാട്ട് വൃത്തവും താളവും",
+        "Lead & Chorus Coordination / മുന്നണി-പിന്നണി ഏകോപനം",
+        "Voice Power & Tempo Control / ശബ്ദഗാംഭീര്യവും വേഗനിയന്ത്രണവും",
+        "Traditional Authenticity / പരമ്പരാഗത തനിമയും അവതരണവും"
+      ],
+      percussion: [
+        "Laya & Kalapramanam Precision / ലയവും കാലപ്രമാണ കൃത്യതയും",
+        "Manodharmam & Nadashuddhi / മനോധർമ്മവും നാദശുദ്ധിയും",
+        "Tala Mastery & Ensemble Sync / താളവൈദഗ്ധ്യവും മേളഏകോപനവും",
+        "Stamina & Stage Discipline / കായികക്ഷമതയും വേദിയിലെ അച്ചടക്കവും"
+      ],
+      string_wind: [
+        "Shruthi & Swara / Note Precision / ശ്രുതിശുദ്ധിയും സ്വരകൃത്യതയും",
+        "Bowing / Fingering Technique / വാദനവൈദഗ്ധ്യവും സാങ്കേതികതയും",
+        "Rhythm & Tempo Control / താളബോധവും വേഗനിയന്ത്രണവും",
+        "Musical Expression & Tone / ഭാവാവിഷ്കാരവും നാദഭംഗിയും"
       ],
       dance: [
-        "Rhythm / താളം (0-25)",
-        "Expression / ഭാവം (0-25)",
-        "Perfection & Coordination / പൂർണ്ണത (0-25)",
-        "Presentation / അവതരണം (0-25)"
+        "Nritta (Footwork & Adavus) / നൃത്തവും അടവുകളുടെ കൃത്യതയും",
+        "Abhinaya (Facial & Bhava Expression) / മുഖാഭിനയവും ഭാവാവിഷ്കാരവും",
+        "Talam & Laya Precision / താളലയ കൃത്യത",
+        "Aharya (Costume & Stage Presence) / ആഹാര്യവും വേദിയിലെ സാന്നിധ്യവും"
+      ],
+      kathakali: [
+        "Mudra Clarity & Padarthabhinaya / മുദ്രാവ്യക്തതയും പദാർത്ഥാഭിനയവും",
+        "Navarasa & Bhava Expression / നവരസങ്ങളും ഭാവാവിഷ്കാരവും",
+        "Kalasam & Chenda-Maddalam Sync / കലാശവും മേളഏകോപനവും",
+        "Traditional Vesham & Dignity / വേഷഭംഗിയും രംഗചൈതന്യവും"
+      ],
+      thullal: [
+        "Vachika (Delivery & Wit) / വാചികാഭിനയവും നർമ്മബോധവും",
+        "Angika & Satvika Abhinaya / ആംഗിക-സാത്വിക അഭിനയമികവ്",
+        "Talam & Musical Coordination / താളവും പശ്ചാത്തലസംഗീത ഏകോപനവും",
+        "Traditional Authenticity & Impact / പാരമ്പര്യത്തനിമയും അവതരണമികവും"
+      ],
+      folk_dance: [
+        "Folk Authenticity & Energy / നാടോടിത്തനിമയും ഊർജ്ജസ്വലതയും",
+        "Choreography & Formations / നൃത്തസംവിധാനവും ചലനഭംഗിയും",
+        "Rhythm & Footwork Sync / താളവും ചുവടുകളുടെ ഏകോപനവും",
+        "Costume & Expressions / വേഷവിധാനവും ഭാവാവിഷ്കാരവും"
+      ],
+      thiruvathira: [
+        "Lasya Grace & Chuvadu / ലാസ്യഭംഗിയും ചുവടുകളുടെ കൃത്യതയും",
+        "Kummi & Formation Symmetry / കുമ്മിയും വൃത്താകൃതിയിലെ ഒത്തിണക്കവും",
+        "Vocal-Step Synchronization / പാട്ടും ചുവടും തമ്മിലുള്ള ഏകോപനം",
+        "Traditional Costume & Rhythm / വേഷഭംഗിയും താളബോധവും"
+      ],
+      oppana: [
+        "Thalam & Clap Synchronization / താളവും കൈകൊട്ടിന്റെ ഏകോപനവും",
+        "Mappila Pattukal & Vocal Energy / പാട്ടിന്റെ മികവും ആലാപന ഊർജ്ജവും",
+        "Circular Choreography & Grace / ചുവടുകളുടെ ഭംഗിയും ചലനക്രമവും",
+        "Traditional Attire & Expressions / വേഷവിധാനവും മുഖഭാവവും"
+      ],
+      duffmuttu: [
+        "Baith Singing & Vocal Power / ബൈത്ത് ആലാപനവും ശബ്ദഗാംഭീര്യവും",
+        "Duff / Arabana Beat Precision / ദഫ് / അറബന താളകൃത്യത",
+        "Group Formation & Movements / സംഘചലനങ്ങളും നിരക്രമവും",
+        "Traditional Discipline & Energy / പരമ്പരാഗത അച്ചടക്കവും ഊർജ്ജവും"
+      ],
+      vattappattu: [
+        "Lead & Chorus Harmony / ഇശലുകളുടെ ഒഴുക്കും സംഘചേർച്ചയും",
+        "Clap Rhythm & Tempo / കൈകൊട്ട് താളവും വേഗനിയന്ത്രണവും",
+        "Traditional Tune & Diction / പരമ്പരാഗത ഈണവും ഉച്ചാരണവും",
+        "Group Coordination & Spirit / സംഘഏകോപനവും ആവേശവും"
+      ],
+      kolkkali: [
+        "Stick / Shield / Footwork Precision / കോൽ / പരിച / ചുവടുകളുടെ കൃത്യത",
+        "Rhythmic Speed & Synchronization / വേഗതയും താളഏകോപനവും",
+        "Vaythari / Song Coordination / വായ്ത്താരിയും പാട്ടും തമ്മിലുള്ള ചേർച്ച",
+        "Stamina & Formation Discipline / കായികക്ഷമതയും അച്ചടക്കവും"
+      ],
+      margamkali: [
+        "Chuvadu & Lamp-Circle Symmetry / ചുവടുകളും നിലവിളക്കിന് ചുറ്റുമുള്ള ക്രമവും",
+        "Song Rendition & Rhythm / ആലാപനമികവും താളബോധവും",
+        "Grace & Synchronization / ലാസ്യഭംഗിയും സംഘഏകോപനവും",
+        "Traditional Attire & Poise / പരമ്പരാഗത വേഷവും അടക്കവും"
+      ],
+      kathaprasangam: [
+        "Narration & Voice Modulation / കഥപറച്ചിലും ശബ്ദനിയന്ത്രണവും",
+        "Integration of Songs & Music / പാട്ടുകളുടെയും സംഗീതത്തിന്റെയും സമന്വയം",
+        "Story Structure & Message / കഥാഘടനയും സാമൂഹിക സന്ദേശവും",
+        "Stage Presence & Emotional Connect / സ്റ്റേജ് സാന്നിധ്യവും വൈകാരികതയും"
+      ],
+      mono_act: [
+        "Character Transitions & Versatility / കഥാപാത്രമാറ്റവും അഭിനയവൈവിധ്യവും",
+        "Voice Modulation & Dialogue / ശബ്ദനിയന്ത്രണവും സംഭാഷണമികവും",
+        "Script & Social Relevance / തിരക്കഥയും സാമൂഹിക പ്രസക്തിയും",
+        "Facial Expressions & Stage Use / മുഖഭാവവും സ്റ്റേജ് ഉപയോഗവും"
+      ],
+      mimicry: [
+        "Accuracy of Voice & Sound Imitation / ശബ്ദാനുകരണത്തിന്റെ കൃത്യത",
+        "Script, Timing & Humor / അവതരണശൈലിയും നർമ്മബോധവും",
+        "Seamless Transitions / ശബ്ദമാറ്റത്തിലെ വേഗതയും ഒഴുക്കും",
+        "Stage Presence & Cleanliness / സ്റ്റേജ് സാന്നിധ്യവും ഔചിത്യബോധവും"
+      ],
+      mime: [
+        "Idea & Creativity of Presentation / ആശയവും അവതരണത്തിലെ സർഗ്ഗാത്മകതയും",
+        "Body Language & Gestures (No Words) / ശരീരഭാഷയും ആംഗ്യങ്ങളും",
+        "Makeup, Music & Timing / ചമയവും പശ്ചാത്തലസംഗീതവും സമയക്രമവും",
+        "Group Sync & General Impression / സംഘഏകോപനവും സമ്പൂർണ്ണ പ്രഭാവവും"
+      ],
+      drama: [
+        "Acting & Character Portrayal / അഭിനയമികവും കഥാപാത്രാവിഷ്കാരവും",
+        "Script, Dialogue & Theme / തിരക്കഥയും സംഭാഷണവും പ്രമേയവും",
+        "Direction, Stage Setting & Timing / സംവിധാനവും രംഗസജ്ജീകരണവും സമയക്രമവും",
+        "Teamwork & Overall Impact / കൂട്ടായ്മയും സമ്പൂർണ്ണ അവതരണമികവും"
       ]
     };
 
     const CRITERIA_PRESET_LABELS = {
-      dance: "Dance & Stage Arts",
-      thiruvathira: "Thiruvathira / തിരുവാതിര",
+      dance: "Classical Dance (Bharathanatyam / Kuchipudi / Mohiniyattam)",
+      folk_dance: "Folk Dance / നാടോടിനൃത്തം",
+      thiruvathira: "Thiruvathirakkali / തിരുവാതിരക്കളി",
       oppana: "Oppana / ഒപ്പന",
-      duffmuttu: "Duffmuttu / ദഫ്മുട്ട്",
-      music: "Music / Singing",
-      speech: "Speech / Elocution",
-      writing: "Essay & Creative Writing / രചനാ മത്സരങ്ങൾ",
+      duffmuttu: "Duffmuttu & Arabanamuttu / ദഫ്മുട്ട് / അറബനമുട്ട്",
+      vattappattu: "Vattappattu / വട്ടപ്പാട്ട്",
+      kolkkali: "Kolkkali / Parichamuttukali / Poorakkali",
+      margamkali: "Margamkali / മാർഗ്ഗംകളി",
+      kathakali: "Kathakali / കഥകളി",
+      thullal: "Thullal / Chakyarkoothu / Koodiyattam",
+      mappilappattu: "Mappilappattu / മാപ്പിളപ്പാട്ട്",
+      music: "Light Music / ലളിതഗാനം",
+      classical_music: "Classical Music / ശാസ്ത്രീയ സംഗീതം",
+      semi_classical: "Semi Classical Solo / സെമി ക്ലാസിക്കൽ",
+      kathakali_sangeetham: "Kathakali Sangeetham / കഥകളി സംഗീതം",
+      group_song: "Group Song (Indian & Western) / സംഘഗാനം",
+      patriotic_song: "Patriotic Song / ദേശഭക്തിഗാനം",
+      ganamela: "Ganamela / ഗാനമേള",
+      folk_song: "Folk Song (Group) / നാടൻപാട്ട്",
+      vanchippattu: "Vanchippattu / വഞ്ചിപ്പാട്ട്",
+      percussion: "Instrumental Percussion (Chenda / Maddalam / Panchavadyam)",
+      string_wind: "Instrumental String & Wind (Violin / Guitar / Veena / Flute)",
+      writing: "Essay Writing / ഉപന്യാസം",
+      story: "Story Writing / കഥാരചന",
+      versification: "Versification / കവിതാ രചന",
+      speech: "Elocution / Speech / പ്രസംഗം",
+      recitation: "Recitation / പദ്യം ചൊല്ലൽ",
+      kavyakeli: "Kavyakeli / കാവ്യകേളി",
+      aksharashlokam: "Aksharashlokam / അക്ഷരശ്ലോകം",
+      debate: "Debate / സംവാദം",
+      quiz: "General Quiz / ക്വിസ്",
       quran: "Quran Recitation / Qira'at",
-      debate: "Debate",
-      kathaprasangam: "Kathaprasangam",
+      poster: "Poster Making / പോസ്റ്റർ രചന",
+      drawing: "Painting (Water / Oil Colour) / ചിത്രരചന",
+      cartoon: "Cartoon Drawing / കാർട്ടൂൺ",
+      pencil: "Pencil Drawing / പെൻസിൽ ഡ്രോയിംഗ്",
+      clay: "Clay Modeling / ക്ലേ മോഡലിംഗ്",
+      collage: "Collage / കൊളാഷ്",
+      embroidery: "Embroidery / എംബ്രോയ്ഡറി",
+      photography: "Spot Photography / സ്പോട്ട് ഫോട്ടോഗ്രഫി",
+      rangoli: "Rangoli / രംഗോലി",
+      kathaprasangam: "Kathaprasangam / കഥാപ്രസംഗം",
+      mono_act: "Mono Act / മോണോ ആക്ട്",
       mimicry: "Mimicry / മിമിക്രി",
-      drawing: "Drawing & Painting",
-      quiz: "Quiz",
-      custom: "Custom / AI Tailored"
+      mime: "Mime / മൈം",
+      drama: "Drama & Skit / നാടകം / സ്കിറ്റ്",
+      custom: "Custom / Editable Rubric"
+    };
+
+    const FESTIVAL_MANUAL_CATALOG = {
+      essay_ml: { name: "Essay Writing (Malayalam)", ml: "ഉപന്യാസം (മലയാളം)", preset: "writing" },
+      essay_en: { name: "Essay Writing (English)", ml: "ഉപന്യാസം (ഇംഗ്ലീഷ്)", preset: "writing" },
+      essay_hi: { name: "Essay Writing (Hindi)", ml: "ഉപന്യാസം (ഹിന്ദി)", preset: "writing" },
+      essay_ar: { name: "Essay Writing (Arabic)", ml: "ഉപന്യാസം (അറബിക്)", preset: "writing" },
+      essay_sk: { name: "Essay Writing (Sanskrit)", ml: "ഉപന്യാസം (സംസ്കൃതം)", preset: "writing" },
+      essay_ur: { name: "Essay Writing (Urdu)", ml: "ഉപന്യാസം (ഉറുദു)", preset: "writing" },
+      story_ml: { name: "Story Writing (Malayalam)", ml: "കഥാരചന (മലയാളം)", preset: "story" },
+      story_en: { name: "Story Writing (English)", ml: "കഥാരചന (ഇംഗ്ലീഷ്)", preset: "story" },
+      story_hi: { name: "Story Writing (Hindi)", ml: "കഥാരചന (ഹിന്ദി)", preset: "story" },
+      story_ar: { name: "Story Writing (Arabic)", ml: "കഥാരചന (അറബിക്)", preset: "story" },
+      story_sk: { name: "Story Writing (Sanskrit)", ml: "കഥാരചന (സംസ്കൃതം)", preset: "story" },
+      story_ur: { name: "Story Writing (Urdu)", ml: "കഥാരചന (ഉറുദു)", preset: "story" },
+      versification_ml: { name: "Versification (Malayalam)", ml: "കവിതാരചന (മലയാളം)", preset: "versification" },
+      versification_en: { name: "Versification (English)", ml: "കവിതാരചന (ഇംഗ്ലീഷ്)", preset: "versification" },
+      versification_hi: { name: "Versification (Hindi)", ml: "കവിതാരചന (ഹിന്ദി)", preset: "versification" },
+      versification_ar: { name: "Versification (Arabic)", ml: "കവിതാരചന (അറബിക്)", preset: "versification" },
+      versification_sk: { name: "Versification (Sanskrit)", ml: "കവിതാരചന (സംസ്കൃതം)", preset: "versification" },
+      versification_ur: { name: "Versification (Urdu)", ml: "കവിതാരചന (ഉറുദു)", preset: "versification" },
+      elocution_ml: { name: "Elocution (Malayalam)", ml: "പ്രസംഗം (മലയാളം)", preset: "speech" },
+      elocution_en: { name: "Elocution (English)", ml: "പ്രസംഗം (ഇംഗ്ലീഷ്)", preset: "speech" },
+      elocution_hi: { name: "Elocution (Hindi)", ml: "പ്രസംഗം (ഹിന്ദി)", preset: "speech" },
+      elocution_ar: { name: "Elocution (Arabic)", ml: "പ്രസംഗം (അറബിക്)", preset: "speech" },
+      recitation_ml: { name: "Recitation (Malayalam)", ml: "പദ്യം ചൊല്ലൽ (മലയാളം)", preset: "recitation" },
+      recitation_en: { name: "Recitation (English)", ml: "പദ്യം ചൊല്ലൽ (ഇംഗ്ലീഷ്)", preset: "recitation" },
+      recitation_hi: { name: "Recitation (Hindi)", ml: "പദ്യം ചൊല്ലൽ (ഹിന്ദി)", preset: "recitation" },
+      recitation_ar: { name: "Recitation (Arabic)", ml: "പദ്യം ചൊല്ലൽ (അറബിക്)", preset: "recitation" },
+      recitation_sk: { name: "Recitation (Sanskrit)", ml: "പദ്യം ചൊല്ലൽ (സംസ്കൃതം)", preset: "recitation" },
+      recitation_ur: { name: "Recitation (Urdu)", ml: "പദ്യം ചൊല്ലൽ (ഉറുദു)", preset: "recitation" },
+      kavyakeli: { name: "Kavyakeli", ml: "കാവ്യകേളി", preset: "kavyakeli" },
+      aksharashlokam: { name: "Aksharashlokam", ml: "അക്ഷരശ്ലോകം", preset: "aksharashlokam" },
+      debate: { name: "Debate", ml: "സംവാദം", preset: "debate" },
+      quiz: { name: "General Quiz", ml: "ക്വിസ്", preset: "quiz" },
+      quran: { name: "Quran Recitation (Qira'at)", ml: "ഖിറാഅത്ത്", preset: "quran" },
+      poster: { name: "Poster Making", ml: "പോസ്റ്റർ രചന", preset: "poster" },
+      painting_water: { name: "Painting (Water Colour)", ml: "ചിത്രരചന (ജലച്ചായം)", preset: "drawing" },
+      painting_oil: { name: "Painting (Oil Colour)", ml: "ചിത്രരചന (എണ്ണച്ചായം)", preset: "drawing" },
+      cartoon: { name: "Cartoon Drawing", ml: "കാർട്ടൂൺ", preset: "cartoon" },
+      pencil: { name: "Pencil Drawing", ml: "പെൻസിൽ ഡ്രോയിംഗ്", preset: "pencil" },
+      clay: { name: "Clay Modeling", ml: "ക്ലേ മോഡലിംഗ്", preset: "clay" },
+      collage: { name: "Collage", ml: "കൊളാഷ്", preset: "collage" },
+      embroidery: { name: "Embroidery", ml: "എംബ്രോയ്ഡറി", preset: "embroidery" },
+      photography: { name: "Spot Photography", ml: "സ്പോട്ട് ഫോട്ടോഗ്രഫി", preset: "photography" },
+      rangoli: { name: "Rangoli", ml: "രംഗോലി", preset: "rangoli" },
+      light_music: { name: "Light Music", ml: "ലളിതഗാനം", preset: "music" },
+      classical_music: { name: "Classical Music", ml: "ശാസ്ത്രീയ സംഗീതം", preset: "classical_music" },
+      semi_classical: { name: "Semi Classical Solo", ml: "സെമി ക്ലാസിക്കൽ", preset: "semi_classical" },
+      mappilappattu_solo: { name: "Mappilappattu (Solo)", ml: "മാപ്പിളപ്പാട്ട് (സിംഗിൾ)", preset: "mappilappattu" },
+      mappilappattu_group: { name: "Mappilappattu (Group)", ml: "മാപ്പിളപ്പാട്ട് (ഗ്രൂപ്പ്)", preset: "mappilappattu" },
+      kathakali_sangeetham: { name: "Kathakali Sangeetham", ml: "കഥകളി സംഗീതം", preset: "kathakali_sangeetham" },
+      group_song_indian: { name: "Group Song (Indian)", ml: "സംഘഗാനം", preset: "group_song" },
+      group_song_western: { name: "Western Group Song", ml: "വെസ്റ്റേൺ ഗ്രൂപ്പ് സോങ്", preset: "group_song" },
+      patriotic_song: { name: "Patriotic Song", ml: "ദേശഭക്തിഗാനം", preset: "patriotic_song" },
+      ganamela: { name: "Ganamela", ml: "ഗാനമേള", preset: "ganamela" },
+      folk_song: { name: "Folk Song (Group)", ml: "നാടൻപാട്ട്", preset: "folk_song" },
+      vanchippattu: { name: "Vanchippattu", ml: "വഞ്ചിപ്പാട്ട്", preset: "vanchippattu" },
+      chenda_thayambaka: { name: "Chenda Thayambaka", ml: "ചെണ്ട തായമ്പക", preset: "percussion" },
+      maddalam: { name: "Maddalam", ml: "മദ്ദളം", preset: "percussion" },
+      chendamelam: { name: "Chendamelam", ml: "ചെണ്ടമേളം", preset: "percussion" },
+      panchavadyam: { name: "Panchavadyam", ml: "പഞ്ചവാദ്യം", preset: "percussion" },
+      band_melam: { name: "Band Melam", ml: "ബാൻഡ് മേളം", preset: "percussion" },
+      violin: { name: "Violin", ml: "വയലിൻ", preset: "string_wind" },
+      guitar: { name: "Guitar", ml: "ഗിറ്റാർ", preset: "string_wind" },
+      veena: { name: "Veena", ml: "വീണ", preset: "string_wind" },
+      harmonium: { name: "Harmonium", ml: "ഹാർമോണിയം", preset: "string_wind" },
+      flute: { name: "Flute", ml: "ഓടക്കുഴൽ", preset: "string_wind" },
+      bharathanatyam: { name: "Bharathanatyam", ml: "ഭരതനാട്യം", preset: "dance" },
+      kuchipudi: { name: "Kuchipudi", ml: "കുച്ചിപ്പുടി", preset: "dance" },
+      mohiniyattam: { name: "Mohiniyattam", ml: "മോഹിനിയാട്ടം", preset: "dance" },
+      keralanatanam: { name: "Keralanatanam", ml: "കേരളനടനം", preset: "dance" },
+      kathakali: { name: "Kathakali", ml: "കഥകളി", preset: "kathakali" },
+      ottamthullal: { name: "Ottamthullal", ml: "ഓട്ടൻതുള്ളൽ", preset: "thullal" },
+      chakyarkoothu: { name: "Chakyarkoothu", ml: "ചാക്യാർകൂത്ത്", preset: "thullal" },
+      koodiyattam: { name: "Koodiyattam", ml: "കൂടിയാട്ടം", preset: "thullal" },
+      folk_dance_single: { name: "Folk Dance (Single)", ml: "നാടോടിനൃത്തം (സിംഗിൾ)", preset: "folk_dance" },
+      folk_dance_group: { name: "Folk Dance (Group)", ml: "സംഘനൃത്തം", preset: "folk_dance" },
+      thiruvathira: { name: "Thiruvathirakkali", ml: "തിരുവാതിരക്കളി", preset: "thiruvathira" },
+      oppana: { name: "Oppana", ml: "ഒപ്പന", preset: "oppana" },
+      duffmuttu: { name: "Duffmuttu", ml: "ദഫ്മുട്ട്", preset: "duffmuttu" },
+      arabanamuttu: { name: "Arabanamuttu", ml: "അറബനമുട്ട്", preset: "duffmuttu" },
+      vattappattu: { name: "Vattappattu", ml: "വട്ടപ്പാട്ട്", preset: "vattappattu" },
+      kolkkali: { name: "Kolkkali", ml: "കോൽക്കളി", preset: "kolkkali" },
+      parichamuttukali: { name: "Parichamuttukali", ml: "പരിചമുട്ടുകളി", preset: "kolkkali" },
+      poorakkali: { name: "Poorakkali", ml: "പൂരക്കളി", preset: "kolkkali" },
+      margamkali: { name: "Margamkali", ml: "മാർഗ്ഗംകളി", preset: "margamkali" },
+      kathaprasangam: { name: "Kathaprasangam", ml: "കഥാപ്രസംഗം", preset: "kathaprasangam" },
+      mono_act: { name: "Mono Act", ml: "മോണോ ആക്ട്", preset: "mono_act" },
+      mimicry: { name: "Mimicry", ml: "മിമിക്രി", preset: "mimicry" },
+      mime: { name: "Mime", ml: "മൈം", preset: "mime" },
+      drama: { name: "Drama", ml: "നാടകം", preset: "drama" },
+      skit: { name: "Skit", ml: "സ്കിറ്റ്", preset: "drama" }
     };
 
     function matchLocalCriteriaPresetKey(itemName = "", malayalamName = "") {
@@ -2350,41 +2813,140 @@
       if (/(quran|qur'an|qira|qiraat|qirath|hifz|tajweed|ഖുർആൻ|ഖിറാഅത്ത്|ഹിഫ്ള്)/.test(text)) {
         return "quran";
       }
-      if (/(debate|samvadam|സംവാദം|വാദപ്രതിവാദം)/.test(text)) {
+      if (/(kavyakeli|kavya\s*keli|കാവ്യകേളി)/.test(text)) {
+        return "kavyakeli";
+      }
+      if (/(aksharashlokam|akshara\s*shlokam|aksharashloka|അക്ഷരശ്ലോകം)/.test(text)) {
+        return "aksharashlokam";
+      }
+      if (/(debate|samvadam|vadaprathivadam|സംവാദം|വാദപ്രതിവാദം)/.test(text)) {
         return "debate";
       }
-      if (/(kathaprasangam|katha\s*prasangam|കഥാപ്രസംഗം)/.test(text)) {
-        return "kathaprasangam";
-      }
-      if (/(mimicry|മിമിക്രി)/.test(text)) {
-        return "mimicry";
-      }
-      if (/(drawing|painting|watercolor|water\s*colour|pencil\s*sketch|sketching|cartoon|poster\s*design|collage|ചിത്രരചന|പെയിന്റിംഗ്|കാർട്ടൂൺ)/.test(text)) {
-        return "drawing";
-      }
-      if (/(quiz|ക്വിസ്|പ്രശ്നോത്തരി)/.test(text)) {
+      if (/(quiz|prasnothari|ക്വിസ്|പ്രശ്നോത്തരി)/.test(text)) {
         return "quiz";
       }
-      if (/(essay|story\s*writing|poem\s*writing|poetry\s*writing|creative\s*writing|versification|article|translation|ഉപന്യാസം|കഥാരചന|കവിതാരചന)/.test(text)) {
+      if (/(story\s*writing|short\s*story|katharachana|katha\s*rachana|കഥാരചന|ചെറുകഥ)/.test(text)) {
+        return "story";
+      }
+      if (/(versification|poem\s*writing|poetry\s*writing|kavitharachana|kavitha\s*rachana|കവിതാരചന|കവിതാ\s*രചന)/.test(text)) {
+        return "versification";
+      }
+      if (/(essay|upanyasam|upanyasa|article\s*writing|creative\s*writing|translation|ഉപന്യാസം|ലേഖനം)/.test(text)) {
         return "writing";
       }
-      if (/(elocution|speech|recitation|extempore|പദ്യപാരായണം|പദ്യം\s*ചൊല്ലൽ|പ്രസംഗം)/.test(text)) {
+      if (/(recitation|padyam|padya\s*parayanam|padyaparayanam|poem\s*recitation|poetry\s*recitation|പദ്യം\s*ചൊല്ലൽ|പദ്യപാരായണം|കവിതാലാപനം)/.test(text)) {
+        return "recitation";
+      }
+      if (/(elocution|speech|extempore|prasangam|പ്രസംഗം)/.test(text)) {
         return "speech";
       }
-      if (/(mappila|mappilappattu|music|song|singing|lalitha|ganam|classical|carnatic|hindustani|ghazal|qawwali|violin|flute|tabla|mridangam|guitar|keyboard|harmonium|പാട്ട്|ഗാനം|മാപ്പിളപ്പാട്ട്|ലളിതഗാനം|സംഗീതം)/.test(text)) {
+      if (/(poster\s*making|poster\s*design|poster|പോസ്റ്റർ)/.test(text)) {
+        return "poster";
+      }
+      if (/(cartoon|caricature|കാർട്ടൂൺ)/.test(text)) {
+        return "cartoon";
+      }
+      if (/(pencil\s*drawing|pencil\s*sketch|sketching|പെൻസിൽ)/.test(text)) {
+        return "pencil";
+      }
+      if (/(clay\s*model|clay\s*modelling|clay\s*modeling|sculpture|ക്ലേ\s*മോഡലിംഗ്|ശില്പനിർമ്മാണം)/.test(text)) {
+        return "clay";
+      }
+      if (/(collage|കൊളാഷ്)/.test(text)) {
+        return "collage";
+      }
+      if (/(embroidery|stitching|needle\s*work|എംബ്രോയ്ഡറി|തുന്നൽ)/.test(text)) {
+        return "embroidery";
+      }
+      if (/(photography|spot\s*photo|photo\s*contest|ഫോട്ടോഗ്രഫി|ഫോട്ടോഗ്രാഫി)/.test(text)) {
+        return "photography";
+      }
+      if (/(rangoli|pookkalam|kolam|രംഗോലി|പൂക്കളം)/.test(text)) {
+        return "rangoli";
+      }
+      if (/(painting|water\s*colour|watercolor|oil\s*colour|oil\s*painting|acrylic|drawing|chithrarachana|ചിത്രരചന|ജലച്ചായം|എണ്ണച്ചായം|പെയിന്റിംഗ്)/.test(text)) {
+        return "drawing";
+      }
+      if (/(kathakali\s*sangeetham|kathakali\s*music|കഥകളി\s*സംഗീതം|കഥകളിപ്പദം)/.test(text)) {
+        return "kathakali_sangeetham";
+      }
+      if (/(mappilappattu|mappila\s*pattu|mappila\s*song|മാപ്പിളപ്പാട്ട്)/.test(text)) {
+        return "mappilappattu";
+      }
+      if (/(semi\s*classical|സെമി\s*ക്ലാസിക്കൽ)/.test(text)) {
+        return "semi_classical";
+      }
+      if (/(classical\s*music|carnatic|hindustani|sasthreeya\s*sangeetham|ശാസ്ത്രീയ\s*സംഗീതം|കർണ്ണാടക\s*സംഗീതം|ഹിന്ദുസ്ഥാനി)/.test(text)) {
+        return "classical_music";
+      }
+      if (/(patriotic\s*song|deshabhakthi|ദേശഭക്തിഗാനം|ദേശഭക്തി\s*ഗാനം)/.test(text)) {
+        return "patriotic_song";
+      }
+      if (/(ganamela|ഗാനമേള)/.test(text)) {
+        return "ganamela";
+      }
+      if (/(vanchippattu|vanchi\s*pattu|വഞ്ചിപ്പാട്ട്)/.test(text)) {
+        return "vanchippattu";
+      }
+      if (/(folk\s*song|nadan\s*pattu|nadanpattu|നാടൻപാട്ട്|നാടൻ\s*പാട്ട്)/.test(text)) {
+        return "folk_song";
+      }
+      if (/(group\s*song|sanghaganam|sangha\s*ganam|western\s*group|choir|സംഘഗാനം)/.test(text)) {
+        return "group_song";
+      }
+      if (/(chenda|thayambaka|maddalam|chendamelam|panchavadyam|band\s*melam|bugle|percussion|mridangam|tabla|ghatam|idakka|thavil|ചെണ്ട|തായമ്പക|മദ്ദളം|ചെണ്ടമേളം|പഞ്ചവാദ്യം|ബാൻഡ്\s*മേളം|മൃദംഗം|തബല)/.test(text)) {
+        return "percussion";
+      }
+      if (/(guitar|violin|harmonium|veena|flute|odakkuzhal|keyboard|piano|nadaswaram|string|wind\s*instrument|ഗിറ്റാർ|വയലിൻ|ഹാർമോണിയം|വീണ|ഓടക്കുഴൽ|കീബോർഡ്|നാദസ്വരം)/.test(text)) {
+        return "string_wind";
+      }
+      if (/(light\s*music|lalithaganam|lalitha\s*ganam|western\s*vocal|solo\s*song|singing|music|ലളിതഗാനം|സംഗീതം|ഗാനാലാപനം)/.test(text)) {
         return "music";
       }
-      if (/(thiruvathira|തിരുവാതിര)/.test(text)) {
+      if (/(kathakali|കഥകളി)/.test(text)) {
+        return "kathakali";
+      }
+      if (/(thullal|ottamthullal|seethankan|parayan|chakyarkoothu|chakyar\s*koothu|koodiyattam|nangiarkoothu|തുള്ളൽ|ഓട്ടൻതുള്ളൽ|ചാക്യാർകൂത്ത്|കൂടിയാട്ടം|നങ്ങ്യാർകൂത്ത്)/.test(text)) {
+        return "thullal";
+      }
+      if (/(thiruvathira|thiruvathirakkali|തിരുവാതിര|തിരുവാതിരക്കളി)/.test(text)) {
         return "thiruvathira";
       }
       if (/(oppana|ഒപ്പന)/.test(text)) {
         return "oppana";
       }
-      if (/(duffmuttu|duff\s*muttu|daph|ദഫ്)/.test(text)) {
+      if (/(duffmuttu|duff\s*muttu|daph|arabanamuttu|arabana\s*muttu|arabana|ദഫ്|ദഫ്മുട്ട്|അറബന|അറബനമുട്ട്)/.test(text)) {
         return "duffmuttu";
       }
-      if (/(bharatanatyam|mohiniyattam|kuchipudi|kathak|folk\s*dance|group\s*dance|nadodi|margamkali|dance|നൃത്തം|ഭരതനാട്യം|മോഹിനിയാട്ടം|കുച്ചിപ്പുടി|നാടോടിനൃത്തം)/.test(text)) {
+      if (/(vattappattu|vatta\s*pattu|വട്ടപ്പാട്ട്)/.test(text)) {
+        return "vattappattu";
+      }
+      if (/(kolkali|kolkkali|kol\s*kali|parichamuttu|parichamuttukali|poorakkali|poora\s*kali|കോൽക്കളി|പരിചമുട്ടുകളി|പൂരക്കളി)/.test(text)) {
+        return "kolkkali";
+      }
+      if (/(margamkali|margam\s*kali|മാർഗ്ഗംകളി|മാർഗംകളി)/.test(text)) {
+        return "margamkali";
+      }
+      if (/(folk\s*dance|nadodi\s*nritham|nadodinritham|group\s*dance|sanghanritham|നാടോടിനൃത്തം|നാടോടി\s*നൃത്തം|സംഘനൃത്തം)/.test(text)) {
+        return "folk_dance";
+      }
+      if (/(bharathanatyam|bharatanatyam|kuchipudi|mohiniyattam|keralanatanam|kerala\s*natanam|kathak|odissi|manipuri|classical\s*dance|dance|ഭരതനാട്യം|കുച്ചിപ്പുടി|മോഹിനിയാട്ടം|കേരളനടനം|ശാസ്ത്രീയ\s*നൃത്തം|നൃത്തം)/.test(text)) {
         return "dance";
+      }
+      if (/(kathaprasangam|katha\s*prasangam|കഥാപ്രസംഗം)/.test(text)) {
+        return "kathaprasangam";
+      }
+      if (/(mono\s*act|monoact|മോണോ\s*ആക്ട്)/.test(text)) {
+        return "mono_act";
+      }
+      if (/(mimicry|മിമിക്രി)/.test(text)) {
+        return "mimicry";
+      }
+      if (/(mime|മൈം)/.test(text)) {
+        return "mime";
+      }
+      if (/(drama|skit|naadakam|nadakam|street\s*play|നാടകം|സ്കിറ്റ്|അഭിനയം)/.test(text)) {
+        return "drama";
       }
       return null;
     }
@@ -2395,129 +2957,57 @@
 
     const SMART_OFFLINE_SPECIAL_RULES = [
       {
-        pattern: /(duffmuttu|duff\s*muttu|daph|ദഫ്)/i,
-        criteria: [
-          "Baith & Singing / ബൈത്ത് ആലാപനം (0-25)",
-          "Rhythm & Duff Beats / താളവും ദഫ് മുട്ടും (0-25)",
-          "Synchronization & Steps / ഏകോപനവും ചുവടുകളും (0-25)",
-          "Attire & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
-        ]
-      },
-      {
-        pattern: /(oppana|ഒപ്പന)/i,
-        criteria: [
-          "Singing & Ishal / ആലാപനവും ഇശലും (0-25)",
-          "Rhythmic Clapping / താളബദ്ധമായ കൈകൊട്ട് (0-25)",
-          "Synchronization & Steps / ചുവടുകളും ഒത്തിണക്കവും (0-25)",
-          "Costume & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
-        ]
-      },
-      {
-        pattern: /(vattappattu|vatta\s*pattu|വട്ടപ്പാട്ട്)/i,
-        criteria: [
-          "Singing & Ishal / ആലാപനവും ഇശലും (0-25)",
-          "Rhythm & Clapping / താളവും കൈകൊട്ടും (0-25)",
-          "Group Coordination / സംഘാത്മകതയും ഏകോപനവും (0-25)",
-          "Costume & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
-        ]
-      },
-      {
-        pattern: /(arabana|arabanamuttu|അറബന)/i,
-        criteria: [
-          "Baith & Rhythm / ബൈത്തും താളവും (0-25)",
-          "Arabana Beats / അറബന മുട്ട് (0-25)",
-          "Group Coordination / സംഘാത്മക ഏകോപനം (0-25)",
-          "Traditional Presentation / തനിമയും അവതരണവും (0-25)"
-        ]
-      },
-      {
-        pattern: /(kolkali|kol\s*kali|കോൽക്കളി)/i,
-        criteria: [
-          "Rhythm & Stick Beats / താളവും കോൽമുട്ടും (0-25)",
-          "Footwork & Formations / ചുവടുകളും വിന്യാസവും (0-25)",
-          "Synchronization / ഏകോപനം (0-25)",
-          "Costume & Energy / വേഷവും അവതരണവും (0-25)"
-        ]
-      },
-      {
-        pattern: /(mimicry|മിമിക്രി)/i,
-        criteria: [
-          "Voice & Sound Accuracy / ശബ്ദാനുകരണ കൃത്യത (0-25)",
-          "Timing & Spontaneity / സമയബന്ധിതവും നർമ്മവും (0-25)",
-          "Variety & Transitions / വൈവിധ്യവും മാറ്റങ്ങളും (0-25)",
-          "Stage Presence / വേദിയിലെ അവതരണം (0-25)"
-        ]
-      },
-      {
-        pattern: /(mono\s*act|monoact|മോണോ\s*ആക്ട്)/i,
-        criteria: [
-          "Character Variation / കഥാപാത്ര വൈവിധ്യം (0-25)",
-          "Expression & Dialogue / ഭാവവും സംഭാഷണവും (0-25)",
-          "Theme & Script / വിഷയവും ആവിഷ്കാരവും (0-25)",
-          "Stage Presence / വേദിയിലെ അവതരണം (0-25)"
-        ]
-      },
-      {
-        pattern: /(drama|skit|naadakam|nadakam|നാടകം|സ്കിറ്റ്|അഭിനയം)/i,
-        criteria: [
-          "Acting & Expression / അഭിനയവും ഭാവവും (0-25)",
-          "Dialogue & Voice / സംഭാഷണവും ശബ്ദവും (0-25)",
-          "Script & Direction / തിരക്കഥയും സംവിധാനവും (0-25)",
-          "Stage Craft & Coordination / രംഗസജ്ജീകരണവും ഏകോപനവും (0-25)"
-        ]
-      },
-      {
         pattern: /(calligraphy|കാലിഗ്രഫി|കയ്യെഴുത്ത്)/i,
         criteria: [
-          "Lettering & Proportion / അക്ഷരവടിവും അനുപാതവും (0-25)",
-          "Stroke & Technique / വരകളുടെ കൃത്യതയും ശൈലിയും (0-25)",
-          "Layout & Balance / വിന്യാസവും സന്തുലിതാവസ്ഥയും (0-25)",
-          "Neatness & Aesthetics / വൃത്തിയും സൗന്ദര്യവും (0-25)"
+          "Lettering & Proportion / അക്ഷരവടിവും അനുപാതവും",
+          "Stroke & Technique / വരകളുടെ കൃത്യതയും ശൈലിയും",
+          "Layout & Balance / വിന്യാസവും സന്തുലിതാവസ്ഥയും",
+          "Neatness & Aesthetics / വൃത്തിയും സൗന്ദര്യവും"
         ]
       },
       {
         pattern: /(mehandi|mehndi|henna|മൈലാഞ്ചി)/i,
         criteria: [
-          "Design & Creativity / ഡിസൈനും സർഗ്ഗാത്മകതയും (0-25)",
-          "Intricacy & Finesse / സൂക്ഷ്മതയും വൃത്തിയും (0-25)",
-          "Symmetry & Layout / അനുപാതവും വിന്യാസവും (0-25)",
-          "Completion & Impact / പൂർണ്ണതയും ആകർഷണവും (0-25)"
+          "Design & Creativity / ഡിസൈനും സർഗ്ഗാത്മകതയും",
+          "Intricacy & Finesse / സൂക്ഷ്മതയും വൃത്തിയും",
+          "Symmetry & Layout / അനുപാതവും വിന്യാസവും",
+          "Completion & Impact / പൂർണ്ണതയും ആകർഷണവും"
         ]
       },
       {
         pattern: /(adhan|azan|ബാങ്ക്|അദാൻ)/i,
         criteria: [
-          "Makharij & Pronunciation / മഖ്റജും ഉച്ചാരണവും (0-25)",
-          "Melody & Tone / ഈണവും സ്വരമാധുരിയും (0-25)",
-          "Voice Control & Projection / ശബ്ദനിയന്ത്രണം (0-25)",
-          "Reverence & Composure / അദബും അവതരണവും (0-25)"
+          "Makharij & Pronunciation / മഖ്റജും ഉച്ചാരണവും",
+          "Melody & Tone / ഈണവും സ്വരമാധുരിയും",
+          "Voice Control & Projection / ശബ്ദനിയന്ത്രണം",
+          "Reverence & Composure / അദബും അവതരണവും"
         ]
       },
       {
         pattern: /(burda|maulid|qasida|nashida|nasheed|madh|ബുർദ|ഖസീദ|മദ്ഹ്)/i,
         criteria: [
-          "Pronunciation & Clarity / ഉച്ചാരണശുദ്ധിയും വ്യക്തതയും (0-25)",
-          "Melody & Rhythm / ഈണവും താളവും (0-25)",
-          "Vocal Harmony / ആലാപന മികവ് (0-25)",
-          "Devotion & Presentation / ഭാവവും അവതരണവും (0-25)"
+          "Pronunciation & Clarity / ഉച്ചാരണശുദ്ധിയും വ്യക്തതയും",
+          "Melody & Rhythm / ഈണവും താളവും",
+          "Vocal Harmony / ആലാപന മികവ്",
+          "Devotion & Presentation / ഭാവവും അവതരണവും"
         ]
       },
       {
         pattern: /(mushaira|kavi|poet|കവിയരങ്ങ്)/i,
         criteria: [
-          "Poetic Theme & Imagination / ഭാവനയും വിഷയവും (0-25)",
-          "Meter & Language / വൃത്തവും ഭാഷാശുദ്ധിയും (0-25)",
-          "Recitation & Modulation / ആലാപനവും ശബ്ദവും (0-25)",
-          "Audience Impact / അവതരണ മികവ് (0-25)"
+          "Poetic Theme & Imagination / ഭാവനയും വിഷയവും",
+          "Meter & Language / വൃത്തവും ഭാഷാശുദ്ധിയും",
+          "Recitation & Modulation / ആലാപനവും ശബ്ദവും",
+          "Audience Impact / അവതരണ മികവ്"
         ]
       }
     ];
 
     const GENERIC_SMART_OFFLINE_CRITERIA = [
-      "Theme & Content / വിഷയവും ഉള്ളടക്കവും (0-25)",
-      "Technique & Skill / സാങ്കേതിക മികവും ശൈലിയും (0-25)",
-      "Creativity & Expression / സർഗ്ഗാത്മകതയും ഭാവവും (0-25)",
-      "Overall Presentation / സമ്പൂർണ്ണ അവതരണം (0-25)"
+      "Theme & Content / വിഷയവും ഉള്ളടക്കവും",
+      "Technique & Skill / സാങ്കേതിക മികവും ശൈലിയും",
+      "Creativity & Expression / സർഗ്ഗാത്മകതയും ഭാവവും",
+      "Overall Presentation / സമ്പൂർണ്ണ അവതരണം"
     ];
 
     function generateSmartOfflineCriteria(itemName = "", malayalamName = "", category = "") {
@@ -2536,7 +3026,7 @@
 
     function normalizeCriteriaArray(rawCriteria, fallbackName = "", fallbackMl = "") {
       if (Array.isArray(rawCriteria) && rawCriteria.length === 4) {
-        const cleaned = rawCriteria.map(c => String(c || "").trim().slice(0, 80));
+        const cleaned = rawCriteria.map(c => String(c || "").trim().slice(0, 120));
         if (cleaned.every(c => c.length >= 1)) {
           return cleaned;
         }
@@ -2549,12 +3039,16 @@
       return normalizeCriteriaArray(item.criteria, item.name, item.malayalamName);
     }
 
+    function stripCriterionSuffix(text) {
+      return String(text || "").replace(/\s*\(0\s*[-–]\s*25\)\s*$/i, "").trim();
+    }
+
     function detectCriteriaPresetKey(criteria) {
       if (!Array.isArray(criteria) || criteria.length !== 4) return "custom";
-      const normalized = criteria.map(c => String(c || "").trim());
+      const normalized = criteria.map(stripCriterionSuffix);
       for (const key of Object.keys(CRITERIA_PRESETS)) {
         const preset = CRITERIA_PRESETS[key];
-        if (preset.every((val, idx) => val === normalized[idx])) {
+        if (preset.every((val, idx) => stripCriterionSuffix(val) === normalized[idx])) {
           return key;
         }
       }
@@ -6683,8 +7177,8 @@
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     ${itemCriteria.map((critLabel, idx) => `
                       <div>
-                        <label class="block text-[10px] font-medium text-stone-500 mb-0.5">Criterion ${idx + 1}</label>
-                        <input id="edit-item-crit-${idx + 1}-${escapeHtml(it.id)}" type="text" required maxlength="80" oninput="handleEditItemCriteriaInput('${escapeHtml(it.id)}')" value="${escapeHtml(critLabel)}" class="w-full px-2.5 py-1 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                        <label class="block text-[10px] font-medium text-stone-500 mb-0.5">Criterion ${idx + 1} (0–25)</label>
+                        <input id="edit-item-crit-${idx + 1}-${escapeHtml(it.id)}" type="text" required maxlength="120" oninput="handleEditItemCriteriaInput('${escapeHtml(it.id)}')" value="${escapeHtml(critLabel)}" class="w-full px-2.5 py-1 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
                       </div>
                     `).join("")}
                   </div>
@@ -7730,9 +8224,28 @@
     };
 
     async function resolveAiCriteriaWithFallback(itemName, malayalamName = "", category = "") {
-      const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
+      // 1. Check the built-in Festival Manual & Smart Offline Criteria Dictionary first (instant & exact)
+      const matchedKey = matchLocalCriteriaPresetKey(itemName, malayalamName);
+      if (matchedKey && CRITERIA_PRESETS[matchedKey]) {
+        return {
+          criteria: [...CRITERIA_PRESETS[matchedKey]],
+          source: "smart-offline",
+          presetKey: matchedKey
+        };
+      }
+      const combined = `${String(itemName || "")} ${String(malayalamName || "")} ${String(category || "")}`;
+      for (const rule of SMART_OFFLINE_SPECIAL_RULES) {
+        if (rule.pattern.test(combined)) {
+          return {
+            criteria: [...rule.criteria],
+            source: "smart-offline",
+            presetKey: "custom"
+          };
+        }
+      }
 
-      // 1. Call the server-side Gemini endpoint (/api/ai/criteria)
+      // 2. For unlisted custom events, try the server-side Gemini endpoint (/api/ai/criteria) when online
+      const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
       if (!isOffline) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 6500);
@@ -7754,7 +8267,7 @@
         }
       }
 
-      // 2. Built-in Smart Offline Criteria Engine (always provides 4 valid criteria silently)
+      // 3. Built-in Smart Offline Criteria Engine fallback
       const smart = generateSmartOfflineCriteria(itemName, malayalamName, category);
       return {
         criteria: smart.criteria,
@@ -7809,6 +8322,19 @@
       }
     }
 
+    window.handleSelectFestivalManualEvent = (catalogKey) => {
+      if (!catalogKey || !FESTIVAL_MANUAL_CATALOG[catalogKey]) return;
+      const entry = FESTIVAL_MANUAL_CATALOG[catalogKey];
+      const nameInp = document.getElementById("admin-item-name");
+      const mlInp = document.getElementById("admin-item-ml");
+      if (nameInp) nameInp.value = entry.name;
+      if (mlInp) mlInp.value = entry.ml;
+      addItemCriteriaTouched = false;
+      const criteria = CRITERIA_PRESETS[entry.preset] || CRITERIA_PRESETS.dance;
+      applyAddFormCriteriaList(criteria, entry.preset);
+      setAddItemAiStatus(`✓ Auto-filled 4 bilingual criteria for "${entry.name}" (editable below).`, "success");
+    };
+
     async function requestAiCriteriaForAddForm({ manual = false } = {}) {
       const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
       const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
@@ -7817,7 +8343,7 @@
 
       if (!nameVal) {
         if (manual) {
-          window.showToast("Enter an Item Name first to generate AI criteria");
+          window.showToast("Enter an Item Name or pick from Festival Manual first");
           document.getElementById("admin-item-name")?.focus();
         }
         return;
@@ -7825,10 +8351,10 @@
 
       const seq = ++addItemAiReqSeq;
       addItemAiInFlightKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}`;
-      setAddItemAiStatus(`✨ Generating tailored bilingual criteria for "${nameVal}"...`, "info");
+      setAddItemAiStatus(`✨ Auto-filling tailored bilingual criteria for "${nameVal}"...`, "info");
       if (aiBtn) {
         aiBtn.disabled = true;
-        aiBtn.textContent = "✨ Generating...";
+        aiBtn.textContent = "✨ Auto-Filling...";
       }
 
       try {
@@ -7846,7 +8372,7 @@
           setAddItemAiStatus(`✨ Gemini AI generated 4 tailored criteria for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast(`✨ AI criteria generated for "${nameVal}"`);
         } else {
-          setAddItemAiStatus(`✓ Smart Offline Criteria Applied`, "success");
+          setAddItemAiStatus(`✓ Smart Offline Criteria Applied for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast("Smart Offline Criteria Applied");
         }
       } finally {
@@ -7854,7 +8380,7 @@
           addItemAiInFlightKey = "";
           if (aiBtn) {
             aiBtn.disabled = false;
-            aiBtn.textContent = "✨ AI Generate Criteria";
+            aiBtn.textContent = "✨ Auto-Fill Criteria";
           }
         }
       }
@@ -7885,10 +8411,21 @@
       }
 
       const matched = matchLocalCriteriaPresetKey(nameVal, mlVal);
-      if (matched) {
+      if (matched && CRITERIA_PRESETS[matched]) {
         addItemAiLastKey = "";
-        setAddItemAiStatus("");
         applyAddFormCriteriaList(CRITERIA_PRESETS[matched], matched);
+        setAddItemAiStatus(`✓ Auto-detected "${CRITERIA_PRESET_LABELS[matched] || matched}" criteria (editable below).`, "success");
+        return;
+      }
+
+      const combined = `${nameVal} ${mlVal}`;
+      for (const rule of SMART_OFFLINE_SPECIAL_RULES) {
+        if (rule.pattern.test(combined)) {
+          addItemAiLastKey = "";
+          applyAddFormCriteriaList(rule.criteria, "custom");
+          setAddItemAiStatus(`✓ Auto-detected custom event criteria (editable below).`, "success");
+          return;
+        }
       }
     };
 
@@ -7935,7 +8472,7 @@
     window.handleAddItem = async (e) => {
       e.preventDefault();
       if (!activeEventCode) return;
-      const rawCriteria = [1, 2, 3, 4].map(i => (document.getElementById(`admin-item-crit-${i}`)?.value || "").trim().slice(0, 80));
+      const rawCriteria = [1, 2, 3, 4].map(i => (document.getElementById(`admin-item-crit-${i}`)?.value || "").trim().slice(0, 120));
       if (rawCriteria.some(c => !c)) {
         window.showToast("Please provide all 4 judging criterion labels");
         return;
@@ -7970,6 +8507,8 @@
       saveLocalState();
       window.refreshAllSelects();
       e.target.reset();
+      const manualPickerEl = document.getElementById("admin-manual-event-picker");
+      if (manualPickerEl) manualPickerEl.value = "";
       const stageInputEl = document.getElementById("admin-item-stage");
       if (stageInputEl) stageInputEl.value = getConfiguredStages()[0] || "Stage 1";
       if (customCatInput) {
@@ -8825,7 +9364,7 @@
       const malayalamName = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim().slice(0, 120);
       const category = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || existingItem.category);
       const stage = (normalizeStageName(document.getElementById(`edit-item-stage-${itemId}`)?.value || "") || existingItem.stage || (getConfiguredStages()[0] || "Stage 1")).slice(0, 60);
-      const criteria = [1, 2, 3, 4].map(i => (document.getElementById(`edit-item-crit-${i}-${itemId}`)?.value || "").trim().slice(0, 80));
+      const criteria = [1, 2, 3, 4].map(i => (document.getElementById(`edit-item-crit-${i}-${itemId}`)?.value || "").trim().slice(0, 120));
 
       if (!name || !stage) {
         window.showToast("Item name and stage are required");
