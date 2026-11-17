@@ -1308,6 +1308,7 @@
               <div class="flex flex-col sm:flex-row gap-2">
                 <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
                   <option value="dance">Dance &amp; Stage Arts</option>
+                  <option value="thiruvathira">Thiruvathira / തിരുവാതിര</option>
                   <option value="music">Music / Singing</option>
                   <option value="speech">Speech / Elocution</option>
                   <option value="writing">Essay &amp; Creative Writing / രചനാ മത്സരങ്ങൾ</option>
@@ -1323,6 +1324,22 @@
                 </button>
               </div>
               <div id="admin-ai-criteria-status" role="status" class="hidden mt-1.5 text-[11px] font-medium"></div>
+              <div id="admin-gemini-key-inline-prompt" class="hidden mt-2 p-3 rounded-lg bg-amber-50/90 border border-amber-200 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <label for="admin-gemini-key-inline-input" class="text-[11px] font-semibold text-amber-950">
+                    Enter your Google Gemini API Key to generate live AI criteria:
+                  </label>
+                  <button type="button" onclick="handleSkipGeminiKeyPrompt()" class="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline whitespace-nowrap">
+                    Skip (Use Offline)
+                  </button>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input id="admin-gemini-key-inline-input" type="password" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleSaveAndGenerateGeminiCriteria(); }" placeholder="Paste Gemini API Key (AIza...)" class="flex-1 min-w-0 px-2.5 py-1.5 text-xs bg-white border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  <button type="button" id="admin-gemini-key-save-btn" onclick="handleSaveAndGenerateGeminiCriteria()" class="px-3 py-1.5 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-md transition-colors whitespace-nowrap shrink-0">
+                    Save &amp; Generate
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-stone-50 border border-stone-200">
               <div>
@@ -2292,6 +2309,12 @@
         "Expression / ഭാവം (0-25)",
         "Pronunciation & Presentation / ഉച്ചാരണം (0-25)"
       ],
+      thiruvathira: [
+        "Chuvadu & Footwork / ചുവടുകളും മെയ്‌വഴക്കവും (0-25)",
+        "Rhythm & Clapping / താളവും കൈകൊട്ടും (0-25)",
+        "Bhava & Group Sync / ഭാവവും ഒത്തിണക്കവും (0-25)",
+        "Traditional Attire & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
+      ],
       dance: [
         "Rhythm / താളം (0-25)",
         "Expression / ഭാവം (0-25)",
@@ -2302,6 +2325,7 @@
 
     const CRITERIA_PRESET_LABELS = {
       dance: "Dance & Stage Arts",
+      thiruvathira: "Thiruvathira / തിരുവാതിര",
       music: "Music / Singing",
       speech: "Speech / Elocution",
       writing: "Essay & Creative Writing / രചനാ മത്സരങ്ങൾ",
@@ -2339,7 +2363,10 @@
       if (/(mappila|mappilappattu|music|song|singing|lalitha|ganam|classical|carnatic|hindustani|ghazal|qawwali|violin|flute|tabla|mridangam|guitar|keyboard|harmonium|പാട്ട്|ഗാനം|മാപ്പിളപ്പാട്ട്|ലളിതഗാനം|സംഗീതം)/.test(text)) {
         return "music";
       }
-      if (/(bharatanatyam|mohiniyattam|kuchipudi|kathak|folk\s*dance|group\s*dance|nadodi|thiruvathira|margamkali|dance|നൃത്തം|ഭരതനാട്യം|മോഹിനിയാട്ടം|കുച്ചിപ്പുടി|തിരുവാതിര|നാടോടിനൃത്തം)/.test(text)) {
+      if (/(thiruvathira|തിരുവാതിര)/.test(text)) {
+        return "thiruvathira";
+      }
+      if (/(bharatanatyam|mohiniyattam|kuchipudi|kathak|folk\s*dance|group\s*dance|nadodi|margamkali|dance|നൃത്തം|ഭരതനാട്യം|മോഹിനിയാട്ടം|കുച്ചിപ്പുടി|നാടോടിനൃത്തം)/.test(text)) {
         return "dance";
       }
       return null;
@@ -7685,13 +7712,51 @@
       }
     };
 
-    const CLIENT_GEMINI_KEY_STORAGE = "kalolsavam_client_gemini_api_key";
+    const CLIENT_GEMINI_KEY_STORAGE = "judgelive_gemini_api_key";
+    const LEGACY_GEMINI_KEY_STORAGE = "kalolsavam_client_gemini_api_key";
 
     function getStoredClientGeminiKey() {
       try {
-        return String(localStorage.getItem(CLIENT_GEMINI_KEY_STORAGE) || "").trim();
-      } catch {
-        return "";
+        const primary = String(localStorage.getItem(CLIENT_GEMINI_KEY_STORAGE) || "").trim();
+        if (primary) return primary;
+        const legacy = String(localStorage.getItem(LEGACY_GEMINI_KEY_STORAGE) || "").trim();
+        if (legacy) {
+          localStorage.setItem(CLIENT_GEMINI_KEY_STORAGE, legacy);
+          return legacy;
+        }
+      } catch {}
+      try {
+        if (typeof process !== "undefined" && process?.env?.GEMINI_API_KEY) {
+          return String(process.env.GEMINI_API_KEY).trim();
+        }
+      } catch {}
+      return "";
+    }
+
+    function setStoredClientGeminiKey(rawKey) {
+      const clean = String(rawKey || "").trim();
+      try {
+        if (clean) {
+          localStorage.setItem(CLIENT_GEMINI_KEY_STORAGE, clean);
+        } else {
+          localStorage.removeItem(CLIENT_GEMINI_KEY_STORAGE);
+          localStorage.removeItem(LEGACY_GEMINI_KEY_STORAGE);
+        }
+      } catch {}
+    }
+
+    function toggleGeminiKeyInlinePrompt(show) {
+      const box = document.getElementById("admin-gemini-key-inline-prompt");
+      const inp = document.getElementById("admin-gemini-key-inline-input");
+      if (!box) return;
+      if (show) {
+        box.classList.remove("hidden");
+        if (inp) {
+          inp.value = getStoredClientGeminiKey();
+          setTimeout(() => inp.focus(), 20);
+        }
+      } else {
+        box.classList.add("hidden");
       }
     }
 
@@ -7712,9 +7777,9 @@
 
       const sysText = [
         "You are an expert Kerala School Kalolsavam and Campus Arts Festival judging coordinator.",
-        "Generate EXACTLY 4 distinct judging criteria worth 25 marks each (100 total).",
+        "Generate EXACTLY 4 distinct judging criteria worth 25 marks each (100 total) tailored specifically to the given competition item.",
         'Every criterion MUST strictly follow: "English Title / മലയാളം പേര് (0-25)".',
-        "Keep each criterion under 75 characters. Return JSON matching the schema."
+        "Use authentic Malayalam judging terms alongside concise English titles. Keep each criterion under 75 characters. Return JSON matching the schema."
       ].join(" ");
 
       const payload = {
@@ -7737,7 +7802,7 @@
 
       for (const modelName of ["gemini-2.5-flash", "gemini-4-hydrogen"]) {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 9000);
+        const timer = setTimeout(() => controller.abort(), 10000);
         try {
           const res = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`,
@@ -7768,38 +7833,48 @@
     }
 
     async function resolveAiCriteriaWithFallback(itemName, malayalamName = "", category = "") {
-      // Tier 1: Server proxy endpoint (/api/ai/criteria for AI Studio / Node server)
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 6500);
-      try {
-        const res = await fetch("/api/ai/criteria", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ itemName, malayalamName, category }),
-          signal: controller.signal
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && Array.isArray(data?.criteria) && data.criteria.length === 4) {
-          return { criteria: data.criteria, source: "server-ai" };
-        }
-      } catch {
-        // Static hosting (GitHub Pages) or offline — proceed to fallbacks
-      } finally {
-        clearTimeout(timer);
-      }
+      const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
 
-      // Tier 2: Optional client-side Gemini API key saved in localStorage
+      // 1. If a browser/env Gemini API key is available, call Gemini directly from the browser
       const clientKey = getStoredClientGeminiKey();
-      if (clientKey) {
+      if (clientKey && !isOffline) {
         const directCriteria = await fetchDirectBrowserGeminiCriteria(clientKey, itemName, malayalamName, category);
         if (directCriteria) {
-          return { criteria: directCriteria, source: "client-ai" };
+          return { criteria: directCriteria, source: "client-ai", needsKey: false };
         }
       }
 
-      // Tier 3: Built-in Smart Offline Criteria Engine (always succeeds)
+      // 2. Try AI Studio / Node server endpoint (/api/ai/criteria uses process.env.GEMINI_API_KEY)
+      if (!isOffline) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 6500);
+        try {
+          const res = await fetch("/api/ai/criteria", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ itemName, malayalamName, category }),
+            signal: controller.signal
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && Array.isArray(data?.criteria) && data.criteria.length === 4) {
+            return { criteria: data.criteria, source: "server-ai", needsKey: false };
+          }
+        } catch {
+          // Static hosting (GitHub Pages) — no local backend server running
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      // 3. Built-in Smart Offline Criteria Engine (always provides 4 valid criteria)
       const smart = generateSmartOfflineCriteria(itemName, malayalamName, category);
-      return { criteria: smart.criteria, source: "smart-offline", presetKey: smart.presetKey };
+      return {
+        criteria: smart.criteria,
+        source: "smart-offline",
+        presetKey: smart.presetKey,
+        needsKey: !isOffline,
+        invalidKeyTried: Boolean(clientKey && !isOffline)
+      };
     }
 
     let addItemCriteriaTouched = false;
@@ -7862,14 +7937,10 @@
         return;
       }
 
-      const reqKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}`;
-      if (!manual && (reqKey === addItemAiLastKey || reqKey === addItemAiInFlightKey)) {
-        return;
-      }
-
       const seq = ++addItemAiReqSeq;
-      addItemAiInFlightKey = reqKey;
-      setAddItemAiStatus(`✨ Preparing tailored bilingual criteria for "${nameVal}"...`, "info");
+      addItemAiInFlightKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}`;
+      toggleGeminiKeyInlinePrompt(false);
+      setAddItemAiStatus(`✨ Generating tailored bilingual criteria for "${nameVal}"...`, "info");
       if (aiBtn) {
         aiBtn.disabled = true;
         aiBtn.textContent = "✨ Generating...";
@@ -7881,15 +7952,21 @@
 
         const currentName = (document.getElementById("admin-item-name")?.value || "").trim();
         if (!currentName || currentName.toLowerCase() !== nameVal.toLowerCase()) return;
-        if (!manual && addItemCriteriaTouched) return;
 
-        addItemAiLastKey = reqKey;
+        addItemAiLastKey = addItemAiInFlightKey;
         applyAddFormCriteriaList(result.criteria, result.presetKey || "");
         if (manual) addItemCriteriaTouched = false;
 
         if (result.source === "server-ai" || result.source === "client-ai") {
           setAddItemAiStatus(`✨ Gemini AI generated 4 tailored criteria for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast(`✨ AI criteria generated for "${nameVal}"`);
+        } else if (manual && result.needsKey) {
+          if (result.invalidKeyTried) {
+            setAddItemAiStatus(`✓ Smart Offline Criteria applied. Could not reach Gemini with the saved key—update your Gemini API Key below or click Skip:`, "info");
+          } else {
+            setAddItemAiStatus(`✓ Smart Offline Criteria pre-filled. Paste your Gemini API Key below for live AI generation:`, "info");
+          }
+          toggleGeminiKeyInlinePrompt(true);
         } else {
           setAddItemAiStatus(`✓ Smart Offline Criteria Applied for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast("Smart Offline Criteria Applied");
@@ -7904,6 +7981,30 @@
         }
       }
     }
+
+    window.handleSaveAndGenerateGeminiCriteria = async () => {
+      const inp = document.getElementById("admin-gemini-key-inline-input");
+      const rawKey = String(inp?.value || "").trim();
+      if (!rawKey) {
+        window.showToast("Please paste a valid Google Gemini API Key");
+        inp?.focus();
+        return;
+      }
+      setStoredClientGeminiKey(rawKey);
+      toggleGeminiKeyInlinePrompt(false);
+      await requestAiCriteriaForAddForm({ manual: true });
+    };
+
+    window.handleSkipGeminiKeyPrompt = () => {
+      toggleGeminiKeyInlinePrompt(false);
+      const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
+      const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
+      const category = getAddFormCategoryValue();
+      const smart = generateSmartOfflineCriteria(nameVal, mlVal, category);
+      applyAddFormCriteriaList(smart.criteria, smart.presetKey || "");
+      setAddItemAiStatus(`✓ Smart Offline Criteria Applied${nameVal ? ` for "${nameVal}"` : ""} (editable below).`, "success");
+      window.showToast("Smart Offline Criteria Applied");
+    };
 
     window.handleAiGenerateItemCriteria = () => {
       if (addItemAiDebounceTimer) {
@@ -7945,6 +8046,7 @@
       if (!fromReset) {
         addItemCriteriaTouched = true;
         setAddItemAiStatus("");
+        toggleGeminiKeyInlinePrompt(false);
       }
       const presetEl = document.getElementById("admin-item-criteria-preset");
       const key = presetEl?.value || "dance";
@@ -8030,6 +8132,7 @@
       addItemAiInFlightKey = "";
       addItemAiReqSeq++;
       setAddItemAiStatus("");
+      toggleGeminiKeyInlinePrompt(false);
       addItemCriteriaTouched = false;
       const presetEl = document.getElementById("admin-item-criteria-preset");
       if (presetEl) presetEl.value = "dance";
