@@ -7729,97 +7729,10 @@
       }
     };
 
-    function getEnvGeminiKey() {
-      try {
-        if (typeof process !== "undefined" && process?.env?.GEMINI_API_KEY) {
-          return String(process.env.GEMINI_API_KEY).trim();
-        }
-      } catch {}
-      return "";
-    }
-
-    function formatClientCriterionLine(raw) {
-      let text = String(raw || "").replace(/\s+/g, " ").trim();
-      if (!text) return "";
-      text = text.replace(/\(\s*0\s*[-–]\s*25\s*\)\s*$/i, "").trim();
-      if (text.length > 72) text = text.slice(0, 72).trim();
-      return `${text} (0-25)`.slice(0, 80);
-    }
-
-    async function fetchDirectEnvGeminiCriteria(apiKey, itemName, malayalamName = "", category = "") {
-      const cleanKey = String(apiKey || "").trim();
-      if (!cleanKey) return null;
-
-      const promptLines = [
-        `Item Name (English): ${itemName}`,
-        malayalamName ? `Malayalam Name: ${malayalamName}` : "",
-        category ? `Category: ${category}` : ""
-      ].filter(Boolean);
-
-      const sysText = [
-        "You are an expert Kerala School Kalolsavam and Campus Arts Festival judging coordinator.",
-        "Generate EXACTLY 4 distinct judging criteria worth 25 marks each (100 total) tailored specifically to the given competition item.",
-        'Every criterion MUST strictly follow: "English Title / മലയാളം പേര് (0-25)".',
-        "Use authentic Malayalam judging terms alongside concise English titles. Keep each criterion under 75 characters. Return JSON matching the schema."
-      ].join(" ");
-
-      const payload = {
-        systemInstruction: { parts: [{ text: sysText }] },
-        contents: [{ role: "user", parts: [{ text: `Generate 4 tailored judging criteria for:\n${promptLines.join("\n")}` }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              criteria: {
-                type: "ARRAY",
-                items: { type: "STRING" }
-              }
-            },
-            required: ["criteria"]
-          }
-        }
-      };
-
-      for (const modelName of ["gemini-2.5-flash", "gemini-4-hydrogen"]) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000);
-        try {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(cleanKey)}`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": cleanKey
-              },
-              body: JSON.stringify(payload),
-              signal: controller.signal
-            }
-          );
-          const data = await res.json().catch(() => ({}));
-          if (res.status === 404) continue;
-          if (!res.ok) return null;
-          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          const parsed = JSON.parse(rawText || "{}");
-          if (Array.isArray(parsed?.criteria)) {
-            const formatted = parsed.criteria.map(formatClientCriterionLine).filter(s => s.length > 6).slice(0, 4);
-            if (formatted.length === 4) return formatted;
-          }
-          return null;
-        } catch {
-          return null;
-        } finally {
-          clearTimeout(timer);
-        }
-      }
-      return null;
-    }
-
     async function resolveAiCriteriaWithFallback(itemName, malayalamName = "", category = "") {
       const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
 
-      // 1. Try AI Studio / Node server endpoint (/api/ai/criteria uses process.env.GEMINI_API_KEY)
+      // 1. Call the server-side Gemini endpoint (/api/ai/criteria)
       if (!isOffline) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 6500);
@@ -7835,22 +7748,13 @@
             return { criteria: data.criteria, source: "server-ai" };
           }
         } catch {
-          // Endpoint unavailable or running on static hosting
+          // Server endpoint unavailable or offline
         } finally {
           clearTimeout(timer);
         }
-
-        // 2. If process.env.GEMINI_API_KEY is available in the environment, call Gemini directly
-        const envKey = getEnvGeminiKey();
-        if (envKey) {
-          const directCriteria = await fetchDirectEnvGeminiCriteria(envKey, itemName, malayalamName, category);
-          if (directCriteria) {
-            return { criteria: directCriteria, source: "env-ai" };
-          }
-        }
       }
 
-      // 3. Built-in Smart Offline Criteria Engine (always provides 4 valid criteria silently)
+      // 2. Built-in Smart Offline Criteria Engine (always provides 4 valid criteria silently)
       const smart = generateSmartOfflineCriteria(itemName, malayalamName, category);
       return {
         criteria: smart.criteria,
@@ -7938,7 +7842,7 @@
         applyAddFormCriteriaList(result.criteria, result.presetKey || "");
         if (manual) addItemCriteriaTouched = false;
 
-        if (result.source === "server-ai" || result.source === "env-ai") {
+        if (result.source === "server-ai") {
           setAddItemAiStatus(`✨ Gemini AI generated 4 tailored criteria for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast(`✨ AI criteria generated for "${nameVal}"`);
         } else {
@@ -8408,29 +8312,6 @@
           const suffix = unknownItems.length > 3 ? `, +${unknownItems.length - 3} more` : "";
           setCsvAiStatus(`✨ Gemini AI generated tailored criteria for ${serverEnrichedCount} custom ${serverEnrichedCount === 1 ? "item" : "items"} (${previewNames}${suffix}).`, "success");
           return;
-        }
-
-        const envKey = getEnvGeminiKey();
-        if (envKey) {
-          let envEnrichedCount = 0;
-          for (const it of unknownItems.slice(0, 12)) {
-            if (runId !== csvAiRunId) return;
-            const direct = await fetchDirectEnvGeminiCriteria(envKey, it.name, it.malayalamName, it.category);
-            if (direct) {
-              it.criteria = direct;
-              envEnrichedCount++;
-            } else {
-              it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
-            }
-          }
-          unknownItems.slice(12).forEach(it => {
-            it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
-          });
-          if (runId !== csvAiRunId) return;
-          if (envEnrichedCount > 0) {
-            setCsvAiStatus(`✨ Gemini AI generated tailored criteria for ${envEnrichedCount} custom ${envEnrichedCount === 1 ? "item" : "items"}.`, "success");
-            return;
-          }
         }
 
         unknownItems.forEach(it => {
