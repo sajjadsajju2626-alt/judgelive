@@ -1309,12 +1309,15 @@
                 <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
                   <option value="dance">Dance &amp; Stage Arts</option>
                   <option value="thiruvathira">Thiruvathira / തിരുവാതിര</option>
+                  <option value="oppana">Oppana / ഒപ്പന</option>
+                  <option value="duffmuttu">Duffmuttu / ദഫ്മുട്ട്</option>
                   <option value="music">Music / Singing</option>
                   <option value="speech">Speech / Elocution</option>
                   <option value="writing">Essay &amp; Creative Writing / രചനാ മത്സരങ്ങൾ</option>
                   <option value="quran">Quran Recitation / Qira'at</option>
                   <option value="debate">Debate</option>
                   <option value="kathaprasangam">Kathaprasangam</option>
+                  <option value="mimicry">Mimicry / മിമിക്രി</option>
                   <option value="drawing">Drawing &amp; Painting</option>
                   <option value="quiz">Quiz</option>
                   <option value="custom">Custom / AI Tailored</option>
@@ -1324,22 +1327,6 @@
                 </button>
               </div>
               <div id="admin-ai-criteria-status" role="status" class="hidden mt-1.5 text-[11px] font-medium"></div>
-              <div id="admin-gemini-key-inline-prompt" class="hidden mt-2 p-3 rounded-lg bg-amber-50/90 border border-amber-200 space-y-2">
-                <div class="flex items-center justify-between gap-2">
-                  <label for="admin-gemini-key-inline-input" class="text-[11px] font-semibold text-amber-950">
-                    Enter your Google Gemini API Key to generate live AI criteria:
-                  </label>
-                  <button type="button" onclick="handleSkipGeminiKeyPrompt()" class="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline whitespace-nowrap">
-                    Skip (Use Offline)
-                  </button>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-2">
-                  <input id="admin-gemini-key-inline-input" type="password" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleSaveAndGenerateGeminiCriteria(); }" placeholder="Paste Gemini API Key (AIza... or AQ....)" class="flex-1 min-w-0 px-2.5 py-1.5 text-xs bg-white border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
-                  <button type="button" id="admin-gemini-key-save-btn" onclick="handleSaveAndGenerateGeminiCriteria()" class="px-3 py-1.5 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-md transition-colors whitespace-nowrap shrink-0">
-                    Save &amp; Generate
-                  </button>
-                </div>
-              </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-stone-50 border border-stone-200">
               <div>
@@ -2315,6 +2302,24 @@
         "Bhava & Group Sync / ഭാവവും ഒത്തിണക്കവും (0-25)",
         "Traditional Attire & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
       ],
+      oppana: [
+        "Singing & Ishal / ആലാപനവും ഇശലും (0-25)",
+        "Rhythmic Clapping / താളബദ്ധമായ കൈകൊട്ട് (0-25)",
+        "Synchronization & Steps / ചുവടുകളും ഒത്തിണക്കവും (0-25)",
+        "Costume & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
+      ],
+      duffmuttu: [
+        "Baith & Singing / ബൈത്ത് ആലാപനം (0-25)",
+        "Rhythm & Duff Beats / താളവും ദഫ് മുട്ടും (0-25)",
+        "Synchronization & Steps / ഏകോപനവും ചുവടുകളും (0-25)",
+        "Attire & Presentation / വേഷവിധാനവും അവതരണവും (0-25)"
+      ],
+      mimicry: [
+        "Voice & Sound Accuracy / ശബ്ദാനുകരണ കൃത്യത (0-25)",
+        "Timing & Spontaneity / സമയബന്ധിതവും നർമ്മവും (0-25)",
+        "Variety & Transitions / വൈവിധ്യവും മാറ്റങ്ങളും (0-25)",
+        "Stage Presence / വേദിയിലെ അവതരണം (0-25)"
+      ],
       dance: [
         "Rhythm / താളം (0-25)",
         "Expression / ഭാവം (0-25)",
@@ -2326,12 +2331,15 @@
     const CRITERIA_PRESET_LABELS = {
       dance: "Dance & Stage Arts",
       thiruvathira: "Thiruvathira / തിരുവാതിര",
+      oppana: "Oppana / ഒപ്പന",
+      duffmuttu: "Duffmuttu / ദഫ്മുട്ട്",
       music: "Music / Singing",
       speech: "Speech / Elocution",
       writing: "Essay & Creative Writing / രചനാ മത്സരങ്ങൾ",
       quran: "Quran Recitation / Qira'at",
       debate: "Debate",
       kathaprasangam: "Kathaprasangam",
+      mimicry: "Mimicry / മിമിക്രി",
       drawing: "Drawing & Painting",
       quiz: "Quiz",
       custom: "Custom / AI Tailored"
@@ -2347,6 +2355,9 @@
       }
       if (/(kathaprasangam|katha\s*prasangam|കഥാപ്രസംഗം)/.test(text)) {
         return "kathaprasangam";
+      }
+      if (/(mimicry|മിമിക്രി)/.test(text)) {
+        return "mimicry";
       }
       if (/(drawing|painting|watercolor|water\s*colour|pencil\s*sketch|sketching|cartoon|poster\s*design|collage|ചിത്രരചന|പെയിന്റിംഗ്|കാർട്ടൂൺ)/.test(text)) {
         return "drawing";
@@ -2365,6 +2376,12 @@
       }
       if (/(thiruvathira|തിരുവാതിര)/.test(text)) {
         return "thiruvathira";
+      }
+      if (/(oppana|ഒപ്പന)/.test(text)) {
+        return "oppana";
+      }
+      if (/(duffmuttu|duff\s*muttu|daph|ദഫ്)/.test(text)) {
+        return "duffmuttu";
       }
       if (/(bharatanatyam|mohiniyattam|kuchipudi|kathak|folk\s*dance|group\s*dance|nadodi|margamkali|dance|നൃത്തം|ഭരതനാട്യം|മോഹിനിയാട്ടം|കുച്ചിപ്പുടി|നാടോടിനൃത്തം)/.test(text)) {
         return "dance";
@@ -7712,52 +7729,13 @@
       }
     };
 
-    const CLIENT_GEMINI_KEY_STORAGE = "judgelive_gemini_api_key";
-    const LEGACY_GEMINI_KEY_STORAGE = "kalolsavam_client_gemini_api_key";
-
-    function getStoredClientGeminiKey() {
-      try {
-        const primary = String(localStorage.getItem(CLIENT_GEMINI_KEY_STORAGE) || "").trim();
-        if (primary) return primary;
-        const legacy = String(localStorage.getItem(LEGACY_GEMINI_KEY_STORAGE) || "").trim();
-        if (legacy) {
-          localStorage.setItem(CLIENT_GEMINI_KEY_STORAGE, legacy);
-          return legacy;
-        }
-      } catch {}
+    function getEnvGeminiKey() {
       try {
         if (typeof process !== "undefined" && process?.env?.GEMINI_API_KEY) {
           return String(process.env.GEMINI_API_KEY).trim();
         }
       } catch {}
       return "";
-    }
-
-    function setStoredClientGeminiKey(rawKey) {
-      const clean = String(rawKey || "").trim();
-      try {
-        if (clean) {
-          localStorage.setItem(CLIENT_GEMINI_KEY_STORAGE, clean);
-        } else {
-          localStorage.removeItem(CLIENT_GEMINI_KEY_STORAGE);
-          localStorage.removeItem(LEGACY_GEMINI_KEY_STORAGE);
-        }
-      } catch {}
-    }
-
-    function toggleGeminiKeyInlinePrompt(show) {
-      const box = document.getElementById("admin-gemini-key-inline-prompt");
-      const inp = document.getElementById("admin-gemini-key-inline-input");
-      if (!box) return;
-      if (show) {
-        box.classList.remove("hidden");
-        if (inp) {
-          inp.value = getStoredClientGeminiKey();
-          setTimeout(() => inp.focus(), 20);
-        }
-      } else {
-        box.classList.add("hidden");
-      }
     }
 
     function formatClientCriterionLine(raw) {
@@ -7768,7 +7746,7 @@
       return `${text} (0-25)`.slice(0, 80);
     }
 
-    async function fetchDirectBrowserGeminiCriteria(apiKey, itemName, malayalamName = "", category = "") {
+    async function fetchDirectEnvGeminiCriteria(apiKey, itemName, malayalamName = "", category = "") {
       const cleanKey = String(apiKey || "").trim();
       if (!cleanKey) return null;
 
@@ -7841,16 +7819,7 @@
     async function resolveAiCriteriaWithFallback(itemName, malayalamName = "", category = "") {
       const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
 
-      // 1. If a browser/env Gemini API key is available, call Gemini directly from the browser
-      const clientKey = getStoredClientGeminiKey();
-      if (clientKey && !isOffline) {
-        const directCriteria = await fetchDirectBrowserGeminiCriteria(clientKey, itemName, malayalamName, category);
-        if (directCriteria) {
-          return { criteria: directCriteria, source: "client-ai", needsKey: false };
-        }
-      }
-
-      // 2. Try AI Studio / Node server endpoint (/api/ai/criteria uses process.env.GEMINI_API_KEY)
+      // 1. Try AI Studio / Node server endpoint (/api/ai/criteria uses process.env.GEMINI_API_KEY)
       if (!isOffline) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 6500);
@@ -7863,23 +7832,30 @@
           });
           const data = await res.json().catch(() => ({}));
           if (res.ok && Array.isArray(data?.criteria) && data.criteria.length === 4) {
-            return { criteria: data.criteria, source: "server-ai", needsKey: false };
+            return { criteria: data.criteria, source: "server-ai" };
           }
         } catch {
-          // Static hosting (GitHub Pages) — no local backend server running
+          // Endpoint unavailable or running on static hosting
         } finally {
           clearTimeout(timer);
         }
+
+        // 2. If process.env.GEMINI_API_KEY is available in the environment, call Gemini directly
+        const envKey = getEnvGeminiKey();
+        if (envKey) {
+          const directCriteria = await fetchDirectEnvGeminiCriteria(envKey, itemName, malayalamName, category);
+          if (directCriteria) {
+            return { criteria: directCriteria, source: "env-ai" };
+          }
+        }
       }
 
-      // 3. Built-in Smart Offline Criteria Engine (always provides 4 valid criteria)
+      // 3. Built-in Smart Offline Criteria Engine (always provides 4 valid criteria silently)
       const smart = generateSmartOfflineCriteria(itemName, malayalamName, category);
       return {
         criteria: smart.criteria,
         source: "smart-offline",
-        presetKey: smart.presetKey,
-        needsKey: !isOffline,
-        invalidKeyTried: Boolean(clientKey && !isOffline)
+        presetKey: smart.presetKey
       };
     }
 
@@ -7945,7 +7921,6 @@
 
       const seq = ++addItemAiReqSeq;
       addItemAiInFlightKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}`;
-      toggleGeminiKeyInlinePrompt(false);
       setAddItemAiStatus(`✨ Generating tailored bilingual criteria for "${nameVal}"...`, "info");
       if (aiBtn) {
         aiBtn.disabled = true;
@@ -7963,18 +7938,11 @@
         applyAddFormCriteriaList(result.criteria, result.presetKey || "");
         if (manual) addItemCriteriaTouched = false;
 
-        if (result.source === "server-ai" || result.source === "client-ai") {
+        if (result.source === "server-ai" || result.source === "env-ai") {
           setAddItemAiStatus(`✨ Gemini AI generated 4 tailored criteria for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast(`✨ AI criteria generated for "${nameVal}"`);
-        } else if (manual && result.needsKey) {
-          if (result.invalidKeyTried) {
-            setAddItemAiStatus(`✓ Smart Offline Criteria applied. Could not reach Gemini with the saved key—update your Gemini API Key below or click Skip:`, "info");
-          } else {
-            setAddItemAiStatus(`✓ Smart Offline Criteria pre-filled. Paste your Gemini API Key below for live AI generation:`, "info");
-          }
-          toggleGeminiKeyInlinePrompt(true);
         } else {
-          setAddItemAiStatus(`✓ Smart Offline Criteria Applied for "${nameVal}" (editable below).`, "success");
+          setAddItemAiStatus(`✓ Smart Offline Criteria Applied`, "success");
           if (manual) window.showToast("Smart Offline Criteria Applied");
         }
       } finally {
@@ -7987,30 +7955,6 @@
         }
       }
     }
-
-    window.handleSaveAndGenerateGeminiCriteria = async () => {
-      const inp = document.getElementById("admin-gemini-key-inline-input");
-      const rawKey = String(inp?.value || "").trim();
-      if (!rawKey) {
-        window.showToast("Please paste a valid Google Gemini API Key");
-        inp?.focus();
-        return;
-      }
-      setStoredClientGeminiKey(rawKey);
-      toggleGeminiKeyInlinePrompt(false);
-      await requestAiCriteriaForAddForm({ manual: true });
-    };
-
-    window.handleSkipGeminiKeyPrompt = () => {
-      toggleGeminiKeyInlinePrompt(false);
-      const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
-      const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
-      const category = getAddFormCategoryValue();
-      const smart = generateSmartOfflineCriteria(nameVal, mlVal, category);
-      applyAddFormCriteriaList(smart.criteria, smart.presetKey || "");
-      setAddItemAiStatus(`✓ Smart Offline Criteria Applied${nameVal ? ` for "${nameVal}"` : ""} (editable below).`, "success");
-      window.showToast("Smart Offline Criteria Applied");
-    };
 
     window.handleAiGenerateItemCriteria = () => {
       if (addItemAiDebounceTimer) {
@@ -8052,7 +7996,6 @@
       if (!fromReset) {
         addItemCriteriaTouched = true;
         setAddItemAiStatus("");
-        toggleGeminiKeyInlinePrompt(false);
       }
       const presetEl = document.getElementById("admin-item-criteria-preset");
       const key = presetEl?.value || "dance";
@@ -8138,7 +8081,6 @@
       addItemAiInFlightKey = "";
       addItemAiReqSeq++;
       setAddItemAiStatus("");
-      toggleGeminiKeyInlinePrompt(false);
       addItemCriteriaTouched = false;
       const presetEl = document.getElementById("admin-item-criteria-preset");
       if (presetEl) presetEl.value = "dance";
@@ -8468,15 +8410,15 @@
           return;
         }
 
-        const clientKey = getStoredClientGeminiKey();
-        if (clientKey) {
-          let clientEnrichedCount = 0;
+        const envKey = getEnvGeminiKey();
+        if (envKey) {
+          let envEnrichedCount = 0;
           for (const it of unknownItems.slice(0, 12)) {
             if (runId !== csvAiRunId) return;
-            const direct = await fetchDirectBrowserGeminiCriteria(clientKey, it.name, it.malayalamName, it.category);
+            const direct = await fetchDirectEnvGeminiCriteria(envKey, it.name, it.malayalamName, it.category);
             if (direct) {
               it.criteria = direct;
-              clientEnrichedCount++;
+              envEnrichedCount++;
             } else {
               it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
             }
@@ -8485,8 +8427,8 @@
             it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
           });
           if (runId !== csvAiRunId) return;
-          if (clientEnrichedCount > 0) {
-            setCsvAiStatus(`✨ Gemini AI generated tailored criteria for ${clientEnrichedCount} custom ${clientEnrichedCount === 1 ? "item" : "items"}.`, "success");
+          if (envEnrichedCount > 0) {
+            setCsvAiStatus(`✨ Gemini AI generated tailored criteria for ${envEnrichedCount} custom ${envEnrichedCount === 1 ? "item" : "items"}.`, "success");
             return;
           }
         }
@@ -8494,7 +8436,7 @@
         unknownItems.forEach(it => {
           it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
         });
-        setCsvAiStatus(`✓ Smart Offline Criteria Applied for ${unknownItems.length} custom ${unknownItems.length === 1 ? "item" : "items"}.`, "success");
+        setCsvAiStatus(`✓ Smart Offline Criteria Applied`, "success");
       })();
 
       csvAiEnrichmentPromise = workPromise;
