@@ -583,14 +583,20 @@
         <div id="event-code-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
           Invalid Event Code. This event has not been created by the Admin.
         </div>
-        <div class="flex items-center justify-end gap-3 pt-2">
-          <button type="button" id="event-entry-cancel-btn" onclick="cancelEventSwitcher()" class="hidden px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-2.5 pt-2">
+          <button type="button" id="event-entry-cancel-btn" onclick="cancelEventSwitcher()" class="hidden px-4 py-2.5 min-h-[44px] text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
             Back to Current Event
           </button>
-          <button type="submit" id="event-entry-submit-btn" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+          <button type="button" id="event-entry-public-btn" onclick="handleOpenPublicViewFromLanding()" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-sm font-semibold text-emerald-900 bg-emerald-50 border border-emerald-300 rounded-lg hover:bg-emerald-100 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+            Live Results / Public View
+          </button>
+          <button type="submit" id="event-entry-submit-btn" class="w-full sm:w-auto px-5 py-2.5 min-h-[44px] text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
             Enter Festival Workspace
           </button>
         </div>
+        <p class="text-[11px] text-stone-500 text-center sm:text-right">
+          Students &amp; audience: enter your Festival Code and tap <span class="font-semibold text-emerald-900">Live Results / Public View</span> — no PIN required.
+        </p>
       </form>
     </section>
 
@@ -878,9 +884,17 @@
 
         <!-- Item-wise Leaderboard -->
         <div id="tab-item-results-section" class="space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2 shrink-0">
-            <h2 id="tab-item-results-heading" class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
-            <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
+          <div class="flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h2 id="tab-item-results-heading" class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+              <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
+            </div>
+            <div id="tab-publish-result-wrap" class="no-print flex flex-wrap items-center gap-2.5">
+              <span id="tab-publish-status-text" class="text-xs font-medium text-stone-500">Draft · Hidden from Public</span>
+              <button type="button" id="tab-publish-result-btn" onclick="handleTogglePublishSelectedItem()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                Publish Result to Public
+              </button>
+            </div>
           </div>
           <div id="tab-leaderboard-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
             <div id="tab-leaderboard-scroll" class="overflow-x-auto">
@@ -1042,6 +1056,57 @@
           <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
         </div>
       </form>
+
+      <!-- 1B. Share Public Live Link & QR Code Card (Read-Only Spectator View) -->
+      <div id="admin-public-share-card" class="bg-white border border-emerald-200 rounded-xl p-6 space-y-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Share Public Live Link &amp; QR Code</h2>
+            <p class="text-xs text-stone-600 mt-0.5 max-w-2xl">
+              Share this read-only spectator scoreboard on WhatsApp or print the QR code for campus notice boards. Students and audiences can follow live standings, active stages, and officially published results without any PIN.
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-xs font-semibold text-emerald-800 tabular-nums">Scoped to <span id="admin-public-scope-code">—</span></div>
+            <div id="admin-public-published-summary" class="text-[11px] font-medium text-stone-500 tabular-nums mt-0.5">0 of 0 results published</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+          <div class="md:col-span-8 space-y-3.5">
+            <div>
+              <label for="admin-public-share-url" class="block text-xs font-semibold text-stone-700 mb-1">Direct Public Live URL (No PIN Required)</label>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input id="admin-public-share-url" type="text" readonly onclick="this.select()" class="flex-1 min-w-0 px-3 py-2.5 text-xs font-mono text-stone-800 bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+                <button type="button" id="admin-copy-public-link-btn" onclick="handleCopyPublicLink()" class="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                  Copy Public Link
+                </button>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="handlePreviewPublicViewFromAdmin()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
+                Open Public View
+              </button>
+              <button type="button" onclick="handleDownloadPublicQr()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
+                Download QR (PNG)
+              </button>
+              <a id="admin-public-whatsapp-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3.5 py-2 min-h-[40px] text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors whitespace-nowrap">
+                Share on WhatsApp
+              </a>
+            </div>
+            <p class="text-[11px] text-stone-500 leading-relaxed">
+              Privacy guarantee: Raw judge marks (J1/J2/J3) are never visible on the Public Live Portal. Only events explicitly marked <span class="font-semibold text-stone-700">Published</span> in Live Tabulation or Competition Items appear in Public Results and Standings.
+            </p>
+          </div>
+          <div class="md:col-span-4 flex flex-col items-center justify-center">
+            <div class="p-3 bg-white border border-stone-200 rounded-xl shadow-sm flex flex-col items-center gap-2">
+              <div id="admin-public-qr-container" class="w-40 h-40 flex items-center justify-center bg-white"></div>
+              <div class="text-[11px] font-semibold text-stone-700 tracking-wide text-center">
+                Scan for Live Results · <span id="admin-public-qr-code-label" class="tabular-nums text-amber-800">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- 2. Live Stage Control & PIN-Protected Judge Panel (Campus Admin Panel) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1701,6 +1766,163 @@
       </div>
       </div>
     </section>
+
+    <!-- VIEW 4: PUBLIC LIVE SCOREBOARD & RESULTS PORTAL (Read-Only Spectator View — Zero PIN Required) -->
+    <section id="view-public" class="no-print hidden space-y-6 pb-20 sm:pb-4">
+      <!-- Compact Spectator Hero Banner -->
+      <div class="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div class="min-w-0 space-y-1">
+            <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-medium text-stone-500">
+              <span class="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-emerald-800">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+                <span>Live Public Scoreboard</span>
+              </span>
+              <span aria-hidden="true" class="text-stone-300">·</span>
+              <span class="tabular-nums font-semibold text-stone-700" id="public-event-code">—</span>
+              <span aria-hidden="true" class="text-stone-300">·</span>
+              <span id="public-live-clock" class="tabular-nums text-stone-600">—</span>
+            </div>
+            <h1 id="public-festival-title" class="text-2xl sm:text-3xl font-bold text-stone-900 font-display leading-tight truncate">Festival Live Results</h1>
+            <p id="public-festival-subtitle" class="text-sm text-stone-600 leading-snug"></p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" id="public-back-admin-btn" onclick="handleReturnFromPublicPreview()" class="hidden px-3.5 py-2 min-h-[44px] text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap">
+              ← Back to Admin
+            </button>
+            <button type="button" onclick="handleCopyPublicLink()" class="px-3.5 py-2 min-h-[44px] text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+              Share Link
+            </button>
+          </div>
+        </div>
+
+        <!-- Crisp Spectator KPI Summary Strip -->
+        <div class="grid grid-cols-3 gap-3 pt-3.5 border-t border-stone-200">
+          <div class="min-w-0">
+            <div class="text-[11px] font-medium text-stone-500 truncate">Leading House</div>
+            <div id="public-kpi-leader" class="text-sm sm:text-base font-bold text-stone-900 truncate mt-0.5">—</div>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[11px] font-medium text-stone-500 truncate">Results Declared</div>
+            <div id="public-kpi-published" class="text-sm sm:text-base font-bold text-stone-900 tabular-nums mt-0.5">0 / 0</div>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[11px] font-medium text-stone-500 truncate">Last Synced</div>
+            <div id="public-last-updated" class="text-sm sm:text-base font-bold text-emerald-800 tabular-nums truncate mt-0.5">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop / Tablet Segmented Tab Controls (Mobile uses ergonomic bottom tab bar) -->
+      <div class="hidden sm:flex items-center justify-between gap-4">
+        <div role="tablist" aria-label="Public Scoreboard Sections" class="inline-flex items-center gap-1 p-1 bg-stone-200/70 border border-stone-200 rounded-xl">
+          <button type="button" role="tab" id="public-tab-btn-standings" aria-selected="true" onclick="switchPublicTab('standings')" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg transition-colors whitespace-nowrap bg-white text-stone-900 shadow-sm">
+            Standings
+          </button>
+          <button type="button" role="tab" id="public-tab-btn-results" aria-selected="false" onclick="switchPublicTab('results')" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg transition-colors whitespace-nowrap text-stone-600 hover:text-stone-900">
+            Published Results
+          </button>
+          <button type="button" role="tab" id="public-tab-btn-stages" aria-selected="false" onclick="switchPublicTab('stages')" class="px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg transition-colors whitespace-nowrap text-stone-600 hover:text-stone-900">
+            Live Stages
+          </button>
+        </div>
+        <div class="text-xs text-stone-500">Auto-updates in real time · Read-only spectator portal</div>
+      </div>
+
+      <!-- PUBLIC TAB 1: LIVE HOUSE / TEAM CHAMPIONSHIP STANDINGS -->
+      <div id="public-panel-standings" role="tabpanel" class="space-y-5">
+        <div id="public-leader-spotlight" class="bg-white border border-amber-200 rounded-xl p-5 sm:p-6"></div>
+
+        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-bold text-stone-900 font-display">House Championship Standings</h2>
+              <p class="text-xs text-stone-500 mt-0.5">1st Place = 5 pts · 2nd Place = 3 pts · 3rd Place = 1 pt · Officially declared results only</p>
+            </div>
+            <span id="public-standings-house-count" class="text-xs font-medium text-stone-500 tabular-nums">0 houses</span>
+          </div>
+          <div id="public-standings-list" class="divide-y divide-stone-200"></div>
+        </div>
+      </div>
+
+      <!-- PUBLIC TAB 2: PUBLISHED COMPETITION RESULTS -->
+      <div id="public-panel-results" role="tabpanel" class="hidden space-y-4">
+        <div class="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+            <div class="sm:col-span-6 relative">
+              <label for="public-results-search" class="sr-only">Search published results</label>
+              <input id="public-results-search" type="search" oninput="renderPublicResults()" placeholder="Search Event Name, Chest No., Participant, or House..." class="w-full px-3.5 py-2.5 min-h-[44px] text-sm bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-amber-600" />
+            </div>
+            <div class="sm:col-span-3">
+              <label for="public-results-house-filter" class="sr-only">Filter by House</label>
+              <select id="public-results-house-filter" onchange="renderPublicResults()" class="w-full px-3 py-2.5 min-h-[44px] text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <option value="all">All Houses / Teams</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3">
+              <label for="public-results-cat-filter" class="sr-only">Filter by Category</label>
+              <select id="public-results-cat-filter" onchange="renderPublicResults()" class="w-full px-3 py-2.5 min-h-[44px] text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <option value="all">All Categories</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-stone-500">
+            <span id="public-results-summary" class="tabular-nums">0 declared results</span>
+            <button type="button" id="public-results-clear-btn" onclick="clearPublicResultsFilters()" class="hidden font-semibold text-amber-800 hover:underline">
+              Clear filters
+            </button>
+          </div>
+        </div>
+
+        <div id="public-results-list" class="space-y-4"></div>
+      </div>
+
+      <!-- PUBLIC TAB 3: LIVE STAGE TRACKER -->
+      <div id="public-panel-stages" role="tabpanel" class="hidden space-y-4">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-stone-900 font-display">Live Stage Tracker</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Real-time view of competitions currently performing across all active festival stages.</p>
+          </div>
+          <span id="public-stages-summary" class="text-xs font-semibold text-emerald-800 tabular-nums">0 stages active</span>
+        </div>
+        <div id="public-stages-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- Mobile Bottom Tab Bar for Public Live Scoreboard (Visible ONLY on mobile when #view-public is active) -->
+    <nav id="public-mobile-bottom-nav" aria-label="Public Scoreboard Navigation" class="no-print hidden sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-sm border-t border-stone-200 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+      <div class="grid grid-cols-3 gap-1 max-w-md mx-auto">
+        <button type="button" id="public-mobile-tab-standings" onclick="switchPublicTab('standings')" class="flex flex-col items-center justify-center gap-0.5 min-h-[48px] rounded-lg text-amber-800 bg-amber-50/80 font-semibold transition-colors">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+          <span class="text-[11px] leading-none whitespace-nowrap">Standings</span>
+        </button>
+        <button type="button" id="public-mobile-tab-results" onclick="switchPublicTab('results')" class="flex flex-col items-center justify-center gap-0.5 min-h-[48px] rounded-lg text-stone-600 font-medium transition-colors">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          <span class="text-[11px] leading-none whitespace-nowrap">Results</span>
+        </button>
+        <button type="button" id="public-mobile-tab-stages" onclick="switchPublicTab('stages')" class="flex flex-col items-center justify-center gap-0.5 min-h-[48px] rounded-lg text-stone-600 font-medium transition-colors">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path>
+            <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path>
+            <circle cx="12" cy="12" r="2"></circle>
+            <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path>
+            <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"></path>
+          </svg>
+          <span class="text-[11px] leading-none whitespace-nowrap">Live Stages</span>
+        </button>
+      </div>
+    </nav>
   </main>
 
   <script type="module">
@@ -3096,8 +3318,8 @@
           { id: "grp_yellow", name: "Yellow House", color: "#D97706" }
         ],
         items: [
-          { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance] },
-          { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.dance] }
+          { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance], isPublished: true, publishedAt: new Date().toISOString() },
+          { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.dance], isPublished: false, publishedAt: null }
         ],
         participants: [
           { id: "p_101", itemId: "item_1", chestNo: "101", name: "Meenakshi S. Nair", school: "Providence Girls HSS, Kozhikode", groupId: "grp_red", groupName: "Red House" },
@@ -3140,10 +3362,10 @@
           { id: "demo_grp_yellow", name: "Yellow House", color: "#D97706" }
         ],
         items: [
-          { id: "demo_item_1", name: "Mappilappattu (HS)", malayalamName: "മാപ്പിളപ്പാട്ട് (HS)", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.music] },
-          { id: "demo_item_2", name: "Elocution - Malayalam", malayalamName: "പ്രസംഗം - മലയാളം", category: "Higher Secondary", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.speech] },
-          { id: "demo_item_3", name: "Oppana (Group)", malayalamName: "ഒപ്പന (സംഘം)", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance] },
-          { id: "demo_item_4", name: "Light Music", malayalamName: "ലളിതഗാനം", category: "General", stage: "Stage 3 — Kabani", criteria: [...CRITERIA_PRESETS.music] }
+          { id: "demo_item_1", name: "Mappilappattu (HS)", malayalamName: "മാപ്പിളപ്പാട്ട് (HS)", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.music], isPublished: true, publishedAt: new Date(Date.now() - 45 * 60000).toISOString() },
+          { id: "demo_item_2", name: "Elocution - Malayalam", malayalamName: "പ്രസംഗം - മലയാളം", category: "Higher Secondary", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.speech], isPublished: true, publishedAt: new Date(Date.now() - 25 * 60000).toISOString() },
+          { id: "demo_item_3", name: "Oppana (Group)", malayalamName: "ഒപ്പന (സംഘം)", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance], isPublished: true, publishedAt: new Date(Date.now() - 10 * 60000).toISOString() },
+          { id: "demo_item_4", name: "Light Music", malayalamName: "ലളിതഗാനം", category: "General", stage: "Stage 3 — Kabani", criteria: [...CRITERIA_PRESETS.music], isPublished: false, publishedAt: null }
         ],
         participants: [
           { id: "demo_p_101", itemId: "demo_item_1", chestNo: "101", name: "Amina Fathima K.", school: "Markaz Girls HSS, Karanthur", groupId: "demo_grp_red", groupName: "Red House" },
@@ -3198,6 +3420,11 @@
     let didEnterBrowserFullscreen = false;
     let isAutoRotateEnabled = false;
     let autoRotateSecondsLeft = 10;
+    let isPublicMode = false;
+    let publicOpenedFromAdmin = false;
+    let activePublicTab = "standings";
+    let publicLastUpdatedAt = null;
+    let publicClockTimer = null;
     let autoRotateTimer = null;
     let masterRegisteredEvents = [];
     let brandTapTimestamps = [];
@@ -3301,6 +3528,13 @@
       if (gradeBadgeEl) {
         gradeBadgeEl.textContent = `Grading: A ≥ ${grades.gradeA}% · B ≥ ${grades.gradeB}% · C ≥ ${grades.gradeC}%`;
       }
+
+      if (typeof renderAdminPublicShareCard === "function") {
+        renderAdminPublicShareCard();
+      }
+      if (isPublicMode && typeof window.renderPublicView === "function") {
+        window.renderPublicView();
+      }
     }
 
     window.hideGradeThresholdError = () => {
@@ -3310,16 +3544,34 @@
 
     function applyAdminAccessUI() {
       const hasEvent = Boolean(activeEventCode) && !isSwitchingEvent;
-      document.getElementById("nav-judge").classList.toggle("hidden", !hasEvent);
-      document.getElementById("nav-tabulation").classList.toggle("hidden", !(isAdminUnlocked && hasEvent));
-      document.getElementById("nav-admin").classList.toggle("hidden", !isAdminUnlocked);
-      document.getElementById("change-event-btn").classList.toggle("hidden", !(hasEvent || isAdminUnlocked));
-      document.getElementById("lock-admin-btn").classList.toggle("hidden", !isAdminUnlocked);
-      document.getElementById("header-mode-label").classList.toggle("sm:inline", hasEvent && !isAdminUnlocked);
-      document.getElementById("status-strip").classList.toggle("hidden", !hasEvent);
+      const inPublic = Boolean(isPublicMode && hasEvent);
+
+      document.getElementById("nav-judge").classList.toggle("hidden", !hasEvent || inPublic);
+      document.getElementById("nav-tabulation").classList.toggle("hidden", !(isAdminUnlocked && hasEvent) || inPublic);
+      document.getElementById("nav-admin").classList.toggle("hidden", !isAdminUnlocked || inPublic);
+      const changeEventBtn = document.getElementById("change-event-btn");
+      if (changeEventBtn) {
+        changeEventBtn.classList.toggle("hidden", !(hasEvent || isAdminUnlocked));
+        changeEventBtn.textContent = inPublic ? "Exit Public View" : "Change Festival Code";
+      }
+      document.getElementById("lock-admin-btn").classList.toggle("hidden", !isAdminUnlocked || inPublic);
+      const modeLabelEl = document.getElementById("header-mode-label");
+      if (modeLabelEl) {
+        modeLabelEl.textContent = inPublic ? "Public Live Results" : "Judge Scoring Mode";
+        modeLabelEl.classList.toggle("sm:inline", hasEvent && (inPublic || !isAdminUnlocked));
+      }
+      document.getElementById("status-strip").classList.toggle("hidden", !hasEvent || inPublic);
       const demoBar = document.getElementById("demo-mode-bar");
       if (demoBar) {
-        demoBar.classList.toggle("hidden", !(hasEvent && activeEventCode === DEMO_EVENT_CODE));
+        demoBar.classList.toggle("hidden", !(hasEvent && activeEventCode === DEMO_EVENT_CODE && !inPublic));
+      }
+      const mobileBottomNav = document.getElementById("public-mobile-bottom-nav");
+      if (mobileBottomNav) {
+        mobileBottomNav.classList.toggle("hidden", !inPublic);
+      }
+      const backAdminBtn = document.getElementById("public-back-admin-btn");
+      if (backAdminBtn) {
+        backAdminBtn.classList.toggle("hidden", !(inPublic && publicOpenedFromAdmin && isAdminUnlocked));
       }
 
       const isDemoEvent = hasEvent && activeEventCode === DEMO_EVENT_CODE;
@@ -3533,9 +3785,12 @@
     function revokeActiveEventAccess(message = LICENSE_BLOCKED_MESSAGE) {
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
+      if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
       detachListeners();
       isAdminUnlocked = false;
       isMasterAdmin = false;
+      isPublicMode = false;
+      publicOpenedFromAdmin = false;
       activeJudgeSession = null;
       judgeItemAdminOverride = false;
       activeEventCode = "";
@@ -3562,6 +3817,7 @@
       const prevStageLiveJson = JSON.stringify(normalizeStageLiveItems(window.state?.config?.stageLiveItems));
       const nextCfg = buildNormalizedEventConfig(activeEventCode, rawData, window.state?.config);
       window.state.config = nextCfg;
+      publicLastUpdatedAt = new Date();
       saveLocalState();
 
       if (!isMasterAdmin && !isEventLicenseValid(nextCfg)) {
@@ -3585,6 +3841,7 @@
       window.populateJudgeParticipants();
       window.renderTabulation();
       window.renderGroupStandings();
+      if (typeof window.renderPublicView === "function") window.renderPublicView();
     }
 
     function attachListeners() {
@@ -3619,6 +3876,7 @@
           if (!nextStages.includes(activeAdminJudgeStageTab)) {
             activeAdminJudgeStageTab = nextStages[0] || "Stage 1";
           }
+          publicLastUpdatedAt = new Date();
           saveLocalState();
           renderAdminStagesManager();
           syncAdminLiveItemUI();
@@ -3627,6 +3885,7 @@
           syncLockedJudgeSessionWithConfig();
           syncJudgeActiveItemUI();
           window.refreshAllSelects();
+          if (typeof window.renderPublicView === "function") window.renderPublicView();
         }
       }, (err) => handleFirestoreError(err, "get", `events/${activeEventCode}/settings/stages`));
 
@@ -3642,10 +3901,12 @@
 
       unsubGroups = onSnapshot(eventCollection("groups"), (snap) => {
         window.state.groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        publicLastUpdatedAt = new Date();
         saveLocalState();
         window.refreshAllSelects();
         window.renderAdminLists();
         window.renderGroupStandings();
+        if (typeof window.renderPublicView === "function") window.renderPublicView();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/groups`));
 
       unsubItems = onSnapshot(eventCollection("items"), (snap) => {
@@ -3653,28 +3914,35 @@
         if (!hasCloudStagesDoc && window.state.items.length > 0) {
           autoRegisterStagesFromNames(window.state.items.map(it => it.stage), { persist: false });
         }
+        publicLastUpdatedAt = new Date();
         saveLocalState();
         window.refreshAllSelects();
         window.renderAdminLists();
         window.renderGroupStandings();
+        if (typeof renderAdminPublicShareCard === "function") renderAdminPublicShareCard();
+        if (typeof window.renderPublicView === "function") window.renderPublicView();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/items`));
 
       unsubParticipants = onSnapshot(eventCollection("participants"), (snap) => {
         window.state.participants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        publicLastUpdatedAt = new Date();
         saveLocalState();
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
         window.renderGroupStandings();
+        if (typeof window.renderPublicView === "function") window.renderPublicView();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/participants`));
 
       unsubScores = onSnapshot(eventCollection("scores"), (snap) => {
         window.state.scores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        publicLastUpdatedAt = new Date();
         saveLocalState();
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
         window.renderGroupStandings();
+        if (typeof window.renderPublicView === "function") window.renderPublicView();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/scores`));
     }
 
@@ -5039,6 +5307,8 @@
 
     function getCurrentLogicalRoute() {
       if (isStageTvMode) return "tv-mode";
+      const publicEl = document.getElementById("view-public");
+      if (publicEl && !publicEl.classList.contains("hidden")) return "public";
       const entryEl = document.getElementById("view-event-entry");
       if (entryEl && !entryEl.classList.contains("hidden")) return "welcome";
       const tabEl = document.getElementById("view-tabulation");
@@ -5082,6 +5352,13 @@
       }
       if (route === "judge") {
         return { appRoute: "judge", depth: 2, eventCode: activeEventCode || "" };
+      }
+      if (route === "public") {
+        return {
+          appRoute: "public",
+          depth: publicOpenedFromAdmin && isAdminUnlocked ? 4 : 2,
+          eventCode: activeEventCode || ""
+        };
       }
       if (route === "admin" && !hasActive) {
         return { appRoute: "admin", depth: 2, eventCode: "", masterMode: true };
@@ -5191,23 +5468,35 @@
 
     function showEventEntryView(allowCancel, options = {}) {
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
+      if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
+      isPublicMode = false;
+      publicOpenedFromAdmin = false;
       isSwitchingEvent = true;
       applyBrandingUI();
       applyAdminAccessUI();
-      ["judge", "tabulation", "admin"].forEach(v => {
-        document.getElementById("view-" + v).classList.add("hidden");
+      ["judge", "tabulation", "admin", "public"].forEach(v => {
+        const el = document.getElementById("view-" + v);
+        if (el) el.classList.add("hidden");
       });
       document.getElementById("view-event-entry").classList.remove("hidden");
       window.hideEventCodeError();
       document.getElementById("event-entry-cancel-btn").classList.toggle("hidden", !allowCancel);
       const input = document.getElementById("event-code-input");
       input.value = activeEventCode || "";
+      if (options.clearPublicQuery && typeof window.history.replaceState === "function") {
+        try {
+          window.history.replaceState(buildRouteHistoryPayload("welcome"), "", window.location.pathname + "#welcome");
+        } catch {}
+      }
       syncHistoryForRoute("welcome", options);
       setTimeout(() => input.focus(), 30);
     }
 
     function enterEventWorkspace(code, options = {}) {
       const { keepAdminUnlocked = false, keepMasterAdmin = false, targetView = "judge" } = options;
+      if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
+      isPublicMode = false;
+      publicOpenedFromAdmin = false;
       isSwitchingEvent = false;
       activeEventCode = code;
       activeJudgeSession = null;
@@ -5221,6 +5510,8 @@
       document.getElementById("pin-modal-event-code").textContent = code;
       document.getElementById("admin-event-code-label").textContent = code;
       document.getElementById("admin-brand-scope-code").textContent = code;
+      const publicScopeEl = document.getElementById("admin-public-scope-code");
+      if (publicScopeEl) publicScopeEl.textContent = code;
       const liveItemScopeEl = document.getElementById("admin-live-item-scope-code");
       if (liveItemScopeEl) liveItemScopeEl.textContent = code;
       const judgesScopeEl = document.getElementById("admin-judges-scope-code");
@@ -5322,6 +5613,17 @@
     window.openEventSwitcher = () => {
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
+      if (isPublicMode) {
+        if (publicOpenedFromAdmin && isAdminUnlocked && activeEventCode) {
+          window.switchView("admin");
+          return;
+        }
+        detachListeners();
+        activeEventCode = "";
+        window.state = getEmptyEventState();
+        showEventEntryView(false, { clearPublicQuery: true });
+        return;
+      }
       showEventEntryView(Boolean(activeEventCode));
     };
 
@@ -5493,6 +5795,25 @@
         return;
       }
 
+      // Public Live Portal -> Return to Admin (if previewed from Admin) or Welcome screen
+      if (currentRoute === "public") {
+        if (publicOpenedFromAdmin && isAdminUnlocked && activeEventCode) {
+          publicOpenedFromAdmin = false;
+          isPublicMode = false;
+          if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
+          window.switchView("admin", { fromPopstate: true });
+          if (targetRoute !== "admin") {
+            try { window.history.replaceState(buildRouteHistoryPayload("admin"), "", "#admin"); } catch {}
+          }
+        } else {
+          showEventEntryView(false, { fromPopstate: true, clearPublicQuery: true });
+          if (targetRoute !== "welcome") {
+            try { window.history.replaceState(buildRouteHistoryPayload("welcome"), "", window.location.pathname + "#welcome"); } catch {}
+          }
+        }
+        return;
+      }
+
       // Judge Portal -> Navigate back to initial "Enter Festival Code" screen
       if (currentRoute === "judge") {
         stopAutoRotateTimer(true);
@@ -5507,11 +5828,16 @@
       if (!isAdminUnlocked && (!activeEventCode || isSwitchingEvent || view !== "judge")) return;
       if (!activeEventCode && view !== "admin") return;
 
+      isPublicMode = false;
+      publicOpenedFromAdmin = false;
+      if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
       isSwitchingEvent = false;
       if (view !== "tabulation" && isStageTvMode) {
         window.exitStageTvMode(true, { skipHistorySync: true });
       }
       document.getElementById("view-event-entry").classList.add("hidden");
+      const publicEl = document.getElementById("view-public");
+      if (publicEl) publicEl.classList.add("hidden");
       ["judge", "tabulation", "admin"].forEach(v => {
         document.getElementById("view-" + v).classList.toggle("hidden", v !== view);
       });
@@ -5520,6 +5846,8 @@
       updateNavHighlights(view);
       if (view === "tabulation") {
         window.renderTabulation();
+      } else if (view === "admin" && typeof renderAdminPublicShareCard === "function") {
+        renderAdminPublicShareCard();
       }
       syncHistoryForRoute(view, options);
     };
@@ -6912,6 +7240,24 @@
       updateStageTvHeaderMeta(selectedItem);
       renderLiveResultsTicker();
 
+      // Sync Public Publication Control for Selected Item
+      const pubWrap = document.getElementById("tab-publish-result-wrap");
+      const pubStatus = document.getElementById("tab-publish-status-text");
+      const pubBtn = document.getElementById("tab-publish-result-btn");
+      if (pubWrap && pubStatus && pubBtn) {
+        pubWrap.classList.toggle("hidden", dark || !selectedItem);
+        if (selectedItem) {
+          const published = Boolean(selectedItem.isPublished);
+          const pubTimeStr = published && selectedItem.publishedAt ? ` · ${format12HourTime(selectedItem.publishedAt)}` : "";
+          pubStatus.textContent = published ? `Published to Public${pubTimeStr}` : "Draft · Hidden from Public";
+          pubStatus.className = `text-xs font-semibold ${published ? "text-emerald-800" : "text-stone-500"}`;
+          pubBtn.textContent = published ? "Published ✓ (Unpublish)" : "Publish Result to Public";
+          pubBtn.className = published
+            ? "px-3.5 py-1.5 text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-colors whitespace-nowrap"
+            : "px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap";
+        }
+      }
+
       // Update Print Header details
       document.getElementById("print-event-title").textContent = selectedItem
         ? `${selectedItem.name}${selectedItem.malayalamName ? " (" + selectedItem.malayalamName + ")" : ""}`
@@ -7194,14 +7540,26 @@
               </form>
             `;
           }
+          const isPublished = Boolean(it.isPublished);
+          const pubTimeLabel = isPublished && it.publishedAt ? ` · ${format12HourTime(it.publishedAt)}` : "";
           return `
-            <div class="px-5 py-3 flex items-center justify-between gap-3">
+            <div class="px-5 py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
               <div class="min-w-0">
                 <div class="text-sm font-semibold text-stone-900 truncate">${escapeHtml(it.name)}${it.malayalamName ? " · " + escapeHtml(it.malayalamName) : ""}</div>
-                <div class="text-xs text-stone-500">${escapeHtml(it.category)} · ${escapeHtml(it.stage)} · <span class="text-amber-800 font-medium">${escapeHtml(CRITERIA_PRESET_LABELS[itemPresetKey] || "Custom Criteria")}</span></div>
+                <div class="text-xs text-stone-500">
+                  ${escapeHtml(it.category)} · ${escapeHtml(it.stage)} · <span class="text-amber-800 font-medium">${escapeHtml(CRITERIA_PRESET_LABELS[itemPresetKey] || "Custom Criteria")}</span>
+                  · <span class="${isPublished ? "text-emerald-700 font-semibold" : "text-stone-400"}">${isPublished ? `Published${escapeHtml(pubTimeLabel)}` : "Draft (Hidden)"}</span>
+                </div>
                 <div class="text-[11px] text-stone-400 truncate mt-0.5">${escapeHtml(criteriaSummary)}</div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="handleTogglePublishItem('${escapeHtml(it.id)}')" class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
+                  isPublished
+                    ? "text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
+                    : "text-white bg-emerald-700 hover:bg-emerald-800"
+                }">
+                  ${isPublished ? "Published ✓" : "Publish"}
+                </button>
                 <button type="button" onclick="startEditItem('${escapeHtml(it.id)}')" class="px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors whitespace-nowrap">
                   Edit
                 </button>
@@ -8500,7 +8858,9 @@
         malayalamName: document.getElementById("admin-item-ml").value.trim(),
         category: resolvedCategory,
         stage: stageRaw,
-        criteria: rawCriteria
+        criteria: rawCriteria,
+        isPublished: false,
+        publishedAt: null
       };
       window.state.items.push(item);
       await autoRegisterStagesFromNames([item.stage], { persist: true });
@@ -9945,12 +10305,1284 @@
       }
     };
 
-    // Boot: Verify Firestore connectivity, sync campus registry, restore preferences, initialize History navigation, and open Welcome screen
-    testConnection();
-    attachCampusRegistryListener();
-    loadJudgeSoundPreference();
-    initAppHistory();
-    showEventEntryView(false, { skipHistorySync: true });
+    // =========================================================================
+    // PUBLIC LIVE SCOREBOARD & RESULTS PORTAL (READ-ONLY SPECTATOR ENGINE)
+    // =========================================================================
+
+    function format12HourTime(dateInput = new Date(), includeSeconds = false) {
+      const dt = dateInput instanceof Date ? dateInput : new Date(dateInput);
+      if (Number.isNaN(dt.getTime())) return "—";
+      let hours = dt.getHours();
+      const minutes = String(dt.getMinutes()).padStart(2, "0");
+      const seconds = String(dt.getSeconds()).padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12;
+      if (hours === 0) hours = 12;
+      return includeSeconds ? `${hours}:${minutes}:${seconds} ${ampm}` : `${hours}:${minutes} ${ampm}`;
+    }
+
+    function stopPublicClockTimer() {
+      if (publicClockTimer) {
+        clearInterval(publicClockTimer);
+        publicClockTimer = null;
+      }
+    }
+
+    function startPublicClockTimer() {
+      stopPublicClockTimer();
+      const updateClock = () => {
+        const el = document.getElementById("public-live-clock");
+        if (el) el.textContent = format12HourTime(new Date(), true);
+      };
+      updateClock();
+      publicClockTimer = setInterval(updateClock, 1000);
+    }
+
+    // Self-Contained ISO/IEC 18004 QR Code Generator (Byte Mode, EC Level M, Versions 1-10)
+    const QR_GF_EXP = new Uint8Array(512);
+    const QR_GF_LOG = new Uint8Array(256);
+    (() => {
+      let x = 1;
+      for (let i = 0; i < 255; i++) {
+        QR_GF_EXP[i] = x;
+        QR_GF_LOG[x] = i;
+        x <<= 1;
+        if (x & 0x100) x ^= 0x11d;
+      }
+      for (let i = 255; i < 512; i++) {
+        QR_GF_EXP[i] = QR_GF_EXP[i - 255];
+      }
+    })();
+
+    function qrGfMul(a, b) {
+      if (a === 0 || b === 0) return 0;
+      return QR_GF_EXP[QR_GF_LOG[a] + QR_GF_LOG[b]];
+    }
+
+    function qrRsGeneratorPoly(ecCount) {
+      let poly = [1];
+      for (let i = 0; i < ecCount; i++) {
+        const next = new Array(poly.length + 1).fill(0);
+        const factor = QR_GF_EXP[i];
+        for (let j = 0; j < poly.length; j++) {
+          next[j] ^= poly[j];
+          next[j + 1] ^= qrGfMul(poly[j], factor);
+        }
+        poly = next;
+      }
+      return poly;
+    }
+
+    function qrRsRemainder(dataBytes, ecCount) {
+      const gen = qrRsGeneratorPoly(ecCount);
+      const res = new Uint8Array(ecCount);
+      for (let i = 0; i < dataBytes.length; i++) {
+        const factor = dataBytes[i] ^ res[0];
+        for (let j = 0; j < ecCount - 1; j++) {
+          res[j] = res[j + 1];
+        }
+        res[ecCount - 1] = 0;
+        if (factor !== 0) {
+          for (let j = 0; j < ecCount; j++) {
+            res[j] ^= qrGfMul(gen[j + 1], factor);
+          }
+        }
+      }
+      return res;
+    }
+
+    // EC Level M specs for Versions 1..10: [version, ecPerBlock, [[numBlocks, dataCodewords], ...], alignmentCoords]
+    const QR_VERSION_SPECS_M = [
+      null,
+      { v: 1, ec: 10, blocks: [[1, 16]], align: [] },
+      { v: 2, ec: 16, blocks: [[1, 28]], align: [6, 18] },
+      { v: 3, ec: 26, blocks: [[1, 44]], align: [6, 22] },
+      { v: 4, ec: 18, blocks: [[2, 32]], align: [6, 26] },
+      { v: 5, ec: 24, blocks: [[2, 43]], align: [6, 30] },
+      { v: 6, ec: 16, blocks: [[4, 27]], align: [6, 34] },
+      { v: 7, ec: 18, blocks: [[4, 31]], align: [6, 22, 38] },
+      { v: 8, ec: 22, blocks: [[2, 38], [2, 39]], align: [6, 24, 42] },
+      { v: 9, ec: 22, blocks: [[3, 36], [2, 37]], align: [6, 26, 46] },
+      { v: 10, ec: 26, blocks: [[4, 43], [1, 44]], align: [6, 28, 50] }
+    ];
+
+    function qrComputeFormatBits(maskPattern) {
+      // EC Level M = 00
+      const data = (0b00 << 3) | (maskPattern & 7);
+      let rem = data << 10;
+      for (let i = 14; i >= 10; i--) {
+        if ((rem >>> i) & 1) rem ^= 0x537 << (i - 10);
+      }
+      return ((data << 10) | rem) ^ 0x5412;
+    }
+
+    function qrComputeVersionBits(version) {
+      let rem = version << 12;
+      for (let i = 17; i >= 12; i--) {
+        if ((rem >>> i) & 1) rem ^= 0x1f25 << (i - 12);
+      }
+      return (version << 12) | rem;
+    }
+
+    function generateQrMatrix(text) {
+      const bytes = Array.from(new TextEncoder().encode(String(text || "")));
+      let spec = null;
+      let totalDataCodewords = 0;
+      for (let v = 1; v < QR_VERSION_SPECS_M.length; v++) {
+        const candidate = QR_VERSION_SPECS_M[v];
+        const cap = candidate.blocks.reduce((sum, [cnt, dc]) => sum + cnt * dc, 0);
+        const countBits = v <= 9 ? 8 : 16;
+        const neededBits = 4 + countBits + bytes.length * 8;
+        if (neededBits <= cap * 8) {
+          spec = candidate;
+          totalDataCodewords = cap;
+          break;
+        }
+      }
+      if (!spec) {
+        throw new Error("URL too long for QR Version 10");
+      }
+
+      // 1. Build bit stream (Byte mode 0100)
+      const bits = [];
+      const pushBits = (val, len) => {
+        for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1);
+      };
+      pushBits(0b0100, 4);
+      pushBits(bytes.length, spec.v <= 9 ? 8 : 16);
+      bytes.forEach((b) => pushBits(b, 8));
+      const maxBits = totalDataCodewords * 8;
+      const terminatorLen = Math.min(4, maxBits - bits.length);
+      for (let i = 0; i < terminatorLen; i++) bits.push(0);
+      while (bits.length % 8 !== 0) bits.push(0);
+
+      const dataCodewords = [];
+      for (let i = 0; i < bits.length; i += 8) {
+        let byte = 0;
+        for (let j = 0; j < 8; j++) byte = (byte << 1) | bits[i + j];
+        dataCodewords.push(byte);
+      }
+      const padBytes = [0xec, 0x11];
+      let padIdx = 0;
+      while (dataCodewords.length < totalDataCodewords) {
+        dataCodewords.push(padBytes[padIdx % 2]);
+        padIdx++;
+      }
+
+      // 2. Split into RS blocks & interleave
+      const dataBlocks = [];
+      const ecBlocks = [];
+      let cursor = 0;
+      spec.blocks.forEach(([numBlocks, dcLen]) => {
+        for (let b = 0; b < numBlocks; b++) {
+          const slice = dataCodewords.slice(cursor, cursor + dcLen);
+          cursor += dcLen;
+          dataBlocks.push(slice);
+          ecBlocks.push(qrRsRemainder(slice, spec.ec));
+        }
+      });
+
+      const finalCodewords = [];
+      const maxDc = Math.max(...dataBlocks.map((b) => b.length));
+      for (let i = 0; i < maxDc; i++) {
+        for (const blk of dataBlocks) {
+          if (i < blk.length) finalCodewords.push(blk[i]);
+        }
+      }
+      for (let i = 0; i < spec.ec; i++) {
+        for (const ecBlk of ecBlocks) {
+          finalCodewords.push(ecBlk[i]);
+        }
+      }
+
+      // 3. Allocate matrix & place function patterns
+      const size = spec.v * 4 + 17;
+      const modules = Array.from({ length: size }, () => new Uint8Array(size));
+      const isFunction = Array.from({ length: size }, () => new Uint8Array(size));
+      const setFunc = (r, c, dark) => {
+        if (r < 0 || c < 0 || r >= size || c >= size) return;
+        modules[r][c] = dark ? 1 : 0;
+        isFunction[r][c] = 1;
+      };
+
+      const drawFinder = (r0, c0) => {
+        for (let dr = -1; dr <= 7; dr++) {
+          for (let dc = -1; dc <= 7; dc++) {
+            const r = r0 + dr;
+            const c = c0 + dc;
+            if (r < 0 || c < 0 || r >= size || c >= size) continue;
+            const inOuter = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+            const isBorder = dr === 0 || dr === 6 || dc === 0 || dc === 6;
+            const isCenter = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+            setFunc(r, c, inOuter && (isBorder || isCenter));
+          }
+        }
+      };
+
+      drawFinder(0, 0);
+      drawFinder(0, size - 7);
+      drawFinder(size - 7, 0);
+
+      // Timing patterns
+      for (let i = 8; i < size - 8; i++) {
+        setFunc(6, i, i % 2 === 0);
+        setFunc(i, 6, i % 2 === 0);
+      }
+
+      // Alignment patterns
+      for (let i = 0; i < spec.align.length; i++) {
+        for (let j = 0; j < spec.align.length; j++) {
+          const r = spec.align[i];
+          const c = spec.align[j];
+          const overlapsFinder =
+            (r <= 8 && c <= 8) ||
+            (r <= 8 && c >= size - 9) ||
+            (r >= size - 9 && c <= 8);
+          if (overlapsFinder) continue;
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const dist = Math.max(Math.abs(dr), Math.abs(dc));
+              setFunc(r + dr, c + dc, dist !== 1);
+            }
+          }
+        }
+      }
+
+      // Reserve format info + dark module
+      for (let i = 0; i <= 8; i++) {
+        if (i !== 6) {
+          setFunc(8, i, false);
+          setFunc(i, 8, false);
+        }
+      }
+      for (let i = 0; i < 8; i++) {
+        setFunc(8, size - 1 - i, false);
+      }
+      for (let i = 0; i < 7; i++) {
+        setFunc(size - 1 - i, 8, false);
+      }
+      setFunc(size - 8, 8, true);
+
+      // Version info (Versions 7-10)
+      if (spec.v >= 7) {
+        const vBits = qrComputeVersionBits(spec.v);
+        for (let i = 0; i < 18; i++) {
+          const bit = Boolean((vBits >>> i) & 1);
+          const a = Math.floor(i / 3);
+          const b = (i % 3) + size - 11;
+          setFunc(a, b, bit);
+          setFunc(b, a, bit);
+        }
+      }
+
+      // 4. Zig-zag data placement
+      let bitIdx = 0;
+      const totalBits = finalCodewords.length * 8;
+      for (let right = size - 1; right >= 1; right -= 2) {
+        if (right === 6) right = 5;
+        const upward = ((right + 1) & 2) === 0;
+        for (let vert = 0; vert < size; vert++) {
+          const r = upward ? size - 1 - vert : vert;
+          for (let j = 0; j < 2; j++) {
+            const c = right - j;
+            if (isFunction[r][c]) continue;
+            let bit = 0;
+            if (bitIdx < totalBits) {
+              bit = (finalCodewords[bitIdx >>> 3] >>> (7 - (bitIdx & 7))) & 1;
+              bitIdx++;
+            }
+            modules[r][c] = bit;
+          }
+        }
+      }
+
+      // 5. Evaluate masks 0..7 and pick lowest penalty
+      const applyFormatToGrid = (grid, maskId) => {
+        const fmt = qrComputeFormatBits(maskId);
+        for (let i = 0; i <= 5; i++) grid[8][i] = (fmt >>> (14 - i)) & 1;
+        grid[8][7] = (fmt >>> 8) & 1;
+        grid[8][8] = (fmt >>> 7) & 1;
+        grid[7][8] = (fmt >>> 6) & 1;
+        for (let i = 9; i < 15; i++) grid[14 - i][8] = (fmt >>> (14 - i)) & 1;
+        for (let i = 0; i < 8; i++) grid[8][size - 1 - i] = (fmt >>> i) & 1;
+        for (let i = 0; i < 7; i++) grid[size - 1 - i][8] = (fmt >>> (14 - i)) & 1;
+        grid[size - 8][8] = 1;
+      };
+
+      const maskCond = (maskId, r, c) => {
+        switch (maskId) {
+          case 0: return (r + c) % 2 === 0;
+          case 1: return r % 2 === 0;
+          case 2: return c % 3 === 0;
+          case 3: return (r + c) % 3 === 0;
+          case 4: return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0;
+          case 5: return ((r * c) % 2) + ((r * c) % 3) === 0;
+          case 6: return (((r * c) % 2) + ((r * c) % 3)) % 2 === 0;
+          case 7: return (((r + c) % 2) + ((r * c) % 3)) % 2 === 0;
+          default: return false;
+        }
+      };
+
+      const scoreGrid = (grid) => {
+        let penalty = 0;
+        let darkCount = 0;
+        for (let r = 0; r < size; r++) {
+          let runColor = grid[r][0];
+          let runLen = 1;
+          if (runColor) darkCount++;
+          for (let c = 1; c < size; c++) {
+            const val = grid[r][c];
+            if (val) darkCount++;
+            if (val === runColor) {
+              runLen++;
+            } else {
+              if (runLen >= 5) penalty += 3 + (runLen - 5);
+              runColor = val;
+              runLen = 1;
+            }
+          }
+          if (runLen >= 5) penalty += 3 + (runLen - 5);
+        }
+        for (let c = 0; c < size; c++) {
+          let runColor = grid[0][c];
+          let runLen = 1;
+          for (let r = 1; r < size; r++) {
+            if (grid[r][c] === runColor) {
+              runLen++;
+            } else {
+              if (runLen >= 5) penalty += 3 + (runLen - 5);
+              runColor = grid[r][c];
+              runLen = 1;
+            }
+          }
+          if (runLen >= 5) penalty += 3 + (runLen - 5);
+        }
+        for (let r = 0; r < size - 1; r++) {
+          for (let c = 0; c < size - 1; c++) {
+            const v = grid[r][c];
+            if (v === grid[r][c + 1] && v === grid[r + 1][c] && v === grid[r + 1][c + 1]) {
+              penalty += 3;
+            }
+          }
+        }
+        const total = size * size;
+        const pct = Math.abs(Math.round((darkCount * 100) / total) - 50);
+        penalty += Math.floor(pct / 5) * 10;
+        return penalty;
+      };
+
+      let bestGrid = null;
+      let bestScore = Infinity;
+      for (let maskId = 0; maskId < 8; maskId++) {
+        const candidate = modules.map((row, r) => {
+          const copy = new Uint8Array(row);
+          for (let c = 0; c < size; c++) {
+            if (!isFunction[r][c] && maskCond(maskId, r, c)) {
+              copy[c] ^= 1;
+            }
+          }
+          return copy;
+        });
+        applyFormatToGrid(candidate, maskId);
+        const s = scoreGrid(candidate);
+        if (s < bestScore) {
+          bestScore = s;
+          bestGrid = candidate;
+        }
+      }
+      return bestGrid;
+    }
+
+    function buildQrSvgMarkup(text) {
+      try {
+        const matrix = generateQrMatrix(text);
+        const size = matrix.length;
+        const quiet = 4;
+        const dim = size + quiet * 2;
+        const rects = [];
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (matrix[r][c]) {
+              rects.push(`M${c + quiet},${r + quiet}h1v1h-1z`);
+            }
+          }
+        }
+        return `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${dim} ${dim}" class="w-full h-full" shape-rendering="crispEdges" role="img" aria-label="Scannable QR Code for Public Live Scoreboard">
+            <rect width="${dim}" height="${dim}" fill="#FFFFFF" />
+            <path d="${rects.join("")}" fill="#1C1917" />
+          </svg>
+        `;
+      } catch {
+        return `<div class="text-xs text-stone-500 text-center p-4">QR unavailable for long URL</div>`;
+      }
+    }
+
+    function getPublicLiveShareUrl(code = activeEventCode) {
+      const normalized = normalizeEventCode(code);
+      if (!normalized) return "";
+      try {
+        const base = window.location.origin && window.location.origin !== "null"
+          ? `${window.location.origin}${window.location.pathname}`
+          : window.location.href.split("?")[0].split("#")[0];
+        return `${base}?view=public&code=${encodeURIComponent(normalized)}`;
+      } catch {
+        return `?view=public&code=${encodeURIComponent(normalized)}`;
+      }
+    }
+
+    function renderAdminPublicShareCard() {
+      const urlInput = document.getElementById("admin-public-share-url");
+      const qrContainer = document.getElementById("admin-public-qr-container");
+      const scopeEl = document.getElementById("admin-public-scope-code");
+      const qrCodeLabel = document.getElementById("admin-public-qr-code-label");
+      const pubSummaryEl = document.getElementById("admin-public-published-summary");
+      const waLink = document.getElementById("admin-public-whatsapp-link");
+
+      if (!activeEventCode) {
+        if (urlInput) urlInput.value = "";
+        if (qrContainer) qrContainer.innerHTML = "";
+        if (scopeEl) scopeEl.textContent = "—";
+        if (qrCodeLabel) qrCodeLabel.textContent = "—";
+        if (pubSummaryEl) pubSummaryEl.textContent = "0 of 0 results published";
+        return;
+      }
+
+      const shareUrl = getPublicLiveShareUrl(activeEventCode);
+      const cfg = window.state?.config || getDefaultConfig(activeEventCode);
+      const festTitle = cfg.title || activeEventCode;
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const publishedCount = items.filter((it) => Boolean(it.isPublished)).length;
+
+      if (scopeEl) scopeEl.textContent = activeEventCode;
+      if (qrCodeLabel) qrCodeLabel.textContent = activeEventCode;
+      if (pubSummaryEl) {
+        pubSummaryEl.textContent = `${publishedCount} of ${items.length} ${items.length === 1 ? "result" : "results"} published`;
+      }
+      if (urlInput && urlInput.value !== shareUrl) {
+        urlInput.value = shareUrl;
+      }
+      if (qrContainer && qrContainer.dataset.renderedUrl !== shareUrl) {
+        qrContainer.dataset.renderedUrl = shareUrl;
+        qrContainer.innerHTML = buildQrSvgMarkup(shareUrl);
+      }
+      if (waLink) {
+        const waText = `Follow ${festTitle} Live Standings, Active Stages & Official Results (${activeEventCode}): ${shareUrl}`;
+        waLink.href = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+      }
+    }
+
+    window.handleCopyPublicLink = async () => {
+      if (!activeEventCode) return;
+      const url = getPublicLiveShareUrl(activeEventCode);
+      try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(url);
+          window.showToast("Public live link copied to clipboard");
+          return;
+        }
+      } catch {}
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        window.showToast("Public live link copied to clipboard");
+      } catch {
+        window.showToast("Select and copy the public link from the box");
+      }
+    };
+
+    window.handleDownloadPublicQr = () => {
+      if (!activeEventCode) return;
+      const url = getPublicLiveShareUrl(activeEventCode);
+      const cfg = window.state?.config || getDefaultConfig(activeEventCode);
+      const festTitle = (cfg.title || activeEventCode).slice(0, 48);
+      try {
+        const matrix = generateQrMatrix(url);
+        const size = matrix.length;
+        const quiet = 4;
+        const totalModules = size + quiet * 2;
+        const scale = Math.max(8, Math.floor(540 / totalModules));
+        const qrPx = totalModules * scale;
+        const padX = 48;
+        const topPad = 44;
+        const footerH = 112;
+        const canvas = document.createElement("canvas");
+        canvas.width = qrPx + padX * 2;
+        canvas.height = topPad + qrPx + footerH;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#1C1917";
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            if (matrix[r][c]) {
+              ctx.fillRect(padX + (c + quiet) * scale, topPad + (r + quiet) * scale, scale, scale);
+            }
+          }
+        }
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#1C1917";
+        ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+        ctx.fillText(festTitle, canvas.width / 2, topPad + qrPx + 42);
+        ctx.fillStyle = "#B45309";
+        ctx.font = "bold 16px system-ui, -apple-system, sans-serif";
+        ctx.fillText(`SCAN FOR LIVE RESULTS · CODE: ${activeEventCode}`, canvas.width / 2, topPad + qrPx + 74);
+
+        const link = document.createElement("a");
+        link.download = `${activeEventCode}_Live_Results_QR.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        window.showToast("Downloaded scannable QR code (PNG)");
+      } catch {
+        window.showToast("Unable to generate QR PNG right now");
+      }
+    };
+
+    // Admin Result Publication Controls (Strict Unpublished Protection)
+    window.handleTogglePublishItem = async (itemId) => {
+      if (!activeEventCode || !isAdminUnlocked || !itemId) return;
+      const item = window.state.items.find((it) => it.id === itemId);
+      if (!item) return;
+
+      const nextPublished = !Boolean(item.isPublished);
+      const nextPublishedAt = nextPublished ? new Date().toISOString() : null;
+      const updatedItem = { ...item, isPublished: nextPublished, publishedAt: nextPublishedAt };
+      window.state.items = window.state.items.map((it) => (it.id === itemId ? updatedItem : it));
+      publicLastUpdatedAt = new Date();
+      saveLocalState();
+
+      window.renderTabulation();
+      window.renderAdminLists();
+      renderAdminPublicShareCard();
+      window.renderPublicView();
+
+      window.showToast(
+        nextPublished
+          ? `Published "${item.name}" to Public Live Results`
+          : `Unpublished "${item.name}" (hidden from Public)`
+      );
+
+      try {
+        await setDoc(
+          eventDocument("items", itemId),
+          {
+            isPublished: nextPublished,
+            publishedAt: nextPublishedAt
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        handleFirestoreError(err, "update", `events/${activeEventCode}/items/${itemId}`);
+      }
+    };
+
+    window.handleTogglePublishSelectedItem = () => {
+      const itemId = document.getElementById("tab-item-select")?.value || "";
+      if (!itemId) return;
+      window.handleTogglePublishItem(itemId);
+    };
+
+    // Public Standings Computation (STRICTLY Published Events Only — Zero Raw Judge Marks Exposed)
+    function computePublishedItemResults(item) {
+      const participants = Array.isArray(window.state?.participants) ? window.state.participants : [];
+      const scores = Array.isArray(window.state?.scores) ? window.state.scores : [];
+      const groups = Array.isArray(window.state?.groups) ? window.state.groups : [];
+      const activeSlots = getActiveJudgeSlots();
+      const itemParts = participants.filter((p) => p.itemId === item.id);
+
+      const scoredEntries = [];
+      itemParts.forEach((p) => {
+        const sc = scores.filter((s) => s.itemId === item.id && s.participantId === p.id && activeSlots.includes(s.judgeSlot));
+        const vals = sc.map((s) => Number(s.total)).filter((v) => Number.isFinite(v));
+        if (!vals.length) return;
+        const avg = vals.reduce((sum, v) => sum + v, 0) / vals.length;
+        const grade = computeGradeFromAverage(avg, window.state.config);
+        const groupObj = p.groupId
+          ? groups.find((g) => g.id === p.groupId)
+          : (p.groupName ? groups.find((g) => g.name.toLowerCase() === String(p.groupName).toLowerCase()) : null);
+        scoredEntries.push({
+          participant: p,
+          groupId: groupObj?.id || p.groupId || "",
+          groupName: groupObj?.name || p.groupName || "",
+          groupColor: groupObj?.color || "#78716C",
+          _sortAvg: avg,
+          grade
+        });
+      });
+
+      scoredEntries.sort((a, b) => (b._sortAvg - a._sortAvg) || String(a.participant.chestNo).localeCompare(String(b.participant.chestNo), undefined, { numeric: true }));
+
+      const labels = ["1st", "2nd", "3rd"];
+      let currentRank = 1;
+      let prevAvg = null;
+      return scoredEntries.map((entry, idx) => {
+        if (idx > 0 && prevAvg !== null && Math.abs(entry._sortAvg - prevAvg) > 1e-6) {
+          currentRank = idx + 1;
+        }
+        prevAvg = entry._sortAvg;
+        const points = currentRank === 1 ? 5 : currentRank === 2 ? 3 : currentRank === 3 ? 1 : 0;
+        return {
+          participant: entry.participant,
+          groupId: entry.groupId,
+          groupName: entry.groupName,
+          groupColor: entry.groupColor,
+          rankNum: currentRank,
+          rankLabel: labels[currentRank - 1] || `${currentRank}th`,
+          grade: entry.grade,
+          points
+        };
+      });
+    }
+
+    function computePublicGroupStandings() {
+      const groups = Array.isArray(window.state?.groups) ? window.state.groups : [];
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const publishedItems = items.filter((it) => Boolean(it.isPublished));
+
+      const map = new Map();
+      groups.forEach((g, idx) => {
+        map.set(g.id, {
+          id: g.id,
+          name: g.name,
+          color: g.color || resolveGroupColor(g.name, groups.slice(0, idx)),
+          points: 0,
+          firsts: 0,
+          seconds: 0,
+          thirds: 0,
+          rank: 0
+        });
+      });
+
+      publishedItems.forEach((it) => {
+        const ranked = computePublishedItemResults(it);
+        ranked.forEach((entry) => {
+          if (!entry.points) return;
+          let grp = entry.groupId ? map.get(entry.groupId) : null;
+          if (!grp && entry.groupName) {
+            grp = Array.from(map.values()).find((g) => g.name.toLowerCase() === entry.groupName.toLowerCase()) || null;
+          }
+          if (!grp) return;
+          grp.points += entry.points;
+          if (entry.rankNum === 1) grp.firsts += 1;
+          else if (entry.rankNum === 2) grp.seconds += 1;
+          else if (entry.rankNum === 3) grp.thirds += 1;
+        });
+      });
+
+      const standings = Array.from(map.values()).sort(
+        (a, b) =>
+          (b.points - a.points) ||
+          (b.firsts - a.firsts) ||
+          (b.seconds - a.seconds) ||
+          (b.thirds - a.thirds) ||
+          a.name.localeCompare(b.name)
+      );
+
+      let rank = 1;
+      standings.forEach((g, idx) => {
+        if (idx > 0) {
+          const prev = standings[idx - 1];
+          if (prev.points !== g.points || prev.firsts !== g.firsts || prev.seconds !== g.seconds) {
+            rank = idx + 1;
+          }
+        }
+        g.rank = rank;
+      });
+
+      return {
+        standings,
+        publishedItemsCount: publishedItems.length,
+        totalItemsCount: items.length
+      };
+    }
+
+    window.switchPublicTab = (tab) => {
+      const validTabs = ["standings", "results", "stages"];
+      const nextTab = validTabs.includes(tab) ? tab : "standings";
+      activePublicTab = nextTab;
+
+      validTabs.forEach((t) => {
+        const panel = document.getElementById(`public-panel-${t}`);
+        if (panel) panel.classList.toggle("hidden", t !== nextTab);
+
+        const deskBtn = document.getElementById(`public-tab-btn-${t}`);
+        if (deskBtn) {
+          const active = t === nextTab;
+          deskBtn.setAttribute("aria-selected", active ? "true" : "false");
+          deskBtn.className = active
+            ? "px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg transition-colors whitespace-nowrap bg-white text-stone-900 shadow-sm"
+            : "px-5 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg transition-colors whitespace-nowrap text-stone-600 hover:text-stone-900";
+        }
+
+        const mobBtn = document.getElementById(`public-mobile-tab-${t}`);
+        if (mobBtn) {
+          const active = t === nextTab;
+          mobBtn.className = active
+            ? "flex flex-col items-center justify-center gap-0.5 min-h-[48px] rounded-lg text-amber-800 bg-amber-50/80 font-semibold transition-colors"
+            : "flex flex-col items-center justify-center gap-0.5 min-h-[48px] rounded-lg text-stone-600 font-medium transition-colors";
+        }
+      });
+
+      window.renderPublicView();
+    };
+
+    window.clearPublicResultsFilters = () => {
+      const searchEl = document.getElementById("public-results-search");
+      const houseEl = document.getElementById("public-results-house-filter");
+      const catEl = document.getElementById("public-results-cat-filter");
+      if (searchEl) searchEl.value = "";
+      if (houseEl) houseEl.value = "all";
+      if (catEl) catEl.value = "all";
+      window.renderPublicResults();
+    };
+
+    function renderPublicHeaderMeta(standingsInfo) {
+      const cfg = window.state?.config || getDefaultConfig(activeEventCode);
+      const titleEl = document.getElementById("public-festival-title");
+      const subEl = document.getElementById("public-festival-subtitle");
+      const codeEl = document.getElementById("public-event-code");
+      const leaderEl = document.getElementById("public-kpi-leader");
+      const pubEl = document.getElementById("public-kpi-published");
+      const updatedEl = document.getElementById("public-last-updated");
+
+      if (titleEl) titleEl.textContent = cfg.title || activeEventCode || "Festival Live Results";
+      const sub = typeof cfg.subtitle === "string" ? cfg.subtitle.trim() : "";
+      if (subEl) {
+        subEl.textContent = sub;
+        subEl.classList.toggle("hidden", !sub);
+      }
+      if (codeEl) codeEl.textContent = activeEventCode || "—";
+
+      const topHouse = standingsInfo.standings[0];
+      if (leaderEl) {
+        leaderEl.textContent = topHouse && topHouse.points > 0
+          ? `${topHouse.name} (${topHouse.points} pts)`
+          : "Awaiting results";
+      }
+      if (pubEl) {
+        pubEl.textContent = `${standingsInfo.publishedItemsCount} / ${standingsInfo.totalItemsCount}`;
+      }
+      if (updatedEl) {
+        updatedEl.textContent = format12HourTime(publicLastUpdatedAt || new Date(), true);
+      }
+    }
+
+    function renderPublicStandings(standingsInfo) {
+      const spotlightEl = document.getElementById("public-leader-spotlight");
+      const listEl = document.getElementById("public-standings-list");
+      const countEl = document.getElementById("public-standings-house-count");
+      if (!spotlightEl || !listEl) return;
+
+      const { standings, publishedItemsCount, totalItemsCount } = standingsInfo;
+      if (countEl) {
+        countEl.textContent = `${standings.length} ${standings.length === 1 ? "house" : "houses"}`;
+      }
+
+      if (standings.length === 0) {
+        spotlightEl.innerHTML = `
+          <div class="text-sm text-stone-600">
+            House / Team standings will appear here live as soon as competition houses are registered and results are published.
+          </div>
+        `;
+        listEl.innerHTML = `<div class="p-6 text-center text-sm text-stone-500">No Houses / Teams configured for this festival yet.</div>`;
+        return;
+      }
+
+      const leader = standings[0];
+      const tiedLeaders = standings.filter((g) => g.rank === 1 && g.points > 0);
+      if (leader.points > 0) {
+        const leaderNames = tiedLeaders.map((g) => escapeHtml(g.name)).join(" &amp; ");
+        spotlightEl.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1 min-w-0">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-amber-800">${tiedLeaders.length > 1 ? "Joint Championship Leaders" : "Current Championship Leader"}</div>
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${escapeHtml(leader.color)}"></span>
+                <div class="text-xl sm:text-2xl font-bold text-stone-900 font-display truncate">${leaderNames}</div>
+              </div>
+              <div class="text-xs text-stone-600 tabular-nums">
+                ${leader.firsts} Gold (1st) · ${leader.seconds} Silver (2nd) · ${leader.thirds} Bronze (3rd) · Based on ${publishedItemsCount} declared ${publishedItemsCount === 1 ? "event" : "events"}
+              </div>
+            </div>
+            <div class="sm:text-right shrink-0">
+              <div class="text-3xl sm:text-4xl font-bold text-amber-800 tabular-nums leading-none">${leader.points}</div>
+              <div class="text-[11px] font-semibold uppercase tracking-wider text-stone-500 mt-1">Total Points</div>
+            </div>
+          </div>
+        `;
+      } else {
+        spotlightEl.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Championship Race Underway</div>
+              <div class="text-sm text-stone-600 mt-0.5">
+                ${totalItemsCount > 0 ? `${totalItemsCount} competition ${totalItemsCount === 1 ? "event is" : "events are"} scheduled. Standings update automatically once results are officially declared.` : "Standings will appear live once events are declared."}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const maxPts = Math.max(1, ...standings.map((g) => g.points));
+      listEl.innerHTML = standings.map((g) => {
+        const pct = g.points > 0 ? Math.max(4, Math.round((g.points / maxPts) * 100)) : 0;
+        const isFirst = g.rank === 1 && g.points > 0;
+        return `
+          <div class="px-5 py-4 space-y-2.5 ${isFirst ? "bg-amber-50/40" : ""}">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold tabular-nums shrink-0 ${
+                  isFirst ? "bg-amber-700 text-white" : "bg-stone-100 text-stone-700"
+                }">#${g.rank}</span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
+                    <span class="text-sm sm:text-base font-bold text-stone-900 truncate">${escapeHtml(g.name)}</span>
+                  </div>
+                  <div class="text-xs text-stone-500 tabular-nums mt-0.5">
+                    <span class="font-semibold text-amber-800">${g.firsts}</span> Gold ·
+                    <span class="font-semibold text-stone-700">${g.seconds}</span> Silver ·
+                    <span class="font-semibold text-amber-700">${g.thirds}</span> Bronze
+                  </div>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-xl sm:text-2xl font-bold text-stone-900 tabular-nums leading-none">${g.points}</div>
+                <div class="text-[11px] font-medium text-stone-500 mt-0.5">points</div>
+              </div>
+            </div>
+            <div class="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${escapeHtml(g.color)};"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    window.renderPublicResults = () => {
+      const listEl = document.getElementById("public-results-list");
+      const summaryEl = document.getElementById("public-results-summary");
+      const clearBtn = document.getElementById("public-results-clear-btn");
+      const houseFilterEl = document.getElementById("public-results-house-filter");
+      const catFilterEl = document.getElementById("public-results-cat-filter");
+      const searchEl = document.getElementById("public-results-search");
+      if (!listEl) return;
+
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const groups = Array.isArray(window.state?.groups) ? window.state.groups : [];
+      const publishedItems = items
+        .filter((it) => Boolean(it.isPublished))
+        .sort((a, b) => {
+          const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+          const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+          return tb - ta;
+        });
+      const pendingCount = Math.max(0, items.length - publishedItems.length);
+
+      // Sync filter dropdowns while preserving current selection
+      if (houseFilterEl) {
+        const curHouse = houseFilterEl.value || "all";
+        const houseOpts = [
+          `<option value="all">All Houses / Teams</option>`,
+          ...groups.map((g) => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`)
+        ].join("");
+        if (houseFilterEl.innerHTML !== houseOpts) {
+          houseFilterEl.innerHTML = houseOpts;
+          houseFilterEl.value = groups.some((g) => g.id === curHouse) ? curHouse : "all";
+        }
+      }
+      if (catFilterEl) {
+        const curCat = catFilterEl.value || "all";
+        const cats = Array.from(new Set(publishedItems.map((it) => String(it.category || "").trim()).filter(Boolean))).sort();
+        const catOpts = [
+          `<option value="all">All Categories</option>`,
+          ...cats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+        ].join("");
+        if (catFilterEl.innerHTML !== catOpts) {
+          catFilterEl.innerHTML = catOpts;
+          catFilterEl.value = cats.includes(curCat) ? curCat : "all";
+        }
+      }
+
+      const queryStr = (searchEl?.value || "").trim().toLowerCase();
+      const selectedHouse = houseFilterEl?.value || "all";
+      const selectedCat = catFilterEl?.value || "all";
+      const hasFilters = Boolean(queryStr) || selectedHouse !== "all" || selectedCat !== "all";
+      if (clearBtn) clearBtn.classList.toggle("hidden", !hasFilters);
+
+      const cards = [];
+      publishedItems.forEach((item) => {
+        if (selectedCat !== "all" && String(item.category || "").trim() !== selectedCat) return;
+
+        const rankedAll = computePublishedItemResults(item);
+        const itemMatchesQuery = !queryStr || (
+          String(item.name || "").toLowerCase().includes(queryStr) ||
+          String(item.malayalamName || "").toLowerCase().includes(queryStr) ||
+          String(item.category || "").toLowerCase().includes(queryStr) ||
+          String(item.stage || "").toLowerCase().includes(queryStr)
+        );
+
+        const filteredEntries = rankedAll.filter((r) => {
+          if (selectedHouse !== "all" && r.groupId !== selectedHouse) return false;
+          if (!queryStr || itemMatchesQuery) return true;
+          return (
+            String(r.participant.chestNo || "").toLowerCase().includes(queryStr) ||
+            String(r.participant.name || "").toLowerCase().includes(queryStr) ||
+            String(r.participant.school || "").toLowerCase().includes(queryStr) ||
+            String(r.groupName || "").toLowerCase().includes(queryStr)
+          );
+        });
+
+        // If house filter or participant search is active, only show items with matching entries
+        if ((selectedHouse !== "all" || (queryStr && !itemMatchesQuery)) && filteredEntries.length === 0) {
+          return;
+        }
+
+        // Display top declared winners (1st, 2nd, 3rd — plus any directly searched chest/house entries)
+        const displayRows = hasFilters
+          ? filteredEntries
+          : filteredEntries.filter((r) => r.rankNum >= 1 && r.rankNum <= 3);
+        const rowsToShow = displayRows.length > 0 ? displayRows : filteredEntries.slice(0, 3);
+        const pubTimeStr = item.publishedAt ? `Declared ${format12HourTime(item.publishedAt)}` : "Officially Declared";
+
+        cards.push(`
+          <article class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-stone-200 bg-stone-50/70 flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0">
+                <h3 class="text-base sm:text-lg font-bold text-stone-900 font-display leading-snug">
+                  ${escapeHtml(item.name)}${item.malayalamName ? ` <span class="text-stone-600 font-normal">(${escapeHtml(item.malayalamName)})</span>` : ""}
+                </h3>
+                <div class="text-xs text-stone-500 mt-0.5">
+                  ${escapeHtml(item.category)} · ${escapeHtml(item.stage)} · <span class="text-emerald-800 font-semibold">${escapeHtml(pubTimeStr)}</span>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-stone-500 tabular-nums shrink-0">${rankedAll.length} ${rankedAll.length === 1 ? "entry" : "entries"}</span>
+            </div>
+            ${rowsToShow.length === 0
+              ? `<div class="px-5 py-4 text-xs sm:text-sm text-stone-500">Declared with no scored winners recorded yet.</div>`
+              : `<div class="divide-y divide-stone-100">
+                  ${rowsToShow.map((r) => {
+                    const rankStyle = r.rankNum === 1
+                      ? "bg-amber-700 text-white"
+                      : r.rankNum === 2
+                        ? "bg-stone-700 text-white"
+                        : r.rankNum === 3
+                          ? "bg-amber-100 text-amber-900"
+                          : "bg-stone-100 text-stone-700";
+                    return `
+                      <div class="px-5 py-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-start sm:items-center gap-3 min-w-0">
+                          <span class="inline-flex items-center justify-center min-w-[2.5rem] h-8 px-2 rounded-lg text-xs font-bold tabular-nums shrink-0 ${rankStyle}">
+                            ${escapeHtml(r.rankLabel)}
+                          </span>
+                          <div class="min-w-0">
+                            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                              <span class="text-xs font-bold text-amber-800 tabular-nums shrink-0">Chest #${escapeHtml(r.participant.chestNo)}</span>
+                              <span class="text-sm sm:text-base font-bold text-stone-900 truncate">${escapeHtml(r.participant.name)}</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500 mt-0.5">
+                              ${r.groupName ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(r.groupColor)}"></span>${escapeHtml(r.groupName)}</span>` : ""}
+                              ${r.groupName && r.participant.school ? `<span aria-hidden="true">·</span>` : ""}
+                              ${r.participant.school ? `<span class="truncate">${escapeHtml(r.participant.school)}</span>` : ""}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="text-right shrink-0 tabular-nums">
+                          <div class="text-sm font-bold text-stone-900">${escapeHtml(r.grade)}</div>
+                          <div class="text-xs font-semibold ${r.points > 0 ? "text-amber-800" : "text-stone-400"}">
+                            ${r.points > 0 ? `+${r.points} ${r.points === 1 ? "pt" : "pts"}` : "0 pts"}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>`
+            }
+          </article>
+        `);
+      });
+
+      if (summaryEl) {
+        const pendingSuffix = pendingCount > 0 ? ` · ${pendingCount} ${pendingCount === 1 ? "event" : "events"} in progress` : "";
+        summaryEl.textContent = hasFilters
+          ? `Showing ${cards.length} of ${publishedItems.length} declared ${publishedItems.length === 1 ? "result" : "results"}${pendingSuffix}`
+          : `${publishedItems.length} declared ${publishedItems.length === 1 ? "result" : "results"}${pendingSuffix}`;
+      }
+
+      if (publishedItems.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white border border-stone-200 rounded-xl p-8 text-center space-y-2">
+            <div class="text-base font-bold text-stone-900 font-display">No Official Results Declared Yet</div>
+            <p class="text-xs sm:text-sm text-stone-500 max-w-md mx-auto">
+              ${items.length > 0 ? `${items.length} competition ${items.length === 1 ? "event is" : "events are"} currently underway. Official 1st, 2nd &amp; 3rd place results will appear here automatically as soon as published by the festival coordinator.` : "Results will stream here live once competitions are officially published."}
+            </p>
+          </div>
+        `;
+      } else if (cards.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-white border border-stone-200 rounded-xl p-6 text-center space-y-2">
+            <div class="text-sm font-semibold text-stone-800">No declared results match your filter.</div>
+            <button type="button" onclick="clearPublicResultsFilters()" class="text-xs font-semibold text-amber-800 hover:underline">Clear search &amp; filters</button>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = cards.join("");
+      }
+    };
+
+    function renderPublicStages() {
+      const gridEl = document.getElementById("public-stages-grid");
+      const summaryEl = document.getElementById("public-stages-summary");
+      if (!gridEl) return;
+
+      const stages = getConfiguredStages();
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const participants = Array.isArray(window.state?.participants) ? window.state.participants : [];
+      const stageMap = normalizeStageLiveItems(
+        window.state?.config?.stageLiveItems,
+        window.state?.config?.activeItemId,
+        stages
+      );
+
+      let liveCount = 0;
+      const cardsHtml = stages.map((stageName) => {
+        const liveItemId = stageMap[stageName] || "";
+        const liveItem = liveItemId ? items.find((it) => it.id === liveItemId) : null;
+        if (liveItem) liveCount++;
+        const partCount = liveItem ? participants.filter((p) => p.itemId === liveItem.id).length : 0;
+
+        if (liveItem) {
+          return `
+            <div class="bg-white border border-emerald-300 rounded-xl p-5 flex flex-col justify-between gap-4 shadow-sm">
+              <div class="space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-stone-700 truncate">${escapeHtml(stageName)}</span>
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800 whitespace-nowrap shrink-0">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+                    LIVE ON STAGE
+                  </span>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-stone-900 font-display leading-snug">${escapeHtml(liveItem.name)}</h3>
+                  ${liveItem.malayalamName ? `<div class="text-sm text-stone-600 mt-0.5">${escapeHtml(liveItem.malayalamName)}</div>` : ""}
+                </div>
+              </div>
+              <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2 text-xs text-stone-500">
+                <span>${escapeHtml(liveItem.category)}</span>
+                <span class="tabular-nums font-semibold text-stone-700">${partCount} ${partCount === 1 ? "contestant" : "contestants"}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="bg-white border border-stone-200 rounded-xl p-5 flex flex-col justify-between gap-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-stone-600 truncate">${escapeHtml(stageName)}</span>
+                <span class="text-[11px] font-semibold text-stone-400 whitespace-nowrap">Standby</span>
+              </div>
+              <div class="text-sm font-medium text-stone-500">No competition currently live on this stage.</div>
+            </div>
+            <div class="pt-3 border-t border-stone-100 text-xs text-stone-400">Next item starting soon</div>
+          </div>
+        `;
+      }).join("");
+
+      if (summaryEl) {
+        summaryEl.textContent = `${liveCount} of ${stages.length} ${stages.length === 1 ? "stage" : "stages"} live right now`;
+      }
+      gridEl.innerHTML = cardsHtml || `<div class="col-span-full bg-white border border-stone-200 rounded-xl p-6 text-center text-sm text-stone-500">No festival stages configured yet.</div>`;
+    }
+
+    window.renderPublicView = () => {
+      renderAdminPublicShareCard();
+      if (!isPublicMode || !activeEventCode) return;
+      const standingsInfo = computePublicGroupStandings();
+      renderPublicHeaderMeta(standingsInfo);
+      renderPublicStandings(standingsInfo);
+      window.renderPublicResults();
+      renderPublicStages();
+    };
+
+    function enterPublicLivePortal(code, options = {}) {
+      const { fromAdmin = false, skipHistorySync = false } = options;
+      if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
+      stopAutoRotateTimer(true);
+
+      isSwitchingEvent = false;
+      activeEventCode = code;
+      isPublicMode = true;
+      publicOpenedFromAdmin = Boolean(fromAdmin && isAdminUnlocked);
+      if (!fromAdmin) {
+        isAdminUnlocked = false;
+        isMasterAdmin = false;
+        activeJudgeSession = null;
+        judgeItemAdminOverride = false;
+      }
+
+      if (!fromAdmin) {
+        window.state = loadLocalState(code);
+        if (code === DEMO_EVENT_CODE && (!Array.isArray(window.state.items) || window.state.items.length === 0)) {
+          window.state = getDemoPresentationData(window.state.config);
+        }
+        hasCloudStagesDoc = false;
+      }
+
+      publicLastUpdatedAt = new Date();
+
+      document.getElementById("view-event-entry").classList.add("hidden");
+      ["judge", "tabulation", "admin"].forEach((v) => {
+        const el = document.getElementById("view-" + v);
+        if (el) el.classList.add("hidden");
+      });
+      const publicEl = document.getElementById("view-public");
+      if (publicEl) publicEl.classList.remove("hidden");
+
+      applyBrandingUI();
+      applyAdminAccessUI();
+      startPublicClockTimer();
+      window.switchPublicTab(activePublicTab || "standings");
+
+      if (!fromAdmin) {
+        attachListeners();
+      }
+      syncHistoryForRoute("public", { skipHistorySync });
+    }
+
+    async function verifyAndOpenPublicPortal(rawCode, triggerBtn = null) {
+      const normalized = normalizeEventCode(rawCode);
+      if (!isValidEventCode(normalized)) {
+        showEventCodeError("Enter your Festival Code above to view Live Results (at least 2 letters or numbers).");
+        document.getElementById("event-code-input")?.focus();
+        return false;
+      }
+
+      window.hideEventCodeError();
+      const origLabel = triggerBtn ? triggerBtn.textContent : "";
+      if (triggerBtn) {
+        triggerBtn.disabled = true;
+        triggerBtn.textContent = "Opening Live Results...";
+      }
+
+      let isVerifiedEvent = false;
+      let loadedConfig = null;
+      try {
+        try {
+          const resolved = await resolveCloudEventConfig(normalized);
+          if (resolved.exists && resolved.config) {
+            isVerifiedEvent = true;
+            loadedConfig = resolved.config;
+            const existingLocal = loadLocalState(normalized);
+            existingLocal.config = loadedConfig;
+            try {
+              localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
+            } catch {}
+          } else if (normalized === DEMO_EVENT_CODE) {
+            const demoData = getDemoPresentationData();
+            isVerifiedEvent = true;
+            loadedConfig = demoData.config;
+            try {
+              localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(demoData));
+            } catch {}
+          }
+        } catch (err) {
+          if (isOfflineFirestoreError(err)) {
+            isVerifiedEvent = hasLocalEvent(normalized);
+            if (isVerifiedEvent) {
+              loadedConfig = loadLocalState(normalized).config;
+            } else if (normalized === DEMO_EVENT_CODE) {
+              const demoData = getDemoPresentationData();
+              isVerifiedEvent = true;
+              loadedConfig = demoData.config;
+            }
+          } else {
+            handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${normalized}`);
+            showEventCodeError("Unable to load Live Results right now. Please check your internet connection.");
+            return false;
+          }
+        }
+      } finally {
+        if (triggerBtn) {
+          triggerBtn.disabled = false;
+          triggerBtn.textContent = origLabel;
+        }
+      }
+
+      if (!isVerifiedEvent) {
+        showEventCodeError("Festival Code not found. Please check the code provided by the festival organizers.");
+        document.getElementById("event-code-input")?.focus();
+        return false;
+      }
+
+      if (!isEventLicenseValid(loadedConfig)) {
+        showEventCodeError(LICENSE_BLOCKED_MESSAGE);
+        return false;
+      }
+
+      activePublicTab = "standings";
+      enterPublicLivePortal(normalized, { fromAdmin: false });
+      return true;
+    }
+
+    window.handleOpenPublicViewFromLanding = async () => {
+      const input = document.getElementById("event-code-input");
+      const btn = document.getElementById("event-entry-public-btn");
+      const raw = input ? input.value : "";
+      if (input && raw.trim()) {
+        input.value = normalizeEventCode(raw);
+      }
+      await verifyAndOpenPublicPortal(raw, btn);
+    };
+
+    window.handlePreviewPublicViewFromAdmin = () => {
+      if (!activeEventCode) return;
+      activePublicTab = "standings";
+      enterPublicLivePortal(activeEventCode, { fromAdmin: true });
+    };
+
+    window.handleReturnFromPublicPreview = () => {
+      if (isAdminUnlocked && activeEventCode) {
+        window.switchView("admin");
+      } else {
+        showEventEntryView(false, { clearPublicQuery: true });
+      }
+    };
+
+    async function bootApplication() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedView = String(urlParams.get("view") || "").trim().toLowerCase();
+      const requestedCode = normalizeEventCode(urlParams.get("code") || "");
+
+      testConnection();
+      attachCampusRegistryListener();
+      loadJudgeSoundPreference();
+      initAppHistory();
+
+      if (requestedView === "public" && isValidEventCode(requestedCode)) {
+        const input = document.getElementById("event-code-input");
+        if (input) input.value = requestedCode;
+        showEventEntryView(false, { skipHistorySync: true });
+        const opened = await verifyAndOpenPublicPortal(requestedCode, document.getElementById("event-entry-public-btn"));
+        if (!opened) {
+          showEventEntryView(false, { skipHistorySync: true });
+        }
+        return;
+      }
+
+      showEventEntryView(false, { skipHistorySync: true });
+    }
+
+    bootApplication();
   </script>
 </body>
 </html>
