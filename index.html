@@ -331,6 +331,34 @@
       th, td { border-bottom: 1px solid #D6D3D1 !important; padding: 8px 10px !important; }
       thead tr { background-color: #F5F5F4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
+    .quick-tour-ring {
+      position: fixed;
+      pointer-events: none;
+      border: 2.5px solid #D97706;
+      border-radius: 14px;
+      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.24), 0 12px 28px -8px rgba(180, 83, 9, 0.35);
+      transition: opacity 180ms ease;
+    }
+    .quick-tour-card-enter {
+      animation: quickTourCardPop 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .quick-tour-buddy {
+      animation: quickTourBuddyBob 2.6s ease-in-out infinite;
+    }
+    @keyframes quickTourCardPop {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes quickTourBuddyBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .quick-tour-ring, .quick-tour-card-enter, .quick-tour-buddy {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -448,13 +476,107 @@
     </div>
   </div>
 
+  <!-- Interactive Beginner-Friendly Spotlight Quick Tour (Bilingual: മലയാളം / English) -->
+  <div id="quick-tour-overlay" role="dialog" aria-modal="true" aria-labelledby="quick-tour-title" class="no-print hidden fixed inset-0 z-[70]">
+    <!-- Dimmed SVG Backdrop with Rounded Spotlight Cutout -->
+    <svg id="quick-tour-backdrop-svg" class="fixed inset-0 w-full h-full pointer-events-auto" onclick="event.stopPropagation()" aria-hidden="true">
+      <defs>
+        <mask id="quick-tour-cutout-mask">
+          <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
+          <rect id="quick-tour-mask-rect" x="0" y="0" width="0" height="0" rx="14" ry="14" fill="black"></rect>
+        </mask>
+      </defs>
+      <rect x="0" y="0" width="100%" height="100%" fill="rgba(28, 25, 23, 0.62)" mask="url(#quick-tour-cutout-mask)"></rect>
+    </svg>
+
+    <!-- Warm Highlight Ring Around Active Section -->
+    <div id="quick-tour-ring" class="quick-tour-ring hidden z-[71]" aria-hidden="true"></div>
+
+    <!-- Cute, Beginner-Friendly Popover Card -->
+    <div id="quick-tour-card" class="fixed z-[72] w-[calc(100vw-24px)] sm:w-[410px] max-w-[430px] bg-[#FFFDF9] border border-amber-200 rounded-2xl shadow-2xl p-4 sm:p-5 space-y-3.5 pointer-events-auto">
+      <!-- Directional Pointer Arrow (Desktop) -->
+      <div id="quick-tour-arrow" class="hidden sm:block absolute w-3.5 h-3.5 bg-[#FFFDF9] border-amber-200 rotate-45 pointer-events-none" aria-hidden="true"></div>
+
+      <!-- Card Top Row: Cute Guide Buddy + Step Info + മലയാളം / English Toggle -->
+      <div class="flex items-start justify-between gap-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Cute Hand-Crafted Festival Guide Mascot SVG -->
+          <div class="quick-tour-buddy w-10 h-10 rounded-xl bg-amber-100 border border-amber-200/90 flex items-center justify-center shrink-0" aria-hidden="true">
+            <svg class="w-7 h-7" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="21" r="13" fill="#F59E0B" />
+              <circle cx="20" cy="21" r="10.5" fill="#FEF3C7" />
+              <path d="M20 4L22.2 8.8L20 7.6L17.8 8.8L20 4Z" fill="#D97706" />
+              <circle cx="15.5" cy="19.5" r="1.75" fill="#1C1917" />
+              <circle cx="24.5" cy="19.5" r="1.75" fill="#1C1917" />
+              <circle cx="16.1" cy="18.9" r="0.6" fill="#FFFFFF" />
+              <circle cx="25.1" cy="18.9" r="0.6" fill="#FFFFFF" />
+              <ellipse cx="12.6" cy="22.4" rx="2" ry="1.2" fill="#FDA4AF" opacity="0.85" />
+              <ellipse cx="27.4" cy="22.4" rx="2" ry="1.2" fill="#FDA4AF" opacity="0.85" />
+              <path d="M16.5 24C17.6 25.5 22.4 25.5 23.5 24" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 text-[11px] font-semibold text-amber-800">
+              <span id="quick-tour-step-counter" class="tabular-nums whitespace-nowrap">Step 1 / 12</span>
+              <span aria-hidden="true" class="text-amber-400">·</span>
+              <span id="quick-tour-section-label" class="truncate text-stone-600">Admin Panel</span>
+            </div>
+            <h2 id="quick-tour-title" class="text-base sm:text-[17px] font-bold text-stone-900 font-display leading-snug mt-0.5">Welcome!</h2>
+          </div>
+        </div>
+
+        <!-- Bilingual Toggle: മലയാളം / English -->
+        <div role="group" aria-label="Tour Language Toggle" class="inline-flex items-center p-0.5 bg-stone-100 border border-stone-200 rounded-lg shrink-0">
+          <button type="button" id="quick-tour-lang-ml" onclick="setQuickTourLang('ml')" class="px-2 py-1 text-[11px] font-semibold rounded-md transition-colors whitespace-nowrap text-stone-600 hover:text-stone-900 cursor-pointer">
+            മലയാളം
+          </button>
+          <button type="button" id="quick-tour-lang-en" onclick="setQuickTourLang('en')" class="px-2 py-1 text-[11px] font-semibold rounded-md transition-colors whitespace-nowrap bg-stone-900 text-white shadow-sm cursor-pointer">
+            English
+          </button>
+        </div>
+      </div>
+
+      <!-- Beginner-Friendly Body Copy -->
+      <p id="quick-tour-body" class="text-[13px] sm:text-sm text-stone-700 leading-relaxed"></p>
+
+      <!-- Warm Beginner Tip -->
+      <div id="quick-tour-tip-box" class="flex items-start gap-2 px-3 py-2 rounded-xl bg-amber-50/90 border border-amber-200/80 text-xs text-amber-950 leading-relaxed">
+        <span class="shrink-0 mt-0.5" aria-hidden="true">💡</span>
+        <span id="quick-tour-tip-text"></span>
+      </div>
+
+      <!-- Progress Bar + Clickable Dots -->
+      <div class="space-y-2 pt-0.5">
+        <div class="h-1.5 w-full bg-stone-200/80 rounded-full overflow-hidden">
+          <div id="quick-tour-progress-fill" class="h-full bg-amber-600 rounded-full transition-all duration-200" style="width: 10%;"></div>
+        </div>
+        <div id="quick-tour-dots" class="flex items-center justify-center gap-1.5 flex-wrap"></div>
+      </div>
+
+      <!-- Tour Footer Navigation Buttons (Skip, Back, Next) -->
+      <div class="flex items-center justify-between gap-2 pt-2 border-t border-stone-200/80">
+        <button type="button" id="quick-tour-skip-btn" onclick="closeQuickTour()" class="px-2.5 py-2 min-h-[38px] text-xs font-semibold text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer">
+          Skip
+        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" id="quick-tour-prev-btn" onclick="prevQuickTourStep()" class="px-3.5 py-2 min-h-[38px] text-xs font-semibold text-stone-700 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+            ← Back
+          </button>
+          <button type="button" id="quick-tour-next-btn" onclick="nextQuickTourStep()" class="px-4 py-2 min-h-[38px] text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-lg shadow-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer">
+            Next →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Bar (Judge-only by default; Admin & Tabulation unlocked via secret triple-tap + PIN) -->
   <header id="app-top-header" class="no-print flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 sm:px-6 py-3 sm:py-3.5 bg-white border-b border-stone-200 sticky top-0 z-30">
     <button type="button" id="brand-unlock-trigger" onclick="handleBrandTap()" class="flex flex-col items-start text-left min-w-0 max-w-full sm:max-w-md font-display select-none cursor-pointer py-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 rounded">
       <span id="header-brand-title" class="text-lg sm:text-xl font-bold tracking-tight text-stone-900 leading-tight truncate max-w-full">Arts Fest Digital Judging</span>
       <span id="header-brand-subtitle" class="hidden font-sans text-sm sm:text-base font-medium text-stone-700 leading-snug truncate max-w-full mt-0.5"></span>
     </button>
-    <nav aria-label="Primary Navigation" class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-stone-600">
+    <nav id="primary-nav-bar" aria-label="Primary Navigation" class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-stone-600">
       <button type="button" onclick="switchView('judge')" id="nav-judge" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-amber-700 text-stone-900 font-semibold pb-0.5">Judge Portal</button>
       <button type="button" onclick="switchView('tabulation')" id="nav-tabulation" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Live Tabulation</button>
       <button type="button" onclick="switchView('admin')" id="nav-admin" class="hidden hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent pb-0.5">Admin Panel</button>
@@ -635,7 +757,7 @@
         </div>
       </div>
 
-      <form onsubmit="handleScoreSubmit(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-6">
+      <form id="judge-portal-card" onsubmit="handleScoreSubmit(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-6">
         <!-- PIN-Protected Judge Session Unlock -->
         <div id="judge-session-editor" class="space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -936,9 +1058,13 @@
             <span id="admin-event-license-summary" class="hidden sm:inline font-semibold text-stone-800 ml-1 tabular-nums"></span>
           </p>
         </div>
-        <!-- Sandbox Sample Controls (Visible ONLY inside DEMOFEST) -->
-        <div class="flex flex-wrap items-center gap-3">
-          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="hidden px-3.5 py-2 text-xs font-semibold text-stone-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors whitespace-nowrap shrink-0">
+        <!-- Admin Controls Header Actions -->
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button type="button" id="admin-quick-tour-btn" onclick="startQuickTour()" class="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] text-xs font-semibold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+            <span aria-hidden="true">🎯</span>
+            <span>Quick Tour</span>
+          </button>
+          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="hidden px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0">
             Load Sample Data
           </button>
         </div>
@@ -947,7 +1073,7 @@
       <!-- Master Setup Commercial License Controls (Visible only when unlocked with Master PIN) -->
       <div id="admin-master-setup-section" class="hidden space-y-6">
         <!-- Live Presentation / Demo Mode Launcher -->
-        <div class="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div id="admin-demo-launcher-card" class="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="space-y-1">
             <div class="text-xs font-semibold text-amber-800">Client Presentation Sandbox</div>
             <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Live Presentation / Demo Mode</h2>
@@ -1111,7 +1237,7 @@
       <!-- 2. Live Stage Control & PIN-Protected Judge Panel (Campus Admin Panel) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Live Active Item Sync & Dynamic Stage Manager Card -->
-        <div class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+        <div id="admin-live-stage-card" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
           <div class="space-y-4">
             <div class="flex flex-wrap items-start justify-between gap-2">
               <div>
@@ -1235,7 +1361,7 @@
 
       <!-- Manage Groups / Houses & Live Chart Preview -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+        <div id="admin-groups-card" class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
           <div>
             <h2 class="text-lg font-bold text-stone-900">Manage Groups / Houses</h2>
             <p class="text-xs text-stone-500 mt-0.5">Add teams or houses for automatic championship points calculation. Hidden from Judges during blind scoring.</p>
@@ -1335,7 +1461,7 @@
 
       <!-- Create Forms -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <form onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+        <form id="admin-add-item-form" onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <h2 class="text-lg font-bold text-stone-900">1. Add Competition Item</h2>
           <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80">
             <label for="admin-manual-event-picker" class="block text-[11px] font-semibold text-amber-950 mb-1">Quick Select Event Preset (College / University Festival Manual)</label>
@@ -1554,7 +1680,7 @@
           <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Add Competition Item</button>
         </form>
 
-        <form onsubmit="handleAddParticipant(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+        <form id="admin-add-participant-form" onsubmit="handleAddParticipant(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
           <h2 class="text-lg font-bold text-stone-900">2. Register Participant Chest No</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -1585,7 +1711,7 @@
       </div>
 
       <!-- Bulk Import via CSV (Scoped to active Festival Code) -->
-      <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+      <div id="admin-csv-import-card" class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
             <div class="flex flex-wrap items-center gap-2">
@@ -1726,7 +1852,7 @@
       </div>
 
       <!-- Submitted Scores Log -->
-      <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div id="admin-scores-log-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden">
         <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold text-stone-900">Submitted Scores Log</h2>
@@ -5320,6 +5446,7 @@
 
     function hasAnyOpenModal() {
       const modalIds = [
+        "quick-tour-overlay",
         "pin-modal",
         "judge-item-override-modal",
         "clear-modal",
@@ -5334,6 +5461,7 @@
     }
 
     function closeAllModals() {
+      if (typeof window.closeQuickTour === "function") window.closeQuickTour({ silent: true });
       window.closePinModal();
       window.closeJudgeItemOverrideModal();
       window.closeClearModal();
@@ -5611,6 +5739,7 @@
     };
 
     window.openEventSwitcher = () => {
+      if (typeof window.closeQuickTour === "function") window.closeQuickTour({ silent: true, skipRestoreView: true });
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
       if (isPublicMode) {
@@ -5679,6 +5808,7 @@
     };
 
     window.lockAdminSession = () => {
+      if (typeof window.closeQuickTour === "function") window.closeQuickTour({ silent: true, skipRestoreView: true });
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       stopAutoRotateTimer(true);
       isAdminUnlocked = false;
@@ -11556,6 +11686,670 @@
       } else {
         showEventEntryView(false, { clearPublicQuery: true });
       }
+    };
+
+    // =========================================================================
+    // INTERACTIVE BILINGUAL SPOTLIGHT QUICK TOUR (മലയാളം / English)
+    // =========================================================================
+    const QUICK_TOUR_LANG_KEY = "kalolsavam_quick_tour_lang_v1";
+    let quickTourActive = false;
+    let quickTourIndex = 0;
+    let quickTourSteps = [];
+    let quickTourLang = "en";
+    let quickTourReturnView = "admin";
+    let quickTourRafId = null;
+    let quickTourScrollSettleTimer = null;
+
+    try {
+      const savedTourLang = localStorage.getItem(QUICK_TOUR_LANG_KEY);
+      if (savedTourLang === "ml" || savedTourLang === "en") {
+        quickTourLang = savedTourLang;
+      }
+    } catch {}
+
+    const QUICK_TOUR_UI_STRINGS = {
+      en: {
+        stepOf: (i, total) => `Step ${i} of ${total}`,
+        skip: "Skip",
+        back: "← Back",
+        next: "Next →",
+        finish: "Finish Tour ✓",
+        doneToast: "Quick Tour completed! You're ready to run your festival.",
+        sectionAdmin: "Admin Panel",
+        sectionMaster: "Master Setup",
+        sectionTab: "Live Tabulation",
+        sectionJudge: "Judge Portal"
+      },
+      ml: {
+        stepOf: (i, total) => `ഘട്ടം ${i} / ${total}`,
+        skip: "ഒഴിവാക്കുക",
+        back: "← പിന്നോട്ട്",
+        next: "അടുത്തത് →",
+        finish: "പൂർത്തിയാക്കുക ✓",
+        doneToast: "ക്വിക്ക് ടൂർ പൂർത്തിയായി! ഇനി എളുപ്പത്തിൽ ഫെസ്റ്റിവൽ നിയന്ത്രിക്കാം.",
+        sectionAdmin: "അഡ്മിൻ പാനൽ",
+        sectionMaster: "മാസ്റ്റർ സെറ്റപ്പ്",
+        sectionTab: "ലൈവ് ടാബുലേഷൻ",
+        sectionJudge: "ജഡ്ജി പോർട്ടൽ"
+      }
+    };
+
+    function getQuickTourStepsForCurrentContext() {
+      const hasActiveEvent = Boolean(activeEventCode) && !isSwitchingEvent;
+      if (!hasActiveEvent) {
+        return [
+          {
+            selector: "#admin-quick-tour-btn",
+            view: "admin",
+            sectionKey: "sectionMaster",
+            en: {
+              title: "Welcome to Master Setup!",
+              body: "From this console you can try an instant Demo Festival, issue new Festival Codes for schools or colleges, and control every campus event license in one place.",
+              tip: "Switch between മലയാളം and English anytime using the toggle at the top-right of this box."
+            },
+            ml: {
+              title: "മാസ്റ്റർ സെറ്റപ്പിലേക്ക് സ്വാഗതം!",
+              body: "ഇവിടെ നിന്ന് ഉടൻ തന്നെ ഡെമോ ഫെസ്റ്റിവൽ പരീക്ഷിക്കാനും, സ്കൂളുകൾക്കും കോളേജുകൾക്കുമായി പുതിയ ഫെസ്റ്റിവൽ കോഡുകൾ നിർമ്മിക്കാനും, എല്ലാ ഇവന്റുകളും ഒരിടത്ത് നിയന്ത്രിക്കാനും സാധിക്കും.",
+              tip: "ഈ ബോക്സിന്റെ മുകളിൽ വലതുവശത്തുള്ള ബട്ടൺ വഴി എപ്പോൾ വേണമെങ്കിലും മലയാളം / English ഭാഷ മാറ്റാം."
+            }
+          },
+          {
+            selector: "#admin-demo-launcher-card",
+            view: "admin",
+            sectionKey: "sectionMaster",
+            en: {
+              title: "1. Try Live Demo Mode Anytime",
+              body: "Click 'Launch Live Demo Mode' to open an isolated DEMOFEST sandbox pre-loaded with 4 Houses, Kerala Arts Fest items, chest numbers, and live judge scores—without affecting real events.",
+              tip: "Perfect for practicing before festival day or showing organizers how the app works!"
+            },
+            ml: {
+              title: "1. ലൈവ് ഡെമോ മോഡ് പരീക്ഷിക്കാം",
+              body: "യഥാർത്ഥ ഇവന്റുകളെ ഒട്ടും ബാധിക്കാതെ 4 ഹൗസുകളും കലോത്സവ ഇനങ്ങളും ലൈവ് മാർക്കുകളും നിറച്ച 'DEMOFEST' സാൻഡ്‌ബോക്സ് ഇവിടെ തുറക്കാം.",
+              tip: "കലോത്സവത്തിന് മുമ്പ് പരിശീലിക്കാനും സംഘാടകർക്ക് കാണിച്ചുകൊടുക്കാനും ഇത് ഏറെ ഉപകാരപ്രദമാണ്!"
+            }
+          },
+          {
+            selector: "#admin-create-event-form",
+            view: "admin",
+            sectionKey: "sectionMaster",
+            en: {
+              title: "2. Create a New Festival Code",
+              body: "Type a short Festival Code (like CAMPUS26), optionally set a 4–6 digit Event Admin PIN (defaults to 1234), pick an expiry date, and click Create Event.",
+              tip: "Use the quick 3 Days, 7 Days, or 30 Days buttons to set license validity in one tap."
+            },
+            ml: {
+              title: "2. പുതിയ ഫെസ്റ്റിവൽ കോഡ് നിർമ്മിക്കാം",
+              body: "ഒരു ഫെസ്റ്റിവൽ കോഡ് (ഉദാ: CAMPUS26), അഡ്മിൻ പിൻ (നൽകിയില്ലെങ്കിൽ 1234), കാലാവധി തീയതി എന്നിവ നൽകി 'Create Event' അമർത്തിയാൽ പുതിയ വർക്ക്‌സ്പേസ് തയ്യാറാകും.",
+              tip: "3, 7, അല്ലെങ്കിൽ 30 ദിവസത്തെ ബട്ടണുകൾ അമർത്തിയാൽ എളുപ്പത്തിൽ കാലാവധി തിരഞ്ഞെടുക്കാം."
+            }
+          },
+          {
+            selector: "#admin-registered-events-card",
+            view: "admin",
+            sectionKey: "sectionMaster",
+            en: {
+              title: "3. Manage All Campus Events",
+              body: "Every created festival appears here. Open any event to configure stages, judges, items, and live results—or update its PIN, extend expiry, pause access, or delete old events.",
+              tip: "Once you open any event or Demo Mode, tap 🎯 Quick Tour again for the complete 12-step Festival Walkthrough!"
+            },
+            ml: {
+              title: "3. രജിസ്റ്റർ ചെയ്ത ഇവന്റുകൾ നിയന്ത്രിക്കാം",
+              body: "നിർമ്മിച്ച എല്ലാ ഫെസ്റ്റിവലുകളും ഇവിടെ കാണാം. ഏത് ഇവന്റും തുറക്കാനും, പിൻ മാറ്റാനും, കാലാവധി നീട്ടാനും ഇവിടെ സാധിക്കും.",
+              tip: "ഏതെങ്കിലും ഇവന്റോ ഡെമോ മോഡോ തുറന്ന ശേഷം വീണ്ടും 🎯 Quick Tour അമർത്തിയാൽ മുഴുവൻ ഫീച്ചറുകളും കാണാം!"
+            }
+          }
+        ];
+      }
+
+      return [
+        {
+          selector: "#primary-nav-bar",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "Welcome! Let's Explore Your Festival App",
+            body: "Use these three top tabs anytime to move between the Judge Portal, Live Tabulation, and Admin Panel. On the right side, you can switch Festival Codes or Lock Admin access.",
+            tip: "On judge devices, triple-tap the festival title at the top-left whenever you need to unlock Admin."
+          },
+          ml: {
+            title: "സ്വാഗതം! നമുക്കൊരു ചെറിയ ടൂർ കാണാം",
+            body: "ജഡ്ജി പോർട്ടൽ, ലൈവ് ടാബുലേഷൻ, അഡ്മിൻ പാനൽ എന്നിവയ്ക്കിടയിൽ എപ്പോൾ വേണമെങ്കിലും മാറാൻ ഈ മുകളിലെ ടാബുകൾ ഉപയോഗിക്കാം. വലതുവശത്ത് നിന്ന് അഡ്മിൻ ലോക്ക് ചെയ്യാനും കോഡ് മാറ്റാനും സാധിക്കും.",
+            tip: "ജഡ്ജിമാരുടെ ഫോണിൽ മുകളിൽ ഇടതുവശത്തെ ടൈറ്റിൽ 3 തവണ ടാപ്പ് ചെയ്താൽ അഡ്മിൻ തുറക്കാം."
+          }
+        },
+        {
+          selector: "#admin-branding-form",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "1. Festival & Campus Branding",
+            body: "Enter your school, college, or festival title and venue subtitle here. Saving updates the header, public live portal, Stage TV broadcast screen, and printed PDF result sheets.",
+            tip: "Start here first so every scoreboard proudly displays your institution's name."
+          },
+          ml: {
+            title: "1. ഫെസ്റ്റിവൽ പേരും വേദിയും സെറ്റ് ചെയ്യാം",
+            body: "നിങ്ങളുടെ സ്കൂൾ/കോളേജ് പേരും കലോത്സവത്തിന്റെ പേരും ഇവിടെ നൽകുക. സേവ് ചെയ്താലുടൻ ഹെഡർ, പബ്ലിക് ലൈവ് പേജ്, ടി.വി സ്കോർബോർഡ്, പ്രിന്റ് ഷീറ്റുകൾ എന്നിവയിലെല്ലാം ഈ പേര് വരും.",
+            tip: "ആദ്യം തന്നെ ഇത് സെറ്റ് ചെയ്താൽ എല്ലാ സ്ക്രീനുകളിലും നിങ്ങളുടെ സ്ഥാപനത്തിന്റെ പേര് ഭംഗിയായി കാണാം."
+          }
+        },
+        {
+          selector: "#admin-public-share-card",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "2. Public Live Link & QR Code",
+            body: "Copy this read-only link for WhatsApp or download the QR code for campus notice boards. Students and parents can follow house standings and published results with zero PIN required.",
+            tip: "Raw judge marks (J1/J2/J3) stay 100% private and are never shown on the Public Portal."
+          },
+          ml: {
+            title: "2. പബ്ലിക് ലൈവ് ലിങ്കും QR കോഡും",
+            body: "ഈ ലിങ്ക് വാട്സാപ്പിൽ ഷെയർ ചെയ്യുകയോ QR കോഡ് ഡൗൺലോഡ് ചെയ്ത് നോട്ടീസ് ബോർഡിൽ പതിക്കുകയോ ചെയ്യാം. പിൻ നമ്പർ ഇല്ലാതെ തന്നെ വിദ്യാർത്ഥികൾക്കും പ്രേക്ഷകർക്കും ലൈവ് റിസൾട്ട് കാണാൻ കഴിയും.",
+            tip: "ജഡ്ജിമാരുടെ മാർക്കുകൾ (J1/J2/J3) പബ്ലിക് പേജിൽ ഒരിക്കലും കാണിക്കില്ല — പൂർണ്ണ സ്വകാര്യത ഉറപ്പ്!"
+          }
+        },
+        {
+          selector: "#admin-live-stage-card",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "3. Stages & Live Stage Sync",
+            body: "Add as many stages as your festival needs, pick the item currently performing on each stage, and click Push. Judges on that stage automatically lock onto the right item—preventing wrong-item marks!",
+            tip: "Moving to the next stage performance takes just one click from here."
+          },
+          ml: {
+            title: "3. വേദികളും ലൈവ് ഐറ്റം സിങ്കും",
+            body: "ആവശ്യമുള്ളത്ര വേദികൾ (Stages) ഇവിടെ ചേർക്കാം. ഓരോ വേദിയിലും ഇപ്പോൾ നടക്കുന്ന മത്സരയിനം തിരഞ്ഞെടുത്ത് 'Push' ചെയ്താൽ ആ വേദിയിലെ ജഡ്ജിമാരുടെ ഫോണിൽ ആ ഐറ്റം താനേ ലോക്ക് ആകും.",
+            tip: "അടുത്ത മത്സരം തുടങ്ങുമ്പോൾ ഇവിടെ മാറ്റിയാൽ ജഡ്ജിമാർക്ക് തെറ്റ് പറ്റില്ല."
+          }
+        },
+        {
+          selector: "#admin-judges-form",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "4. Judge Panels & Secret 4-Digit PINs",
+            body: "Choose 2 or 3 judges per item, pick a stage tab, and save official judge names with unique 4-digit PINs. Share each PIN privately so only that judge can score in their slot.",
+            tip: "Tap 'Generate New PINs' to instantly create fresh random 4-digit codes for a stage."
+          },
+          ml: {
+            title: "4. ജഡ്ജിമാരും 4-അക്ക പിൻ നമ്പറുകളും",
+            body: "ഓരോ മത്സരത്തിനും 2 അല്ലെങ്കിൽ 3 ജഡ്ജിമാർ വേണമോ എന്ന് ഇവിടെ തിരഞ്ഞെടുക്കാം. ഓരോ വേദിയിലെയും ജഡ്ജിമാരുടെ പേരും രഹസ്യ 4-അക്ക പിന്നും നൽകി സേവ് ചെയ്യുക.",
+            tip: "'Generate New PINs' അമർത്തിയാൽ എളുപ്പത്തിൽ പുതിയ 4-അക്ക പിൻ നമ്പറുകൾ തയ്യാറാക്കാം."
+          }
+        },
+        {
+          selector: "#admin-groups-card",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "5. Houses / Groups & Grade Rules",
+            body: "Add your Houses or Teams with colors to calculate championship points automatically (1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt). Scroll inside this card to customize A, B, and C grade percentages too.",
+            tip: "House names stay completely hidden from judges during blind scoring."
+          },
+          ml: {
+            title: "5. ഹൗസുകളും A/B/C ഗ്രേഡ് നിയമങ്ങളും",
+            body: "ടീമുകളെയോ ഹൗസുകളെയോ നിറങ്ങളോടെ ഇവിടെ ചേർത്താൽ ചാമ്പ്യൻഷിപ്പ് പോയിന്റുകൾ (1st=5, 2nd=3, 3rd=1) താനേ കണക്കാക്കും. താഴെ A, B, C ഗ്രേഡുകൾക്കുള്ള ശതമാനവും മാറ്റാം.",
+            tip: "ജഡ്ജിമാർക്ക് ഹൗസിന്റെ പേര് കാണില്ല, അതിനാൽ പക്ഷപാതമില്ലാത്ത വിധിനിർണ്ണയം ഉറപ്പാക്കാം."
+          }
+        },
+        {
+          selector: "#admin-add-item-form",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "6. Add Competition Items & AI Criteria",
+            body: "Pick from the built-in Festival Manual presets or type any custom competition item. Its 4 judging criteria (25 marks each) auto-fill—or click the AI button to generate tailored bilingual criteria!",
+            tip: "You can tweak any criterion label freely before clicking Add Competition Item."
+          },
+          ml: {
+            title: "6. മത്സരയിനങ്ങളും ജഡ്ജിങ് മാനദണ്ഡങ്ങളും",
+            body: "ഫെസ്റ്റിവൽ മാനുവൽ ലിസ്റ്റിൽ നിന്ന് തിരഞ്ഞെടുക്കുകയോ പുതിയ മത്സരയിനം ടൈപ്പ് ചെയ്യുകയോ ചെയ്യാം. 25 മാർക്ക് വീതമുള്ള 4 മാനദണ്ഡങ്ങൾ താനേ വരും — അല്ലെങ്കിൽ AI ബട്ടൺ വഴി തയ്യാറാക്കാം.",
+            tip: "ചേർക്കുന്നതിന് മുമ്പ് ഏത് മാനദണ്ഡവും നിങ്ങൾക്ക് ഇഷ്ടാനുസരണം തിരുത്താം."
+          }
+        },
+        {
+          selector: "#admin-add-participant-form",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "7. Register Participant Chest Numbers",
+            body: "Choose a competition item and House, then enter each contestant's Chest Number and full name. Judges only see the Chest Number—names and houses stay secret until tabulation.",
+            tip: "Keep Chest Numbers unique within each competition item for clean results."
+          },
+          ml: {
+            title: "7. മത്സരാർത്ഥികളുടെ ചെസ്റ്റ് നമ്പർ ചേർക്കാം",
+            body: "മത്സരയിനവും ഹൗസും തിരഞ്ഞെടുത്ത് മത്സരാർത്ഥിയുടെ ചെസ്റ്റ് നമ്പറും പേരും ചേർക്കുക. ജഡ്ജിമാർക്ക് ചെസ്റ്റ് നമ്പർ മാത്രമേ കാണാൻ കഴിയൂ — പേരും ഹൗസും രഹസ്യമായിരിക്കും.",
+            tip: "ഒരു മത്സരയിനത്തിൽ ഓരോരുത്തർക്കും വ്യത്യസ്ത ചെസ്റ്റ് നമ്പർ നൽകാൻ ശ്രദ്ധിക്കുക."
+          }
+        },
+        {
+          selector: "#admin-csv-import-card",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "8. Fast Bulk Import via CSV",
+            body: "Got a big registration sheet in Excel or Google Sheets? Download a ready-made CSV template, fill it in, and upload dozens of items or chest numbers at once with an instant preview.",
+            tip: "Keep auto-create checked to add missing items and houses automatically during import."
+          },
+          ml: {
+            title: "8. CSV വഴി ഒറ്റയടിക്ക് ഡാറ്റ ചേർക്കാം",
+            body: "നിരവധി മത്സരങ്ങളോ ചെസ്റ്റ് നമ്പറുകളോ എക്സലിൽ ഉണ്ടോ? ഇവിടെ നിന്ന് CSV ടെംപ്ലേറ്റ് ഡൗൺലോഡ് ചെയ്ത് പൂരിപ്പിച്ച് അപ്‌ലോഡ് ചെയ്താൽ നിമിഷങ്ങൾക്കുള്ളിൽ എല്ലാവരെയും ചേർക്കാം.",
+            tip: "ഇമ്പോർട്ട് ചെയ്യുന്നതിന് മുമ്പ് ഡാറ്റയുടെ പ്രിവ്യൂ പരിശോധിക്കാനും സാധിക്കും."
+          }
+        },
+        {
+          selector: "#admin-scores-log-card",
+          view: "admin",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "9. Submitted Scores Log",
+            body: "Track every submitted judge mark sheet here with its 4-part breakdown. If a judge accidentally submits a mistake, delete that single row to unlock re-scoring on their device.",
+            tip: "Deleting a row only clears that specific judge's score for that chest number."
+          },
+          ml: {
+            title: "9. സമർപ്പിച്ച മാർക്കുകളുടെ പട്ടിക",
+            body: "ജഡ്ജിമാർ നൽകുന്ന എല്ലാ മാർക്കുകളും ഇവിടെ തത്സമയം കാണാം. ഏതെങ്കിലും ജഡ്ജിക്ക് അബദ്ധത്തിൽ മാർക്ക് തെറ്റിപ്പോയാൽ ആ വരി ഇവിടെ ഡിലീറ്റ് ചെയ്താൽ അവർക്ക് വീണ്ടും മാർക്ക് നൽകാൻ കഴിയും.",
+            tip: "ഒരു വരി ഡിലീറ്റ് ചെയ്താൽ ആ ജഡ്ജിയുടെ ആ ചെസ്റ്റ് നമ്പറിലെ മാർക്ക് മാത്രമേ റീസെറ്റ് ആകൂ."
+          }
+        },
+        {
+          selector: "#tab-standard-header",
+          view: "tabulation",
+          sectionKey: "sectionTab",
+          en: {
+            title: "10. Live Tabulation, TV Mode & Publish",
+            body: "Here's Live Tabulation! Averages, ranks, A/B/C grades, and House charts update in real time. Use Stage / TV Mode for projectors, print official PDFs, and click 'Publish Result to Public' below when ready to announce.",
+            tip: "Results stay safely in Draft mode until you click Publish Result to Public."
+          },
+          ml: {
+            title: "10. ലൈവ് ടാബുലേഷൻ, ടി.വി മോഡ് & പബ്ലിഷ്",
+            body: "ഇതാണ് ലൈവ് ടാബുലേഷൻ! ശരാശരി മാർക്ക്, റാങ്കുകൾ, ഗ്രേഡുകൾ, ഹൗസ് ചാർട്ടുകൾ എന്നിവ ഇവിടെ തത്സമയം അപ്ഡേറ്റ് ആകും. പ്രൊജക്ടറിനായി 'Stage / TV Mode', പ്രിന്റ്/PDF, താഴെയുള്ള 'Publish Result to Public' ബട്ടണും ഇവിടെയുണ്ട്.",
+            tip: "നിങ്ങൾ 'Publish' ചെയ്യുന്നത് വരെ ഒരു റിസൾട്ടും പബ്ലിക് പേജിൽ കാണിക്കില്ല."
+          }
+        },
+        {
+          selector: "#judge-portal-card",
+          view: "judge",
+          sectionKey: "sectionJudge",
+          en: {
+            title: "11. Blind Judge Scoring Portal",
+            body: "Finally, this is what your judges use! They pick their Stage & Slot, unlock with their 4-digit PIN, select a Chest Number, and enter 4 criterion marks (0–25 each). Works offline too and syncs automatically!",
+            tip: "All done! Click Finish Tour to head right back to your Admin Console."
+          },
+          ml: {
+            title: "11. ബ്ലൈൻഡ് ജഡ്ജിങ് പോർട്ടൽ",
+            body: "ജഡ്ജിമാർ ഉപയോഗിക്കുന്ന പേജാണിത്! അവർ സ്വന്തം വേദിയും സ്ലോട്ടും തിരഞ്ഞെടുത്ത് 4-അക്ക പിൻ നൽകി തുറക്കുന്നു. ചെസ്റ്റ് നമ്പർ തിരഞ്ഞെടുത്ത് 4 മാനദണ്ഡങ്ങൾക്കും (0–25) മാർക്ക് നൽകാം. നെറ്റ്‌വർക്ക് പോയാലും ഓഫ്‌ലൈനിൽ സേവ് ആയി പിന്നീട് സിങ്ക് ആകും!",
+            tip: "അഭിനന്ദനങ്ങൾ! ടൂർ പൂർത്തിയായി. അഡ്മിൻ കൺസോളിലേക്ക് മടങ്ങാൻ 'പൂർത്തിയാക്കുക' അമർത്തുക."
+          }
+        }
+      ];
+    }
+
+    function updateQuickTourLangButtons() {
+      const mlBtn = document.getElementById("quick-tour-lang-ml");
+      const enBtn = document.getElementById("quick-tour-lang-en");
+      if (!mlBtn || !enBtn) return;
+      const isMl = quickTourLang === "ml";
+      mlBtn.className = `px-2 py-1 text-[11px] font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+        isMl ? "bg-stone-900 text-white shadow-sm" : "text-stone-600 hover:text-stone-900"
+      }`;
+      enBtn.className = `px-2 py-1 text-[11px] font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+        !isMl ? "bg-stone-900 text-white shadow-sm" : "text-stone-600 hover:text-stone-900"
+      }`;
+      mlBtn.setAttribute("aria-pressed", String(isMl));
+      enBtn.setAttribute("aria-pressed", String(!isMl));
+    }
+
+    function positionQuickTourSpotlight() {
+      if (!quickTourActive || !quickTourSteps.length) return;
+      const step = quickTourSteps[quickTourIndex];
+      const maskRect = document.getElementById("quick-tour-mask-rect");
+      const ringEl = document.getElementById("quick-tour-ring");
+      const cardEl = document.getElementById("quick-tour-card");
+      const arrowEl = document.getElementById("quick-tour-arrow");
+      if (!maskRect || !ringEl || !cardEl) return;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isMobile = vw < 640;
+      const targetEl = step?.selector ? document.querySelector(step.selector) : null;
+      const hasVisibleTarget = Boolean(targetEl && targetEl.offsetParent !== null);
+
+      let boxX = 0;
+      let boxY = 0;
+      let boxW = 0;
+      let boxH = 0;
+
+      if (hasVisibleTarget) {
+        const rect = targetEl.getBoundingClientRect();
+        const pad = isMobile ? 6 : 8;
+        const rawX = Math.max(6, rect.left - pad);
+        const rawY = Math.max(6, rect.top - pad);
+        const maxRight = Math.min(vw - 6, rect.right + pad);
+        const maxBottom = Math.min(vh - 6, rect.bottom + pad);
+        boxX = rawX;
+        boxY = rawY;
+        boxW = Math.max(0, maxRight - rawX);
+        boxH = Math.max(0, maxBottom - rawY);
+      }
+
+      if (boxW > 8 && boxH > 8) {
+        maskRect.setAttribute("x", String(boxX));
+        maskRect.setAttribute("y", String(boxY));
+        maskRect.setAttribute("width", String(boxW));
+        maskRect.setAttribute("height", String(boxH));
+
+        ringEl.classList.remove("hidden");
+        ringEl.style.left = `${boxX}px`;
+        ringEl.style.top = `${boxY}px`;
+        ringEl.style.width = `${boxW}px`;
+        ringEl.style.height = `${boxH}px`;
+      } else {
+        maskRect.setAttribute("x", "0");
+        maskRect.setAttribute("y", "0");
+        maskRect.setAttribute("width", "0");
+        maskRect.setAttribute("height", "0");
+        ringEl.classList.add("hidden");
+      }
+
+      // Position popover card smartly without ever clipping off screen
+      cardEl.style.bottom = "";
+      cardEl.style.right = "";
+
+      if (isMobile) {
+        cardEl.style.left = "12px";
+        cardEl.style.top = "";
+        cardEl.style.bottom = "12px";
+        cardEl.style.maxHeight = `${Math.max(240, vh - 24)}px`;
+        cardEl.style.overflowY = "auto";
+        if (arrowEl) arrowEl.classList.add("hidden");
+        return;
+      }
+
+      cardEl.style.maxHeight = `${Math.max(280, vh - 32)}px`;
+      cardEl.style.overflowY = "auto";
+
+      const cardRect = cardEl.getBoundingClientRect();
+      const cardW = cardRect.width || 410;
+      const cardH = cardRect.height || 290;
+      const gap = 16;
+      const margin = 16;
+
+      let placement = "floating";
+      let left = Math.max(margin, vw - cardW - 20);
+      let top = Math.max(margin, vh - cardH - 20);
+
+      if (boxW > 8 && boxH > 8) {
+        const spaceBelow = vh - (boxY + boxH) - margin;
+        const spaceAbove = boxY - margin;
+        const spaceRight = vw - (boxX + boxW) - margin;
+        const spaceLeft = boxX - margin;
+        const centerX = boxX + boxW / 2;
+
+        if (spaceBelow >= cardH + gap) {
+          placement = "bottom";
+          top = boxY + boxH + gap;
+          left = Math.min(Math.max(margin, centerX - cardW / 2), vw - cardW - margin);
+        } else if (spaceAbove >= cardH + gap) {
+          placement = "top";
+          top = boxY - cardH - gap;
+          left = Math.min(Math.max(margin, centerX - cardW / 2), vw - cardW - margin);
+        } else if (spaceRight >= cardW + gap) {
+          placement = "right";
+          left = boxX + boxW + gap;
+          top = Math.min(Math.max(margin, boxY + 12), vh - cardH - margin);
+        } else if (spaceLeft >= cardW + gap) {
+          placement = "left";
+          left = boxX - cardW - gap;
+          top = Math.min(Math.max(margin, boxY + 12), vh - cardH - margin);
+        } else {
+          placement = "floating";
+          left = Math.max(margin, vw - cardW - 20);
+          top = Math.max(margin, vh - cardH - 20);
+        }
+      }
+
+      cardEl.style.left = `${Math.round(left)}px`;
+      cardEl.style.top = `${Math.round(top)}px`;
+
+      if (arrowEl) {
+        arrowEl.className = "hidden sm:block absolute w-3.5 h-3.5 bg-[#FFFDF9] border-amber-200 rotate-45 pointer-events-none";
+        arrowEl.style.top = "";
+        arrowEl.style.bottom = "";
+        arrowEl.style.left = "";
+        arrowEl.style.right = "";
+
+        if (placement === "bottom") {
+          const arrowX = Math.min(Math.max(24, boxX + boxW / 2 - left - 7), cardW - 36);
+          arrowEl.classList.add("border-t", "border-l");
+          arrowEl.style.top = "-8px";
+          arrowEl.style.left = `${Math.round(arrowX)}px`;
+        } else if (placement === "top") {
+          const arrowX = Math.min(Math.max(24, boxX + boxW / 2 - left - 7), cardW - 36);
+          arrowEl.classList.add("border-b", "border-r");
+          arrowEl.style.bottom = "-8px";
+          arrowEl.style.left = `${Math.round(arrowX)}px`;
+        } else if (placement === "right") {
+          arrowEl.classList.add("border-b", "border-l");
+          arrowEl.style.left = "-8px";
+          arrowEl.style.top = "28px";
+        } else if (placement === "left") {
+          arrowEl.classList.add("border-t", "border-r");
+          arrowEl.style.right = "-8px";
+          arrowEl.style.top = "28px";
+        } else {
+          arrowEl.classList.add("!hidden");
+        }
+      }
+    }
+
+    function scheduleQuickTourReposition() {
+      if (!quickTourActive) return;
+      if (quickTourRafId) cancelAnimationFrame(quickTourRafId);
+      quickTourRafId = requestAnimationFrame(() => {
+        quickTourRafId = null;
+        positionQuickTourSpotlight();
+      });
+    }
+
+    function renderQuickTourStep(options = {}) {
+      const { scrollIntoView = true, animateCard = true } = options;
+      if (!quickTourActive || !quickTourSteps.length) return;
+      const step = quickTourSteps[quickTourIndex];
+      const ui = QUICK_TOUR_UI_STRINGS[quickTourLang] || QUICK_TOUR_UI_STRINGS.en;
+      const copy = step[quickTourLang] || step.en;
+      const total = quickTourSteps.length;
+      const isLast = quickTourIndex === total - 1;
+
+      // Switch underlying app view automatically if this step lives in another view
+      if (step.view && activeEventCode && !isSwitchingEvent) {
+        const viewEl = document.getElementById("view-" + step.view);
+        if (viewEl && viewEl.classList.contains("hidden")) {
+          window.switchView(step.view, { skipHistorySync: true });
+        }
+      }
+
+      document.getElementById("quick-tour-step-counter").textContent = ui.stepOf(quickTourIndex + 1, total);
+      document.getElementById("quick-tour-section-label").textContent = ui[step.sectionKey] || ui.sectionAdmin;
+      document.getElementById("quick-tour-title").textContent = copy.title;
+      document.getElementById("quick-tour-body").textContent = copy.body;
+
+      const tipBox = document.getElementById("quick-tour-tip-box");
+      const tipText = document.getElementById("quick-tour-tip-text");
+      if (copy.tip) {
+        tipText.textContent = copy.tip;
+        tipBox.classList.remove("hidden");
+      } else {
+        tipBox.classList.add("hidden");
+      }
+
+      const skipBtn = document.getElementById("quick-tour-skip-btn");
+      const prevBtn = document.getElementById("quick-tour-prev-btn");
+      const nextBtn = document.getElementById("quick-tour-next-btn");
+      if (skipBtn) skipBtn.textContent = ui.skip;
+      if (prevBtn) {
+        prevBtn.textContent = ui.back;
+        prevBtn.disabled = quickTourIndex === 0;
+      }
+      if (nextBtn) {
+        nextBtn.textContent = isLast ? ui.finish : ui.next;
+        nextBtn.className = isLast
+          ? "px-4 py-2 min-h-[38px] text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          : "px-4 py-2 min-h-[38px] text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-lg shadow-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer";
+      }
+
+      const progressEl = document.getElementById("quick-tour-progress-fill");
+      if (progressEl) {
+        progressEl.style.width = `${Math.round(((quickTourIndex + 1) / total) * 100)}%`;
+      }
+
+      const dotsEl = document.getElementById("quick-tour-dots");
+      if (dotsEl) {
+        dotsEl.innerHTML = quickTourSteps.map((_, idx) => {
+          const isCurrent = idx === quickTourIndex;
+          const isDone = idx < quickTourIndex;
+          return `<button type="button" onclick="goToQuickTourStep(${idx})" aria-label="Step ${idx + 1}" class="h-2 rounded-full transition-all cursor-pointer ${
+            isCurrent ? "w-5 bg-amber-600" : isDone ? "w-2 bg-amber-400 hover:bg-amber-500" : "w-2 bg-stone-300 hover:bg-stone-400"
+          }"></button>`;
+        }).join("");
+      }
+
+      updateQuickTourLangButtons();
+
+      const cardEl = document.getElementById("quick-tour-card");
+      if (cardEl && animateCard) {
+        cardEl.classList.remove("quick-tour-card-enter");
+        void cardEl.offsetWidth;
+        cardEl.classList.add("quick-tour-card-enter");
+      }
+
+      const targetEl = step.selector ? document.querySelector(step.selector) : null;
+      if (scrollIntoView && targetEl && targetEl.offsetParent !== null) {
+        const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const inStickyHeader = Boolean(targetEl.closest("#app-top-header"));
+        if (inStickyHeader) {
+          if (window.scrollY > 12) {
+            window.scrollTo({ top: 0, behavior: prefersReduced ? "auto" : "smooth" });
+          }
+        } else {
+          const rect = targetEl.getBoundingClientRect();
+          const headerOffset = window.innerWidth < 640 ? 78 : 96;
+          const targetAbsTop = window.scrollY + rect.top;
+          const desiredTop = Math.max(0, targetAbsTop - headerOffset);
+          const needsScroll =
+            rect.top < headerOffset - 12 ||
+            rect.top > window.innerHeight * 0.45 ||
+            (rect.height < window.innerHeight * 0.55 && rect.bottom > window.innerHeight - 160);
+
+          if (needsScroll) {
+            window.scrollTo({ top: desiredTop, behavior: prefersReduced ? "auto" : "smooth" });
+          }
+        }
+      }
+
+      scheduleQuickTourReposition();
+      if (quickTourScrollSettleTimer) clearTimeout(quickTourScrollSettleTimer);
+      quickTourScrollSettleTimer = setTimeout(() => {
+        positionQuickTourSpotlight();
+      }, 360);
+    }
+
+    function handleQuickTourKeydown(e) {
+      if (!quickTourActive) return;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        window.nextQuickTourStep();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        window.prevQuickTourStep();
+      }
+    }
+
+    window.startQuickTour = () => {
+      if (!isAdminUnlocked) return;
+      if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
+      quickTourReturnView = getCurrentLogicalRoute() === "tabulation" ? "tabulation" : "admin";
+      quickTourSteps = getQuickTourStepsForCurrentContext();
+      if (!quickTourSteps.length) return;
+      quickTourIndex = 0;
+      quickTourActive = true;
+
+      const overlay = document.getElementById("quick-tour-overlay");
+      if (overlay) overlay.classList.remove("hidden");
+
+      window.addEventListener("resize", scheduleQuickTourReposition);
+      window.addEventListener("scroll", scheduleQuickTourReposition, true);
+      document.addEventListener("keydown", handleQuickTourKeydown);
+
+      renderQuickTourStep({ scrollIntoView: true, animateCard: true });
+      setTimeout(() => {
+        document.getElementById("quick-tour-next-btn")?.focus({ preventScroll: true });
+      }, 60);
+    };
+
+    window.closeQuickTour = (options = {}) => {
+      const { silent = false, completed = false, skipRestoreView = false } = options;
+      if (!quickTourActive) return;
+      quickTourActive = false;
+
+      if (quickTourRafId) {
+        cancelAnimationFrame(quickTourRafId);
+        quickTourRafId = null;
+      }
+      if (quickTourScrollSettleTimer) {
+        clearTimeout(quickTourScrollSettleTimer);
+        quickTourScrollSettleTimer = null;
+      }
+
+      window.removeEventListener("resize", scheduleQuickTourReposition);
+      window.removeEventListener("scroll", scheduleQuickTourReposition, true);
+      document.removeEventListener("keydown", handleQuickTourKeydown);
+
+      const overlay = document.getElementById("quick-tour-overlay");
+      if (overlay) overlay.classList.add("hidden");
+
+      if (!skipRestoreView && isAdminUnlocked && !isSwitchingEvent) {
+        const restoreTarget = activeEventCode ? (quickTourReturnView || "admin") : "admin";
+        window.switchView(restoreTarget, { skipHistorySync: true });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      if (completed && !silent) {
+        const ui = QUICK_TOUR_UI_STRINGS[quickTourLang] || QUICK_TOUR_UI_STRINGS.en;
+        window.showToast(ui.doneToast);
+      }
+    };
+
+    window.nextQuickTourStep = () => {
+      if (!quickTourActive) return;
+      if (quickTourIndex >= quickTourSteps.length - 1) {
+        window.closeQuickTour({ completed: true });
+        return;
+      }
+      quickTourIndex += 1;
+      renderQuickTourStep({ scrollIntoView: true, animateCard: true });
+    };
+
+    window.prevQuickTourStep = () => {
+      if (!quickTourActive || quickTourIndex <= 0) return;
+      quickTourIndex -= 1;
+      renderQuickTourStep({ scrollIntoView: true, animateCard: true });
+    };
+
+    window.goToQuickTourStep = (index) => {
+      if (!quickTourActive) return;
+      const bounded = Math.max(0, Math.min(quickTourSteps.length - 1, Number(index) || 0));
+      quickTourIndex = bounded;
+      renderQuickTourStep({ scrollIntoView: true, animateCard: true });
+    };
+
+    window.setQuickTourLang = (lang) => {
+      if (lang !== "ml" && lang !== "en") return;
+      quickTourLang = lang;
+      try {
+        localStorage.setItem(QUICK_TOUR_LANG_KEY, lang);
+      } catch {}
+      renderQuickTourStep({ scrollIntoView: false, animateCard: false });
     };
 
     async function bootApplication() {
