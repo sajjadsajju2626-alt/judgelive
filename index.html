@@ -623,6 +623,62 @@
     </div>
   </div>
 
+  <!-- Strict Workspace PIN Verification Modal (Required before entering Official Judge Portal or Admin Workspace) -->
+  <div id="workspace-pin-modal" role="dialog" aria-modal="true" aria-labelledby="workspace-pin-modal-title" onclick="if (event.target === this) closeWorkspacePinModal()" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/55 px-4">
+    <div class="bg-white border border-stone-200 rounded-xl max-w-md w-full p-6 sm:p-7 space-y-5 shadow-xl">
+      <div class="space-y-1.5">
+        <div class="text-xs font-semibold text-amber-800">Official Workspace Authentication</div>
+        <h2 id="workspace-pin-modal-title" class="text-lg sm:text-xl font-bold text-stone-900 font-display leading-snug">
+          Enter Judge PIN or Admin PIN to Access Official Workspace
+        </h2>
+        <p class="text-xs sm:text-sm text-stone-600 leading-relaxed">
+          <span id="workspace-pin-festival-title" class="font-semibold text-stone-900">—</span>
+          <span aria-hidden="true" class="mx-1.5 text-stone-400">·</span>
+          <span id="workspace-pin-event-code" class="font-semibold text-amber-800 tabular-nums">—</span>
+        </p>
+        <p class="text-xs text-stone-500 leading-relaxed">
+          Enter your assigned 4-digit Stage Judge PIN to open your locked Judge Portal, or enter the Event Admin PIN to open the Admin Console.
+        </p>
+      </div>
+
+      <form onsubmit="handleWorkspacePinVerify(event)" class="space-y-4">
+        <div>
+          <label for="workspace-access-pin-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Judge PIN or Admin PIN</label>
+          <input id="workspace-access-pin-input" type="password" inputmode="numeric" required maxlength="16" autocomplete="off" oninput="handleWorkspacePinInputChange()" placeholder="Enter Judge PIN or Admin PIN" class="w-full px-3.5 py-2.5 text-base tabular-nums tracking-widest bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+        </div>
+
+        <!-- Shown only if the entered 4-digit PIN is configured on more than one stage -->
+        <div id="workspace-pin-match-picker-wrap" class="hidden space-y-1.5">
+          <label for="workspace-pin-match-select" class="block text-xs font-semibold text-amber-900">Select Your Assigned Stage &amp; Judge Slot</label>
+          <select id="workspace-pin-match-select" class="w-full px-3 py-2.5 text-sm bg-white border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+        </div>
+
+        <div id="workspace-access-pin-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
+          Invalid Judge/Admin PIN
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button type="button" onclick="closeWorkspacePinModal()" class="w-full px-4 py-2.5 min-h-[44px] text-xs sm:text-sm font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+            Cancel
+          </button>
+          <button type="submit" id="workspace-pin-submit-btn" class="w-full px-4 py-2.5 min-h-[44px] text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+            Verify &amp; Enter
+          </button>
+        </div>
+      </form>
+
+      <!-- DEMOFEST-Only Guest Judge Helper (Strictly hidden for all real festival codes) -->
+      <div id="workspace-demo-guest-wrap" class="hidden pt-4 border-t border-stone-200 space-y-2.5">
+        <p class="text-xs text-stone-600 text-center">
+          Exploring the <span class="font-semibold text-stone-900 tabular-nums">DEMOFEST</span> presentation sandbox?
+        </p>
+        <button type="button" id="workspace-demo-guest-btn" onclick="handleEnterDemoAsGuestJudge()" class="w-full px-4 py-2.5 min-h-[44px] text-xs sm:text-sm font-semibold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+          Enter Demo as Guest Judge
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Admin Override Modal for Live Stage Item Lock on Judge Device -->
   <div id="judge-item-override-modal" role="dialog" aria-modal="true" aria-labelledby="judge-override-modal-title" onclick="if (event.target === this) closeJudgeItemOverrideModal()" class="no-print hidden fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4">
     <div class="bg-white border border-stone-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
@@ -683,41 +739,45 @@
     </div>
 
     <!-- VIEW 0: EVENT / FESTIVAL CODE ENTRY SCREEN -->
-    <section id="view-event-entry" class="no-print max-w-lg mx-auto my-6 sm:my-10 bg-white border border-stone-200 rounded-xl p-6 sm:p-8 space-y-6">
+    <section id="view-event-entry" class="no-print w-full max-w-xl mx-auto my-6 sm:my-10 bg-white border border-stone-200 rounded-xl p-5 sm:p-8 space-y-6">
       <div class="space-y-3">
         <div class="text-[11px] font-bold uppercase tracking-widest text-amber-800">OFFICIAL DIGITAL SCORING PLATFORM</div>
         <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display leading-tight">Welcome to Arts Fest Digital Judging</h1>
         <p class="text-sm text-stone-600 leading-relaxed">
-          A seamless, paperless judging and real-time tabulation system for campus arts festivals. Enter your authorized Festival Code below to access the Blind Judging Portal.
+          A seamless, paperless judging and real-time tabulation system for campus arts festivals. Spectators can view Live Results without a PIN, while Judges and Admins sign in with an authorized PIN.
         </p>
-        <div class="flex flex-wrap items-center gap-2 pt-1">
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 border border-stone-200 rounded-md">✓ Blind Judging</span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 border border-stone-200 rounded-md">⚡ Real-Time Sync</span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-stone-700 bg-stone-100 border border-stone-200 rounded-md">📊 Live Standings</span>
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs font-medium text-stone-600">
+          <span>Blind Judging</span>
+          <span aria-hidden="true" class="text-stone-300">·</span>
+          <span>Real-Time Cloud Sync</span>
+          <span aria-hidden="true" class="text-stone-300">·</span>
+          <span>Live Public Standings</span>
         </div>
       </div>
       <form onsubmit="handleEventCodeSubmit(event)" class="space-y-4">
         <div>
           <label for="event-code-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Festival Code</label>
           <input id="event-code-input" type="text" required autocomplete="off" maxlength="32" oninput="hideEventCodeError()" placeholder="Enter Festival Code" class="w-full px-3.5 py-2.5 text-base uppercase tabular-nums tracking-wider bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          <p class="text-xs text-stone-500 mt-1.5">Enter the authorized Festival Code provided by the administrator.</p>
+          <p class="text-xs text-stone-500 mt-1.5">Enter the authorized Festival Code provided by the festival coordinator.</p>
         </div>
         <div id="event-code-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900">
           Invalid Event Code. This event has not been created by the Admin.
         </div>
-        <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-2.5 pt-2">
-          <button type="button" id="event-entry-cancel-btn" onclick="cancelEventSwitcher()" class="hidden px-4 py-2.5 min-h-[44px] text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+        <div class="space-y-2.5 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button type="button" id="event-entry-public-btn" onclick="handleOpenPublicViewFromLanding()" class="w-full px-4 py-2.5 min-h-[44px] text-sm font-semibold text-emerald-900 bg-emerald-50 border border-emerald-300 rounded-lg hover:bg-emerald-100 transition-colors text-center whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+              Live Results / Public View
+            </button>
+            <button type="submit" id="event-entry-submit-btn" class="w-full px-4 py-2.5 min-h-[44px] text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors text-center whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+              Enter Festival Workspace
+            </button>
+          </div>
+          <button type="button" id="event-entry-cancel-btn" onclick="cancelEventSwitcher()" class="hidden w-full px-4 py-2.5 min-h-[44px] text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors text-center whitespace-nowrap">
             Back to Current Event
           </button>
-          <button type="button" id="event-entry-public-btn" onclick="handleOpenPublicViewFromLanding()" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-sm font-semibold text-emerald-900 bg-emerald-50 border border-emerald-300 rounded-lg hover:bg-emerald-100 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
-            Live Results / Public View
-          </button>
-          <button type="submit" id="event-entry-submit-btn" class="w-full sm:w-auto px-5 py-2.5 min-h-[44px] text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
-            Enter Festival Workspace
-          </button>
         </div>
-        <p class="text-[11px] text-stone-500 text-center sm:text-right">
-          Students &amp; audience: enter your Festival Code and tap <span class="font-semibold text-emerald-900">Live Results / Public View</span> — no PIN required.
+        <p class="text-[11px] text-stone-500 leading-relaxed text-center">
+          Spectators &amp; students: tap <span class="font-semibold text-emerald-900">Live Results / Public View</span> (no PIN needed). Judges &amp; Admins: tap <span class="font-semibold text-amber-900">Enter Festival Workspace</span> (PIN required).
         </p>
       </form>
     </section>
@@ -3533,6 +3593,9 @@
     let activeEventCode = "";
     let isAdminUnlocked = false;
     let isMasterAdmin = false;
+    let isWorkspaceAuthenticated = false;
+    let lastAuthenticatedView = "judge";
+    let pendingWorkspaceAuth = null;
     let isSwitchingEvent = false;
     let isDemoActionBusy = false;
     let activeJudgeSession = null;
@@ -3885,27 +3948,31 @@
     async function resolveCloudEventConfig(code) {
       const regSnap = await fetchCampusRegistryDoc(code);
       if (regSnap.exists()) {
+        const regData = regSnap.data();
         return {
           exists: true,
-          config: buildNormalizedEventConfig(code, regSnap.data()),
+          config: buildNormalizedEventConfig(code, regData),
+          rawData: regData,
           source: "campus_registry"
         };
       }
 
       const cfgSnap = await fetchEventConfigDoc(code);
       if (cfgSnap.exists()) {
-        const legacyCfg = buildNormalizedEventConfig(code, cfgSnap.data());
+        const cfgData = cfgSnap.data();
+        const legacyCfg = buildNormalizedEventConfig(code, cfgData);
         try {
           await setDoc(doc(db, CAMPUS_REGISTRY_COLLECTION, code), buildCampusRegistryPayload(code, legacyCfg, true), { merge: true });
         } catch {}
         return {
           exists: true,
           config: legacyCfg,
+          rawData: cfgData,
           source: "legacy_config"
         };
       }
 
-      return { exists: false, config: null, source: null };
+      return { exists: false, config: null, rawData: null, source: null };
     }
 
     function revokeActiveEventAccess(message = LICENSE_BLOCKED_MESSAGE) {
@@ -3915,6 +3982,8 @@
       detachListeners();
       isAdminUnlocked = false;
       isMasterAdmin = false;
+      isWorkspaceAuthenticated = false;
+      pendingWorkspaceAuth = null;
       isPublicMode = false;
       publicOpenedFromAdmin = false;
       activeJudgeSession = null;
@@ -5447,6 +5516,7 @@
     function hasAnyOpenModal() {
       const modalIds = [
         "quick-tour-overlay",
+        "workspace-pin-modal",
         "pin-modal",
         "judge-item-override-modal",
         "clear-modal",
@@ -5462,6 +5532,7 @@
 
     function closeAllModals() {
       if (typeof window.closeQuickTour === "function") window.closeQuickTour({ silent: true });
+      if (typeof window.closeWorkspacePinModal === "function") window.closeWorkspacePinModal();
       window.closePinModal();
       window.closeJudgeItemOverrideModal();
       window.closeClearModal();
@@ -5600,6 +5671,14 @@
       isPublicMode = false;
       publicOpenedFromAdmin = false;
       isSwitchingEvent = true;
+      const canReturnToActive = Boolean(
+        allowCancel &&
+        activeEventCode &&
+        (isAdminUnlocked || (isWorkspaceAuthenticated && activeJudgeSession))
+      );
+      if (!canReturnToActive && !isAdminUnlocked) {
+        isWorkspaceAuthenticated = false;
+      }
       applyBrandingUI();
       applyAdminAccessUI();
       ["judge", "tabulation", "admin", "public"].forEach(v => {
@@ -5608,7 +5687,7 @@
       });
       document.getElementById("view-event-entry").classList.remove("hidden");
       window.hideEventCodeError();
-      document.getElementById("event-entry-cancel-btn").classList.toggle("hidden", !allowCancel);
+      document.getElementById("event-entry-cancel-btn").classList.toggle("hidden", !canReturnToActive);
       const input = document.getElementById("event-code-input");
       input.value = activeEventCode || "";
       if (options.clearPublicQuery && typeof window.history.replaceState === "function") {
@@ -5621,11 +5700,18 @@
     }
 
     function enterEventWorkspace(code, options = {}) {
-      const { keepAdminUnlocked = false, keepMasterAdmin = false, targetView = "judge" } = options;
+      const {
+        keepAdminUnlocked = false,
+        keepMasterAdmin = false,
+        targetView = "judge",
+        initialJudgeSession = null,
+        hasCloudStages = false
+      } = options;
       if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
       isPublicMode = false;
       publicOpenedFromAdmin = false;
       isSwitchingEvent = false;
+      isWorkspaceAuthenticated = true;
       activeEventCode = code;
       activeJudgeSession = null;
       judgeItemAdminOverride = false;
@@ -5635,6 +5721,19 @@
       isMasterAdmin = Boolean(keepAdminUnlocked && keepMasterAdmin);
 
       window.state = loadLocalState(code);
+      if (initialJudgeSession && initialJudgeSession.judgeSlot && initialJudgeSession.pinUsed) {
+        try {
+          localStorage.setItem(
+            getJudgeSessionKey(code),
+            JSON.stringify({
+              judgeStage: initialJudgeSession.judgeStage,
+              judgeSlot: initialJudgeSession.judgeSlot,
+              pin: initialJudgeSession.pinUsed,
+              unlockedViaAdmin: Boolean(initialJudgeSession.unlockedViaAdmin)
+            })
+          );
+        } catch {}
+      }
       document.getElementById("pin-modal-event-code").textContent = code;
       document.getElementById("admin-event-code-label").textContent = code;
       document.getElementById("admin-brand-scope-code").textContent = code;
@@ -5654,11 +5753,16 @@
       if (typeof window.clearCsvImport === "function") window.clearCsvImport();
       if (typeof window.resetAdminItemsFilterAndEdit === "function") window.resetAdminItemsFilterAndEdit();
 
-      hasCloudStagesDoc = false;
+      hasCloudStagesDoc = Boolean(hasCloudStages);
       activeAdminJudgeStageTab = getConfiguredStages()[0] || "Stage 1";
       applyBrandingUI();
       renderAdminStagesManager();
       initJudgeSession();
+      if (initialJudgeSession && !activeJudgeSession) {
+        activeJudgeSession = { ...initialJudgeSession };
+        applyJudgeSessionLockUI();
+        syncJudgeActiveItemUI();
+      }
       renderAdminJudgesForm(true);
       window.refreshAllSelects();
       applyAdminAccessUI();
@@ -5668,6 +5772,419 @@
 
       attachListeners();
     }
+
+    function showWorkspacePinError(message) {
+      const errEl = document.getElementById("workspace-access-pin-error");
+      if (errEl) {
+        errEl.textContent = message || "Invalid Judge/Admin PIN";
+        errEl.classList.remove("hidden");
+      }
+    }
+
+    function hideWorkspacePinError() {
+      const errEl = document.getElementById("workspace-access-pin-error");
+      if (errEl) errEl.classList.add("hidden");
+    }
+
+    function resetWorkspaceMatchPicker() {
+      const wrap = document.getElementById("workspace-pin-match-picker-wrap");
+      const sel = document.getElementById("workspace-pin-match-select");
+      if (wrap) wrap.classList.add("hidden");
+      if (sel) sel.innerHTML = "";
+      if (pendingWorkspaceAuth) pendingWorkspaceAuth.ambiguousMatches = null;
+    }
+
+    window.handleWorkspacePinInputChange = () => {
+      hideWorkspacePinError();
+      resetWorkspaceMatchPicker();
+    };
+
+    function openWorkspacePinModal(code, config, rawRegistryData = null) {
+      pendingWorkspaceAuth = {
+        code,
+        config: config || getDefaultConfig(code),
+        rawRegistryData,
+        ambiguousMatches: null
+      };
+      const titleEl = document.getElementById("workspace-pin-festival-title");
+      const codeEl = document.getElementById("workspace-pin-event-code");
+      const pinInput = document.getElementById("workspace-access-pin-input");
+      const demoGuestWrap = document.getElementById("workspace-demo-guest-wrap");
+      const modalEl = document.getElementById("workspace-pin-modal");
+
+      if (titleEl) titleEl.textContent = String(config?.title || code).trim() || code;
+      if (codeEl) codeEl.textContent = code;
+      if (pinInput) pinInput.value = "";
+      hideWorkspacePinError();
+      resetWorkspaceMatchPicker();
+
+      // Strictly allow the one-tap Guest Judge helper ONLY for DEMOFEST
+      if (demoGuestWrap) {
+        demoGuestWrap.classList.toggle("hidden", code !== DEMO_EVENT_CODE);
+      }
+
+      if (modalEl) modalEl.classList.remove("hidden");
+      setTimeout(() => pinInput?.focus(), 30);
+    }
+
+    window.closeWorkspacePinModal = () => {
+      const modalEl = document.getElementById("workspace-pin-modal");
+      const pinInput = document.getElementById("workspace-access-pin-input");
+      const demoGuestWrap = document.getElementById("workspace-demo-guest-wrap");
+      if (modalEl) modalEl.classList.add("hidden");
+      if (pinInput) pinInput.value = "";
+      if (demoGuestWrap) demoGuestWrap.classList.add("hidden");
+      hideWorkspacePinError();
+      resetWorkspaceMatchPicker();
+      pendingWorkspaceAuth = null;
+    };
+
+    function findMatchingJudgeSlotsForPin(enteredPin, code, stages, judgesCfg, eventCfg, rawRegistryData = null) {
+      const activeSlots = getActiveJudgeSlots(eventCfg);
+      const matches = [];
+      const seenKeys = new Set();
+      const stageList = normalizeStagesList(stages, true);
+      const normalizedJudges = normalizeJudgesConfig(judgesCfg, code, stageList);
+
+      stageList.forEach((stageName) => {
+        const panel = getStageJudgePanel(normalizedJudges, stageName, code);
+        activeSlots.forEach((slot) => {
+          const slotCfg = panel?.[slot];
+          if (slotCfg && String(slotCfg.pin || "").trim() === enteredPin) {
+            const key = `${stageName.toLowerCase()}:::${slot}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              matches.push({
+                judgeStage: stageName,
+                judgeSlot: slot,
+                judgeName: slotCfg.name || slot,
+                pinUsed: enteredPin
+              });
+            }
+          }
+        });
+      });
+
+      // Bonus compatibility: also inspect optional `judgePins` map on campus_registry if present
+      const rawJudgePins = rawRegistryData?.judgePins;
+      if (rawJudgePins && typeof rawJudgePins === "object") {
+        Object.entries(rawJudgePins).forEach(([k, v]) => {
+          if (typeof v === "string" && activeSlots.includes(k) && v.trim() === enteredPin) {
+            const fallbackStage = stageList[0] || "Stage 1";
+            const key = `${fallbackStage.toLowerCase()}:::${k}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              const panel = getStageJudgePanel(normalizedJudges, fallbackStage, code);
+              matches.push({
+                judgeStage: fallbackStage,
+                judgeSlot: k,
+                judgeName: panel?.[k]?.name || k,
+                pinUsed: enteredPin
+              });
+            }
+          } else if (v && typeof v === "object") {
+            const matchedStage = stageList.find(s => s.toLowerCase() === normalizeStageName(k).toLowerCase());
+            if (!matchedStage) return;
+            activeSlots.forEach((slot) => {
+              const slotPin = typeof v[slot] === "string" ? v[slot] : v[slot]?.pin;
+              if (String(slotPin || "").trim() === enteredPin) {
+                const key = `${matchedStage.toLowerCase()}:::${slot}`;
+                if (!seenKeys.has(key)) {
+                  seenKeys.add(key);
+                  const panel = getStageJudgePanel(normalizedJudges, matchedStage, code);
+                  matches.push({
+                    judgeStage: matchedStage,
+                    judgeSlot: slot,
+                    judgeName: v[slot]?.name || panel?.[slot]?.name || slot,
+                    pinUsed: enteredPin
+                  });
+                }
+              }
+            });
+          }
+        });
+      }
+
+      return matches;
+    }
+
+    async function fetchAuthoritativeEventAuthBundle(code, fallbackConfig = null, fallbackRawData = null) {
+      let localState = loadLocalState(code);
+      let eventCfg = fallbackConfig || localState.config || getDefaultConfig(code);
+      let rawRegistryData = fallbackRawData || null;
+      let stages = normalizeStagesList(localState.stages, true);
+      let hasCloudStages = false;
+      let judgesCfg = normalizeJudgesConfig(localState.judges, code, stages);
+
+      try {
+        const [resolvedCfg, stagesSnap, judgesSnap] = await Promise.all([
+          resolveCloudEventConfig(code),
+          getDocPreferServer(doc(db, "events", code, "settings", "stages")).catch(() => null),
+          getDocPreferServer(doc(db, "events", code, "settings", "judges")).catch(() => null)
+        ]);
+
+        if (resolvedCfg?.exists && resolvedCfg.config) {
+          eventCfg = resolvedCfg.config;
+          rawRegistryData = resolvedCfg.rawData || rawRegistryData;
+        }
+        if (stagesSnap && stagesSnap.exists()) {
+          hasCloudStages = true;
+          stages = normalizeStagesList(stagesSnap.data()?.stages, true);
+        }
+        if (judgesSnap && judgesSnap.exists()) {
+          judgesCfg = normalizeJudgesConfig(judgesSnap.data(), code, stages);
+        } else {
+          judgesCfg = normalizeJudgesConfig(localState.judges, code, stages);
+        }
+      } catch (err) {
+        if (!isOfflineFirestoreError(err)) {
+          throw err;
+        }
+        if (code === DEMO_EVENT_CODE && !hasLocalEvent(DEMO_EVENT_CODE)) {
+          const demoData = getDemoPresentationData();
+          eventCfg = demoData.config;
+          stages = normalizeStagesList(demoData.stages, true);
+          judgesCfg = normalizeJudgesConfig(demoData.judges, DEMO_EVENT_CODE, stages);
+        }
+      }
+
+      return { eventCfg, rawRegistryData, stages, hasCloudStages, judgesCfg };
+    }
+
+    window.handleWorkspacePinVerify = async (e) => {
+      e.preventDefault();
+      if (!pendingWorkspaceAuth || !pendingWorkspaceAuth.code) return;
+
+      const { code } = pendingWorkspaceAuth;
+      const pinInput = document.getElementById("workspace-access-pin-input");
+      const submitBtn = document.getElementById("workspace-pin-submit-btn");
+      const matchWrap = document.getElementById("workspace-pin-match-picker-wrap");
+      const matchSelect = document.getElementById("workspace-pin-match-select");
+      const enteredPin = String(pinInput?.value || "").trim();
+
+      if (!enteredPin) {
+        showWorkspacePinError("Invalid Judge/Admin PIN");
+        pinInput?.focus();
+        return;
+      }
+
+      // If user is confirming a stage from an already-verified multi-stage PIN match
+      if (
+        pendingWorkspaceAuth.ambiguousMatches &&
+        pendingWorkspaceAuth.ambiguousMatches.pin === enteredPin &&
+        matchWrap &&
+        !matchWrap.classList.contains("hidden") &&
+        matchSelect
+      ) {
+        const chosenIdx = Number(matchSelect.value);
+        const chosen = pendingWorkspaceAuth.ambiguousMatches.matches[chosenIdx];
+        const bundle = pendingWorkspaceAuth.ambiguousMatches.bundle;
+        if (chosen && bundle) {
+          const localState = loadLocalState(code);
+          localState.config = bundle.eventCfg;
+          localState.stages = bundle.stages;
+          localState.judges = bundle.judgesCfg;
+          try {
+            localStorage.setItem(getLocalStateKey(code), JSON.stringify(localState));
+          } catch {}
+          window.closeWorkspacePinModal();
+          enterEventWorkspace(code, {
+            keepAdminUnlocked: false,
+            keepMasterAdmin: false,
+            targetView: "judge",
+            initialJudgeSession: { ...chosen, unlockedViaAdmin: false },
+            hasCloudStages: bundle.hasCloudStages
+          });
+          window.showToast(`Unlocked ${chosen.judgeStage} · ${chosen.judgeSlot} — ${chosen.judgeName}`);
+          return;
+        }
+      }
+
+      hideWorkspacePinError();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Verifying...";
+      }
+
+      let bundle = null;
+      try {
+        bundle = await fetchAuthoritativeEventAuthBundle(
+          code,
+          pendingWorkspaceAuth.config,
+          pendingWorkspaceAuth.rawRegistryData
+        );
+      } catch (err) {
+        handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${code}`);
+        showWorkspacePinError("Unable to verify PIN right now. Please check your connection and try again.");
+        return;
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Verify & Enter";
+        }
+      }
+
+      if (!isEventLicenseValid(bundle.eventCfg)) {
+        window.closeWorkspacePinModal();
+        showEventCodeError(LICENSE_BLOCKED_MESSAGE);
+        return;
+      }
+
+      const storedAdminPin = String(bundle.eventCfg?.adminPin || DEFAULT_EVENT_PIN).trim();
+      const isEventAdminPin = enteredPin === storedAdminPin;
+      const isSuperAdminPin = enteredPin === MASTER_PIN;
+
+      if (isEventAdminPin || isSuperAdminPin) {
+        const localState = loadLocalState(code);
+        localState.config = bundle.eventCfg;
+        localState.stages = bundle.stages;
+        localState.judges = bundle.judgesCfg;
+        try {
+          localStorage.setItem(getLocalStateKey(code), JSON.stringify(localState));
+        } catch {}
+
+        window.closeWorkspacePinModal();
+        enterEventWorkspace(code, {
+          keepAdminUnlocked: true,
+          keepMasterAdmin: isSuperAdminPin,
+          targetView: "admin",
+          hasCloudStages: bundle.hasCloudStages
+        });
+        window.showToast(`Admin Console unlocked for ${code}`);
+        return;
+      }
+
+      const judgeMatches = findMatchingJudgeSlotsForPin(
+        enteredPin,
+        code,
+        bundle.stages,
+        bundle.judgesCfg,
+        bundle.eventCfg,
+        bundle.rawRegistryData
+      );
+
+      if (judgeMatches.length === 0) {
+        showWorkspacePinError("Invalid Judge/Admin PIN");
+        if (pinInput) {
+          pinInput.focus();
+          pinInput.select();
+        }
+        return;
+      }
+
+      if (judgeMatches.length > 1 && matchWrap && matchSelect) {
+        pendingWorkspaceAuth.ambiguousMatches = {
+          pin: enteredPin,
+          matches: judgeMatches,
+          bundle
+        };
+        matchSelect.innerHTML = judgeMatches
+          .map((m, idx) => `<option value="${idx}">${escapeHtml(m.judgeStage)} · ${escapeHtml(m.judgeSlot)} — ${escapeHtml(m.judgeName)}</option>`)
+          .join("");
+        matchWrap.classList.remove("hidden");
+        matchSelect.focus();
+        return;
+      }
+
+      const matchedJudge = judgeMatches[0];
+      const localState = loadLocalState(code);
+      localState.config = bundle.eventCfg;
+      localState.stages = bundle.stages;
+      localState.judges = bundle.judgesCfg;
+      try {
+        localStorage.setItem(getLocalStateKey(code), JSON.stringify(localState));
+      } catch {}
+
+      window.closeWorkspacePinModal();
+      enterEventWorkspace(code, {
+        keepAdminUnlocked: false,
+        keepMasterAdmin: false,
+        targetView: "judge",
+        initialJudgeSession: { ...matchedJudge, unlockedViaAdmin: false },
+        hasCloudStages: bundle.hasCloudStages
+      });
+      window.showToast(`Unlocked ${matchedJudge.judgeStage} · ${matchedJudge.judgeSlot} — ${matchedJudge.judgeName}`);
+    };
+
+    window.handleEnterDemoAsGuestJudge = async () => {
+      // Strictly restricted to DEMOFEST sandbox only
+      if (!pendingWorkspaceAuth || pendingWorkspaceAuth.code !== DEMO_EVENT_CODE) return;
+
+      const guestBtn = document.getElementById("workspace-demo-guest-btn");
+      if (guestBtn) {
+        guestBtn.disabled = true;
+        guestBtn.textContent = "Opening Demo Judge Portal...";
+      }
+
+      try {
+        let shouldSeedDemo = false;
+        let bundle = null;
+        try {
+          const [authBundle, itemsSnap] = await Promise.all([
+            fetchAuthoritativeEventAuthBundle(DEMO_EVENT_CODE, pendingWorkspaceAuth.config, pendingWorkspaceAuth.rawRegistryData),
+            getDocs(collection(db, "events", DEMO_EVENT_CODE, "items")).catch(() => null)
+          ]);
+          bundle = authBundle;
+          if (!itemsSnap || itemsSnap.empty) {
+            shouldSeedDemo = true;
+          }
+        } catch {
+          shouldSeedDemo = !hasLocalEvent(DEMO_EVENT_CODE);
+        }
+
+        if (shouldSeedDemo) {
+          const demoData = getDemoPresentationData(bundle?.eventCfg || pendingWorkspaceAuth.config);
+          demoData.config.authorId = getDeviceAuthorId();
+          try {
+            localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(demoData));
+          } catch {}
+          try {
+            await seedDemoWorkspaceInFirestore(demoData, true, true);
+          } catch {}
+          bundle = {
+            eventCfg: demoData.config,
+            stages: normalizeStagesList(demoData.stages, true),
+            hasCloudStages: true,
+            judgesCfg: normalizeJudgesConfig(demoData.judges, DEMO_EVENT_CODE, demoData.stages)
+          };
+        } else if (bundle) {
+          const localDemo = loadLocalState(DEMO_EVENT_CODE);
+          localDemo.config = bundle.eventCfg;
+          localDemo.stages = bundle.stages;
+          localDemo.judges = bundle.judgesCfg;
+          try {
+            localStorage.setItem(getLocalStateKey(DEMO_EVENT_CODE), JSON.stringify(localDemo));
+          } catch {}
+        }
+
+        const stages = bundle?.stages || normalizeStagesList(DEFAULT_STAGES, true);
+        const targetStage = stages[0] || "Stage 1";
+        const judgesCfg = bundle?.judgesCfg || getDefaultJudgesConfig(DEMO_EVENT_CODE, false, stages);
+        const panel = getStageJudgePanel(judgesCfg, targetStage, DEMO_EVENT_CODE);
+        const guestSlotCfg = panel?.J1 || { name: "Demo Judge 1", pin: "1111" };
+
+        window.closeWorkspacePinModal();
+        enterEventWorkspace(DEMO_EVENT_CODE, {
+          keepAdminUnlocked: false,
+          keepMasterAdmin: false,
+          targetView: "judge",
+          initialJudgeSession: {
+            judgeStage: targetStage,
+            judgeSlot: "J1",
+            judgeName: guestSlotCfg.name,
+            pinUsed: guestSlotCfg.pin,
+            unlockedViaAdmin: false
+          },
+          hasCloudStages: Boolean(bundle?.hasCloudStages)
+        });
+        window.showToast(`Entered DEMOFEST as Guest Judge (${targetStage} · J1)`);
+      } finally {
+        if (guestBtn) {
+          guestBtn.disabled = false;
+          guestBtn.textContent = "Enter Demo as Guest Judge";
+        }
+      }
+    };
 
     window.handleEventCodeSubmit = async (e) => {
       e.preventDefault();
@@ -5689,23 +6206,33 @@
 
       let isVerifiedEvent = false;
       let loadedConfig = null;
+      let rawRegistryData = null;
       try {
         try {
           const resolved = await resolveCloudEventConfig(normalized);
           if (resolved.exists && resolved.config) {
             isVerifiedEvent = true;
             loadedConfig = resolved.config;
+            rawRegistryData = resolved.rawData || null;
             const existingLocal = loadLocalState(normalized);
             existingLocal.config = loadedConfig;
             try {
               localStorage.setItem(getLocalStateKey(normalized), JSON.stringify(existingLocal));
             } catch {}
+          } else if (normalized === DEMO_EVENT_CODE) {
+            const demoData = getDemoPresentationData();
+            isVerifiedEvent = true;
+            loadedConfig = demoData.config;
           }
         } catch (err) {
           if (isOfflineFirestoreError(err)) {
             isVerifiedEvent = hasLocalEvent(normalized);
             if (isVerifiedEvent) {
               loadedConfig = loadLocalState(normalized).config;
+            } else if (normalized === DEMO_EVENT_CODE) {
+              const demoData = getDemoPresentationData();
+              isVerifiedEvent = true;
+              loadedConfig = demoData.config;
             }
           } else {
             handleFirestoreError(err, "get", `${CAMPUS_REGISTRY_COLLECTION}/${normalized}`);
@@ -5734,8 +6261,8 @@
         return;
       }
 
-      enterEventWorkspace(normalized);
-      window.showToast(`Entered Event ${normalized}`);
+      // Strictly require Judge PIN or Admin PIN verification before entering the official workspace
+      openWorkspacePinModal(normalized, loadedConfig, rawRegistryData);
     };
 
     window.openEventSwitcher = () => {
@@ -5748,21 +6275,26 @@
           return;
         }
         detachListeners();
+        isWorkspaceAuthenticated = false;
         activeEventCode = "";
         window.state = getEmptyEventState();
         showEventEntryView(false, { clearPublicQuery: true });
         return;
       }
-      showEventEntryView(Boolean(activeEventCode));
+      const canReturn = Boolean(activeEventCode && (isAdminUnlocked || (isWorkspaceAuthenticated && activeJudgeSession)));
+      showEventEntryView(canReturn);
     };
 
     window.cancelEventSwitcher = () => {
-      if (!activeEventCode) return;
+      if (!activeEventCode || (!isAdminUnlocked && !(isWorkspaceAuthenticated && activeJudgeSession))) return;
       isSwitchingEvent = false;
       document.getElementById("view-event-entry").classList.add("hidden");
       applyBrandingUI();
       applyAdminAccessUI();
-      window.switchView("judge");
+      const targetView = isAdminUnlocked
+        ? (["admin", "tabulation", "judge"].includes(lastAuthenticatedView) ? lastAuthenticatedView : "admin")
+        : "judge";
+      window.switchView(targetView);
     };
 
     // Secret Triple-Tap Unlock (works from both Event Code screen and active workspace), Admin Lock & Navigation
@@ -5815,15 +6347,22 @@
       isMasterAdmin = false;
       applyBrandingUI();
       applyAdminAccessUI();
-      if (activeEventCode && isEventLicenseValid(window.state?.config)) {
+      if (activeEventCode && activeJudgeSession && isEventLicenseValid(window.state?.config)) {
+        isWorkspaceAuthenticated = true;
         window.switchView("judge");
       } else {
+        const previousCode = activeEventCode;
+        isWorkspaceAuthenticated = false;
+        activeJudgeSession = null;
+        judgeItemAdminOverride = false;
         if (activeEventCode) {
           detachListeners();
           activeEventCode = "";
           window.state = getEmptyEventState();
         }
         showEventEntryView(false);
+        const codeInput = document.getElementById("event-code-input");
+        if (codeInput && previousCode) codeInput.value = previousCode;
       }
       window.showToast("Admin Locked");
     };
@@ -5936,6 +6475,10 @@
             try { window.history.replaceState(buildRouteHistoryPayload("admin"), "", "#admin"); } catch {}
           }
         } else {
+          detachListeners();
+          isWorkspaceAuthenticated = false;
+          activeEventCode = "";
+          window.state = getEmptyEventState();
           showEventEntryView(false, { fromPopstate: true, clearPublicQuery: true });
           if (targetRoute !== "welcome") {
             try { window.history.replaceState(buildRouteHistoryPayload("welcome"), "", window.location.pathname + "#welcome"); } catch {}
@@ -5947,7 +6490,8 @@
       // Judge Portal -> Navigate back to initial "Enter Festival Code" screen
       if (currentRoute === "judge") {
         stopAutoRotateTimer(true);
-        showEventEntryView(Boolean(activeEventCode), { fromPopstate: true });
+        const canReturn = Boolean(activeEventCode && (isAdminUnlocked || (isWorkspaceAuthenticated && activeJudgeSession)));
+        showEventEntryView(canReturn, { fromPopstate: true });
         if (targetRoute !== "welcome") {
           try { window.history.replaceState(buildRouteHistoryPayload("welcome"), "", "#welcome"); } catch {}
         }
@@ -5955,13 +6499,14 @@
     });
 
     window.switchView = (view, options = {}) => {
-      if (!isAdminUnlocked && (!activeEventCode || isSwitchingEvent || view !== "judge")) return;
+      if (!isAdminUnlocked && (!isWorkspaceAuthenticated || !activeEventCode || isSwitchingEvent || view !== "judge")) return;
       if (!activeEventCode && view !== "admin") return;
 
       isPublicMode = false;
       publicOpenedFromAdmin = false;
       if (typeof stopPublicClockTimer === "function") stopPublicClockTimer();
       isSwitchingEvent = false;
+      lastAuthenticatedView = view;
       if (view !== "tabulation" && isStageTvMode) {
         window.exitStageTvMode(true, { skipHistorySync: true });
       }
@@ -6038,6 +6583,7 @@
         }
         isAdminUnlocked = true;
         isMasterAdmin = (entered === MASTER_PIN);
+        isWorkspaceAuthenticated = Boolean(hasWorkspace);
         isSwitchingEvent = false;
         window.closePinModal();
         applyBrandingUI();
@@ -11556,6 +12102,7 @@
       if (!fromAdmin) {
         isAdminUnlocked = false;
         isMasterAdmin = false;
+        isWorkspaceAuthenticated = false;
         activeJudgeSession = null;
         judgeItemAdminOverride = false;
       }
