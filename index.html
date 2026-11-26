@@ -16,51 +16,153 @@
     body { font-family: 'Manrope', 'Noto Sans Malayalam', sans-serif; background-color: #FAF8F5; color: #1C1917; }
     h1, h2, h3, .font-display { font-family: 'Outfit', 'Noto Sans Malayalam', sans-serif; }
     .tabular-nums { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+    .leaderboard-animated-table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .leaderboard-animated-table thead th {
+      border-bottom: 1px solid #E7E5E4;
+    }
+    .leaderboard-animated-table tbody td {
+      border-bottom: 1px solid #E7E5E4;
+      transition: background-color 360ms ease, color 260ms ease;
+    }
+    .leaderboard-animated-table tbody tr:last-child td {
+      border-bottom-width: 0;
+    }
+    body.stage-tv-mode .leaderboard-animated-table thead th,
+    body.stage-tv-mode .leaderboard-animated-table tbody td {
+      border-bottom-color: #292524;
+    }
     .tab-animated-row {
+      position: relative;
+      z-index: 0;
       will-change: transform;
-      transition: background-color 350ms ease, opacity 280ms ease;
+      transition: background-color 360ms ease, box-shadow 360ms ease, opacity 280ms ease;
+    }
+    .tab-animated-row.tab-row-flip-play {
+      transition:
+        transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 420ms ease,
+        box-shadow 420ms ease;
+    }
+    .tab-animated-row.tab-row-moving {
+      will-change: transform;
+    }
+    .tab-animated-row.tab-row-rising {
+      z-index: 3;
+      background-color: rgba(16, 185, 129, 0.09);
+      box-shadow: 0 6px 16px -6px rgba(28, 25, 23, 0.14);
+    }
+    .tab-animated-row.tab-row-falling {
+      z-index: 1;
+      background-color: rgba(245, 158, 11, 0.06);
+    }
+    body.stage-tv-mode .tab-animated-row.tab-row-rising {
+      background-color: rgba(16, 185, 129, 0.16);
+      box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.55);
+    }
+    body.stage-tv-mode .tab-animated-row.tab-row-falling {
+      background-color: rgba(245, 158, 11, 0.09);
     }
     .tab-row-enter {
       animation: tabRowFadeIn 380ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .rank-up-flash {
-      animation: rankUpHighlight 1150ms cubic-bezier(0.22, 1, 0.36, 1);
+      animation: rankUpHighlight 1300ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .rank-down-flash {
-      animation: rankDownHighlight 1150ms cubic-bezier(0.22, 1, 0.36, 1);
+      animation: rankDownHighlight 1300ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode .rank-up-flash {
+      animation: rankUpHighlightDark 1300ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode .rank-down-flash {
+      animation: rankDownHighlightDark 1300ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .score-updated-flash {
       animation: scorePulseHighlight 900ms cubic-bezier(0.22, 1, 0.36, 1);
     }
+    body.stage-tv-mode .score-updated-flash {
+      animation: scorePulseHighlightDark 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
     .rank-pill-transition {
       transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), background-color 320ms ease, color 320ms ease;
+    }
+    .rank-delta-cue {
+      display: inline-block;
+      margin-left: 0.375rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1;
+      vertical-align: middle;
+      opacity: 0;
+    }
+    .rank-delta-cue.rank-delta-up {
+      color: #047857;
+      animation: rankDeltaFade 2800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .rank-delta-cue.rank-delta-down {
+      color: #B45309;
+      animation: rankDeltaFade 2800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    body.stage-tv-mode .rank-delta-cue.rank-delta-up {
+      color: #34D399;
+    }
+    body.stage-tv-mode .rank-delta-cue.rank-delta-down {
+      color: #FBBF24;
     }
     .progress-fill-transition {
       transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1), background-color 350ms ease;
     }
     @keyframes tabRowFadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translate3d(0, 8px, 0); }
+      to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
     @keyframes rankUpHighlight {
-      0% { background-color: rgba(16, 185, 129, 0.22); }
+      0% { background-color: rgba(16, 185, 129, 0.20); }
+      45% { background-color: rgba(16, 185, 129, 0.11); }
       100% { background-color: transparent; }
     }
     @keyframes rankDownHighlight {
-      0% { background-color: rgba(245, 158, 11, 0.18); }
+      0% { background-color: rgba(245, 158, 11, 0.16); }
+      45% { background-color: rgba(245, 158, 11, 0.08); }
+      100% { background-color: transparent; }
+    }
+    @keyframes rankUpHighlightDark {
+      0% { background-color: rgba(16, 185, 129, 0.28); }
+      45% { background-color: rgba(16, 185, 129, 0.14); }
+      100% { background-color: transparent; }
+    }
+    @keyframes rankDownHighlightDark {
+      0% { background-color: rgba(245, 158, 11, 0.22); }
+      45% { background-color: rgba(245, 158, 11, 0.10); }
       100% { background-color: transparent; }
     }
     @keyframes scorePulseHighlight {
-      0% { color: #B45309; transform: scale(1.06); }
-      100% { color: inherit; transform: scale(1); }
+      0% { color: #B45309; background-color: rgba(245, 158, 11, 0.12); }
+      100% { color: inherit; background-color: transparent; }
+    }
+    @keyframes scorePulseHighlightDark {
+      0% { color: #FCD34D; background-color: rgba(251, 191, 36, 0.14); }
+      100% { color: inherit; background-color: transparent; }
+    }
+    @keyframes rankDeltaFade {
+      0% { opacity: 0; transform: translate3d(0, 3px, 0); }
+      12% { opacity: 1; transform: translate3d(0, 0, 0); }
+      78% { opacity: 1; transform: translate3d(0, 0, 0); }
+      100% { opacity: 0; transform: translate3d(0, -2px, 0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .tab-animated-row, .rank-pill-transition, .progress-fill-transition {
+      .tab-animated-row, .tab-animated-row.tab-row-flip-play, .rank-pill-transition, .progress-fill-transition, .leaderboard-animated-table tbody td {
         transition: none !important;
         animation: none !important;
       }
-      .tab-row-enter, .rank-up-flash, .rank-down-flash, .score-updated-flash {
+      .tab-row-enter, .rank-up-flash, .rank-down-flash, .score-updated-flash, .rank-delta-cue {
         animation: none !important;
+      }
+      .rank-delta-cue {
+        display: none !important;
       }
     }
     .ticker-track {
@@ -327,6 +429,8 @@
       .print-only { display: block !important; }
       .print-only-grid { display: grid !important; }
       .print-surface { border: 1px solid #D6D3D1 !important; border-radius: 0 !important; box-shadow: none !important; }
+      .rank-delta-cue { display: none !important; }
+      .tab-animated-row { transform: none !important; box-shadow: none !important; animation: none !important; transition: none !important; }
       table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; }
       th, td { border-bottom: 1px solid #D6D3D1 !important; padding: 8px 10px !important; }
       thead tr { background-color: #F5F5F4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -1047,9 +1151,9 @@
                 <span id="tab-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
               </div>
               <div id="tab-standings-table-scroll" class="overflow-x-auto flex-1">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left leaderboard-animated-table">
                   <thead>
-                    <tr class="border-b border-stone-200 bg-stone-50/70 text-xs font-semibold text-stone-600">
+                    <tr class="bg-stone-50/70 text-xs font-semibold text-stone-600">
                       <th class="py-2.5 px-3">Rank</th>
                       <th class="py-2.5 px-3">Group</th>
                       <th class="py-2.5 px-3 text-right">1st/2nd/3rd</th>
@@ -1057,7 +1161,7 @@
                       <th class="py-2.5 px-3 text-right">Points</th>
                     </tr>
                   </thead>
-                  <tbody id="group-standings-body" class="divide-y divide-stone-200 text-xs sm:text-sm"></tbody>
+                  <tbody id="group-standings-body" class="text-xs sm:text-sm"></tbody>
                 </table>
               </div>
             </div>
@@ -1080,9 +1184,9 @@
           </div>
           <div id="tab-leaderboard-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden print-surface">
             <div id="tab-leaderboard-scroll" class="overflow-x-auto">
-              <table class="w-full text-left border-collapse">
+              <table class="w-full text-left leaderboard-animated-table">
                 <thead>
-                  <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
+                  <tr class="bg-stone-50 text-xs font-semibold text-stone-600">
                     <th class="py-3 px-4">Rank</th>
                     <th class="py-3 px-4">Chest No</th>
                     <th class="py-3 px-4">Participant Name &amp; School</th>
@@ -1093,7 +1197,7 @@
                     <th class="py-3 px-4 text-right">Grade</th>
                   </tr>
                 </thead>
-                <tbody id="leaderboard-body" class="divide-y divide-stone-200 text-sm"></tbody>
+                <tbody id="leaderboard-body" class="text-sm"></tbody>
               </table>
             </div>
           </div>
@@ -4035,7 +4139,6 @@
       syncAdminLiveItemUI();
       window.populateJudgeParticipants();
       window.renderTabulation();
-      window.renderGroupStandings();
       if (typeof window.renderPublicView === "function") window.renderPublicView();
     }
 
@@ -4125,7 +4228,6 @@
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
-        window.renderGroupStandings();
         if (typeof window.renderPublicView === "function") window.renderPublicView();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/participants`));
 
@@ -4136,7 +4238,6 @@
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
-        window.renderGroupStandings();
         if (typeof window.renderPublicView === "function") window.renderPublicView();
       }, (err) => handleFirestoreError(err, "list", `events/${activeEventCode}/scores`));
     }
@@ -5370,7 +5471,6 @@
       syncLockedJudgeSessionWithConfig();
       syncJudgeActiveItemUI();
       window.renderTabulation();
-      window.renderGroupStandings();
       window.renderAdminLists();
       if (isMasterAdmin) refreshRegisteredEvents(false);
 
@@ -6692,7 +6792,6 @@
       window.populateJudgeParticipants();
       window.renderTabulation();
       window.renderAdminLists();
-      window.renderGroupStandings();
     };
 
     // Blind Judging: Only show Chest Number and (Scored ✓) status (when unlocked), and sync dynamic criteria labels
@@ -7187,16 +7286,62 @@
       el._tweenRaf = requestAnimationFrame(tick);
     }
 
+    function clearRowFlipState(el) {
+      if (!el) return;
+      if (el._flipCleanup) {
+        el.removeEventListener("transitionend", el._flipCleanup);
+        el._flipCleanup = null;
+      }
+      if (el._flipFallbackTimer) {
+        clearTimeout(el._flipFallbackTimer);
+        el._flipFallbackTimer = null;
+      }
+      el.classList.remove("tab-row-flip-play", "tab-row-moving", "tab-row-rising", "tab-row-falling");
+      el.style.transition = "";
+      el.style.transform = "";
+    }
+
+    function applyRankDeltaCue(tr, direction, deltaSteps) {
+      const cueEl = tr?.querySelector('[data-col="rank-delta"]');
+      if (!cueEl) return;
+      if (cueEl._deltaTimer) {
+        clearTimeout(cueEl._deltaTimer);
+        cueEl._deltaTimer = null;
+      }
+      const arrow = direction === "up" ? "▲" : "▼";
+      const stepText = Number.isFinite(deltaSteps) && deltaSteps > 0 ? String(deltaSteps) : "";
+      cueEl.textContent = `${arrow}${stepText}`;
+      cueEl.classList.remove("hidden", "rank-delta-up", "rank-delta-down");
+      void cueEl.offsetWidth;
+      cueEl.classList.add(direction === "up" ? "rank-delta-up" : "rank-delta-down");
+      cueEl._deltaTimer = setTimeout(() => {
+        cueEl.classList.add("hidden");
+        cueEl.classList.remove("rank-delta-up", "rank-delta-down");
+        cueEl.textContent = "";
+        cueEl._deltaTimer = null;
+      }, 2850);
+    }
+
     function reconcileAnimatedRows(tbody, rowsData, getKey, createRow, updateRow) {
       if (!tbody) return;
+      if (tbody._flipRafOuter) {
+        cancelAnimationFrame(tbody._flipRafOuter);
+        tbody._flipRafOuter = null;
+      }
+      if (tbody._flipRafInner) {
+        cancelAnimationFrame(tbody._flipRafInner);
+        tbody._flipRafInner = null;
+      }
+
       const sectionEl = tbody.closest("section");
       const isVisible = Boolean(sectionEl && !sectionEl.classList.contains("hidden") && tbody.offsetParent !== null);
 
       const existingMap = new Map();
       const prevRects = new Map();
       const prevRanks = new Map();
+      const prevIndices = new Map();
 
-      Array.from(tbody.querySelectorAll("tr[data-row-key]")).forEach(tr => {
+      Array.from(tbody.querySelectorAll("tr[data-row-key]")).forEach((tr, idx) => {
         const key = tr.getAttribute("data-row-key");
         existingMap.set(key, tr);
         if (isVisible) {
@@ -7204,7 +7349,9 @@
           if (rect.height > 0) prevRects.set(key, rect.top);
         }
         const prevRankAttr = tr.getAttribute("data-rank-num");
-        if (prevRankAttr) prevRanks.set(key, Number(prevRankAttr));
+        if (prevRankAttr !== null && prevRankAttr !== "") prevRanks.set(key, Number(prevRankAttr));
+        const prevIdxAttr = tr.getAttribute("data-row-index");
+        prevIndices.set(key, prevIdxAttr !== null && prevIdxAttr !== "" ? Number(prevIdxAttr) : idx);
       });
 
       // Remove placeholder/non-keyed rows
@@ -7223,60 +7370,107 @@
           tr = createRow(item);
           tr.setAttribute("data-row-key", key);
           tr.classList.add("tab-animated-row");
-          if (isVisible) tr.classList.add("tab-row-enter");
+          if (isVisible && !prefersReducedMotion()) {
+            tr.classList.add("tab-row-enter");
+            tr.addEventListener("animationend", () => {
+              tr.classList.remove("tab-row-enter");
+            }, { once: true });
+          }
         }
         const prevRank = prevRanks.has(key) ? prevRanks.get(key) : null;
+        const prevIndex = prevIndices.has(key) ? prevIndices.get(key) : null;
         const newRank = updateRow(tr, item, index, prevRank, isNew);
         if (newRank !== null && newRank !== undefined) {
           tr.setAttribute("data-rank-num", String(newRank));
         } else {
           tr.removeAttribute("data-rank-num");
         }
-        orderedRows.push({ key, tr, isNew, prevRank, newRank });
+        tr.setAttribute("data-row-index", String(index));
+        orderedRows.push({ key, tr, isNew, prevRank, newRank, prevIndex, newIndex: index });
       });
 
-      // Remove stale rows
+      // Remove stale rows cleanly
       existingMap.forEach((tr, key) => {
-        if (!nextKeys.has(key)) tr.remove();
+        if (!nextKeys.has(key)) {
+          clearRowFlipState(tr);
+          tr.remove();
+        }
       });
 
-      // Reorder DOM nodes in place (preserves nodes for FLIP)
+      // Reorder DOM nodes in place (preserves elements for FLIP)
       orderedRows.forEach(({ tr }) => {
         tbody.appendChild(tr);
+      });
+
+      // Clear active inline transforms before measuring final destination layout coordinates
+      // (ensures smooth mid-flight re-targeting if Firestore snapshot echoes during a slide)
+      orderedRows.forEach(({ tr }) => {
+        clearRowFlipState(tr);
       });
 
       if (!isVisible || prefersReducedMotion()) return;
 
       const movedRows = [];
-      orderedRows.forEach(({ key, tr, isNew, prevRank, newRank }) => {
-        if (!isNew && prevRank !== null && newRank !== null && prevRank !== newRank) {
-          tr.classList.remove("rank-up-flash", "rank-down-flash");
-          void tr.offsetWidth;
-          tr.classList.add(newRank < prevRank ? "rank-up-flash" : "rank-down-flash");
+      orderedRows.forEach(({ key, tr, isNew, prevRank, newRank, prevIndex, newIndex }) => {
+        if (!isNew) {
+          const movedUpByRank = prevRank !== null && newRank !== null && newRank < prevRank;
+          const movedDownByRank = prevRank !== null && newRank !== null && newRank > prevRank;
+          const newlyRankedUp = prevRank === null && newRank !== null && prevIndex !== null && newIndex < prevIndex;
+          const newlyRankedHere = prevRank === null && newRank !== null && !newlyRankedUp;
+
+          if (movedUpByRank || newlyRankedUp) {
+            tr.classList.remove("rank-up-flash", "rank-down-flash");
+            void tr.offsetWidth;
+            tr.classList.add("rank-up-flash");
+            tr.addEventListener("animationend", () => tr.classList.remove("rank-up-flash"), { once: true });
+            const steps = movedUpByRank ? (prevRank - newRank) : (prevIndex - newIndex);
+            applyRankDeltaCue(tr, "up", steps);
+          } else if (movedDownByRank) {
+            tr.classList.remove("rank-up-flash", "rank-down-flash");
+            void tr.offsetWidth;
+            tr.classList.add("rank-down-flash");
+            tr.addEventListener("animationend", () => tr.classList.remove("rank-down-flash"), { once: true });
+            applyRankDeltaCue(tr, "down", newRank - prevRank);
+          } else if (newlyRankedHere) {
+            tr.classList.remove("rank-up-flash", "rank-down-flash");
+            void tr.offsetWidth;
+            tr.classList.add("rank-up-flash");
+            tr.addEventListener("animationend", () => tr.classList.remove("rank-up-flash"), { once: true });
+          }
         }
+
         const oldTop = prevRects.get(key);
         if (oldTop === undefined) return;
         const newTop = tr.getBoundingClientRect().top;
         const deltaY = oldTop - newTop;
-        if (Math.abs(deltaY) > 1) {
+        if (Math.abs(deltaY) > 0.5) {
           tr.style.transition = "none";
-          tr.style.transform = `translateY(${deltaY}px)`;
+          tr.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+          tr.classList.add("tab-row-moving", deltaY > 0 ? "tab-row-rising" : "tab-row-falling");
           movedRows.push(tr);
         }
       });
 
       if (movedRows.length > 0) {
         void tbody.offsetHeight;
-        requestAnimationFrame(() => {
-          movedRows.forEach(tr => {
-            tr.style.transition = "transform 480ms cubic-bezier(0.22, 1, 0.36, 1), background-color 350ms ease";
-            tr.style.transform = "translateY(0)";
-            const cleanup = () => {
+        tbody._flipRafOuter = requestAnimationFrame(() => {
+          tbody._flipRafOuter = null;
+          tbody._flipRafInner = requestAnimationFrame(() => {
+            tbody._flipRafInner = null;
+            movedRows.forEach(tr => {
               tr.style.transition = "";
-              tr.style.transform = "";
-              tr.removeEventListener("transitionend", cleanup);
-            };
-            tr.addEventListener("transitionend", cleanup);
+              tr.classList.add("tab-row-flip-play");
+              tr.style.transform = "translate3d(0, 0, 0)";
+              const cleanup = (ev) => {
+                if (ev && (ev.target !== tr || ev.propertyName !== "transform")) return;
+                clearRowFlipState(tr);
+              };
+              tr._flipCleanup = cleanup;
+              tr.addEventListener("transitionend", cleanup);
+              tr._flipFallbackTimer = setTimeout(() => {
+                clearRowFlipState(tr);
+              }, 680);
+            });
           });
         });
       }
@@ -7292,6 +7486,15 @@
         wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
       } else {
         wrapper.className = `w-full ${dark ? "space-y-2" : "space-y-3"}`;
+      }
+
+      if (wrapper._flipRafOuter) {
+        cancelAnimationFrame(wrapper._flipRafOuter);
+        wrapper._flipRafOuter = null;
+      }
+      if (wrapper._flipRafInner) {
+        cancelAnimationFrame(wrapper._flipRafInner);
+        wrapper._flipRafInner = null;
       }
 
       const sectionEl = containerEl.closest("section");
@@ -7370,9 +7573,13 @@
       });
 
       existing.forEach((el, key) => {
-        if (!nextKeys.has(key)) el.remove();
+        if (!nextKeys.has(key)) {
+          clearRowFlipState(el);
+          el.remove();
+        }
       });
       ordered.forEach(({ rowEl }) => wrapper.appendChild(rowEl));
+      ordered.forEach(({ rowEl }) => clearRowFlipState(rowEl));
 
       if (!isVisible || prefersReducedMotion()) return true;
       const moved = [];
@@ -7380,24 +7587,33 @@
         const oldTop = prevRects.get(key);
         if (oldTop === undefined) return;
         const deltaY = oldTop - rowEl.getBoundingClientRect().top;
-        if (Math.abs(deltaY) > 1) {
+        if (Math.abs(deltaY) > 0.5) {
           rowEl.style.transition = "none";
-          rowEl.style.transform = `translateY(${deltaY}px)`;
+          rowEl.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+          rowEl.classList.add("tab-row-moving");
           moved.push(rowEl);
         }
       });
       if (moved.length > 0) {
         void wrapper.offsetHeight;
-        requestAnimationFrame(() => {
-          moved.forEach(el => {
-            el.style.transition = "transform 480ms cubic-bezier(0.22, 1, 0.36, 1)";
-            el.style.transform = "translateY(0)";
-            const cleanup = () => {
+        wrapper._flipRafOuter = requestAnimationFrame(() => {
+          wrapper._flipRafOuter = null;
+          wrapper._flipRafInner = requestAnimationFrame(() => {
+            wrapper._flipRafInner = null;
+            moved.forEach(el => {
               el.style.transition = "";
-              el.style.transform = "";
-              el.removeEventListener("transitionend", cleanup);
-            };
-            el.addEventListener("transitionend", cleanup);
+              el.classList.add("tab-row-flip-play");
+              el.style.transform = "translate3d(0, 0, 0)";
+              const cleanup = (ev) => {
+                if (ev && (ev.target !== el || ev.propertyName !== "transform")) return;
+                clearRowFlipState(el);
+              };
+              el._flipCleanup = cleanup;
+              el.addEventListener("transitionend", cleanup);
+              el._flipFallbackTimer = setTimeout(() => {
+                clearRowFlipState(el);
+              }, 680);
+            });
           });
         });
       }
@@ -7512,7 +7728,7 @@
             () => {
               const tr = document.createElement("tr");
               tr.innerHTML = `
-                <td data-col="rank" class="py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition"></td>
+                <td data-col="rank" class="py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition"><span data-col="rank-label"></span><span data-col="rank-delta" aria-hidden="true" class="rank-delta-cue hidden"></span></td>
                 <td class="py-2.5 px-3">
                   <div class="flex items-center gap-2">
                     <span data-col="dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
@@ -7534,7 +7750,12 @@
 
               const rankTd = tr.querySelector('[data-col="rank"]');
               rankTd.className = `py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${dark ? (isLeaderRow ? "text-amber-300" : "text-stone-200") : "text-stone-900"}`;
-              rankTd.textContent = `#${g.rank}`;
+              const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
+              if (rankLabelEl) {
+                rankLabelEl.textContent = `#${g.rank}`;
+              } else {
+                rankTd.textContent = `#${g.rank}`;
+              }
 
               tr.querySelector('[data-col="dot"]').style.backgroundColor = g.color;
 
@@ -7989,7 +8210,7 @@
           const tr = document.createElement("tr");
           tr.className = "hover:bg-stone-50 tab-animated-row";
           tr.innerHTML = `
-            <td data-col="rank" class="py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition"></td>
+            <td data-col="rank" class="py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition"><span data-col="rank-label"></span><span data-col="rank-delta" aria-hidden="true" class="rank-delta-cue hidden"></span></td>
             <td data-col="chest" class="py-3 px-4 font-semibold tabular-nums whitespace-nowrap"></td>
             <td class="py-3 px-4">
               <div data-col="name" class="font-semibold text-stone-900"></div>
@@ -8023,7 +8244,12 @@
               ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300" : "text-stone-300")
               : "text-stone-900"
           }`;
-          rankTd.textContent = r.rankLabel;
+          const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
+          if (rankLabelEl) {
+            rankLabelEl.textContent = r.rankLabel;
+          } else {
+            rankTd.textContent = r.rankLabel;
+          }
 
           const chestTd = tr.querySelector('[data-col="chest"]');
           chestTd.className = `py-3 px-4 font-semibold tabular-nums whitespace-nowrap ${dark ? "text-amber-200" : "text-stone-900"}`;
@@ -10915,7 +11141,6 @@
         window.populateJudgeParticipants();
         window.renderTabulation();
         window.renderAdminLists();
-        window.renderGroupStandings();
 
         const targetItem = window.state.items.find(it => it.id === targetPart.itemId);
         const itemLabel = targetItem ? ` (${targetItem.name})` : "";
