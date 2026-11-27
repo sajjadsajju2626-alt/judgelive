@@ -435,6 +435,14 @@
       th, td { border-bottom: 1px solid #D6D3D1 !important; padding: 8px 10px !important; }
       thead tr { background-color: #F5F5F4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
+    .admin-tabs-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+    }
+    .admin-tabs-scroll::-webkit-scrollbar {
+      display: none;
+    }
     .quick-tour-ring {
       position: fixed;
       pointer-events: none;
@@ -1322,307 +1330,160 @@
         No Festival Code is currently active. Create a new event above, open one from <span class="font-semibold text-stone-900">Registered Campus Events</span>, or click <span class="font-semibold text-stone-900">Change Festival Code</span> in the header.
       </div>
 
-      <div id="admin-active-event-sections" class="space-y-8">
-      <!-- 1. Festival / Campus Branding Card (First at Top of Campus Admin Panel) -->
-      <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 class="text-lg font-bold text-stone-900">Festival / Campus Branding</h2>
-            <p class="text-xs text-stone-500 mt-0.5">Customize your Institution / Festival Name and Subtitle / Venue shown in the header and print sheets for this Festival Code.</p>
-          </div>
-          <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
-            <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          </div>
-          <div>
-            <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
-            <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-          </div>
-        </div>
-        <div class="pt-1 flex justify-end">
-          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
-        </div>
-      </form>
-
-      <!-- 1B. Share Public Live Link & QR Code Card (Read-Only Spectator View) -->
-      <div id="admin-public-share-card" class="bg-white border border-emerald-200 rounded-xl p-6 space-y-5">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-bold text-stone-900">Share Public Live Link &amp; QR Code</h2>
-            <p class="text-xs text-stone-600 mt-0.5 max-w-2xl">
-              Share this read-only spectator scoreboard on WhatsApp or print the QR code for campus notice boards. Students and audiences can follow live standings, active stages, and officially published results without any PIN.
-            </p>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-xs font-semibold text-emerald-800 tabular-nums">Scoped to <span id="admin-public-scope-code">—</span></div>
-            <div id="admin-public-published-summary" class="text-[11px] font-medium text-stone-500 tabular-nums mt-0.5">0 of 0 results published</div>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-          <div class="md:col-span-8 space-y-3.5">
-            <div>
-              <label for="admin-public-share-url" class="block text-xs font-semibold text-stone-700 mb-1">Direct Public Live URL (No PIN Required)</label>
-              <div class="flex flex-col sm:flex-row gap-2">
-                <input id="admin-public-share-url" type="text" readonly onclick="this.select()" class="flex-1 min-w-0 px-3 py-2.5 text-xs font-mono text-stone-800 bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600" />
-                <button type="button" id="admin-copy-public-link-btn" onclick="handleCopyPublicLink()" class="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
-                  Copy Public Link
-                </button>
-              </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <button type="button" onclick="handlePreviewPublicViewFromAdmin()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
-                Open Public View
-              </button>
-              <button type="button" onclick="handleDownloadPublicQr()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
-                Download QR (PNG)
-              </button>
-              <a id="admin-public-whatsapp-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3.5 py-2 min-h-[40px] text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors whitespace-nowrap">
-                Share on WhatsApp
-              </a>
-            </div>
-            <p class="text-[11px] text-stone-500 leading-relaxed">
-              Privacy guarantee: Raw judge marks (J1/J2/J3) are never visible on the Public Live Portal. Only events explicitly marked <span class="font-semibold text-stone-700">Published</span> in Live Tabulation or Competition Items appear in Public Results and Standings.
-            </p>
-          </div>
-          <div class="md:col-span-4 flex flex-col items-center justify-center">
-            <div class="p-3 bg-white border border-stone-200 rounded-xl shadow-sm flex flex-col items-center gap-2">
-              <div id="admin-public-qr-container" class="w-40 h-40 flex items-center justify-center bg-white"></div>
-              <div class="text-[11px] font-semibold text-stone-700 tracking-wide text-center">
-                Scan for Live Results · <span id="admin-public-qr-code-label" class="tabular-nums text-amber-800">—</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Live Stage Control & PIN-Protected Judge Panel (Campus Admin Panel) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Live Active Item Sync & Dynamic Stage Manager Card -->
-        <div id="admin-live-stage-card" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h2 class="text-lg font-bold text-stone-900">Current Live Competition Item (Sync to Judges)</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Add unlimited festival stages and push live competition items per stage. Judges on that stage lock automatically.</p>
-              </div>
-              <span class="text-xs font-semibold text-amber-800 tabular-nums shrink-0">Scoped to <span id="admin-live-item-scope-code">—</span></span>
-            </div>
-
-            <!-- Dynamic Stage Manager -->
-            <div class="p-3.5 rounded-lg bg-stone-50 border border-stone-200 space-y-2.5">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="text-xs font-bold text-stone-800">Active Festival Stages</div>
-                <span id="admin-stages-count" class="text-[11px] font-semibold text-stone-500 tabular-nums">3 stages</span>
-              </div>
-              <div id="admin-stages-list" class="flex flex-wrap gap-1.5"></div>
-              <div class="flex flex-col sm:flex-row gap-2 pt-0.5">
-                <input id="admin-new-stage-name" type="text" maxlength="60" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleAddStage(); }" placeholder="Add stage (e.g. Stage 4 or Stage 4 - Kabani)" class="flex-1 min-w-0 px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-                <button type="button" id="admin-add-stage-btn" onclick="handleAddStage()" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
-                  + Add Stage
-                </button>
-              </div>
-            </div>
-
-            <div id="admin-live-item-status-badge" class="px-3 py-2 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
-              No live stage items pushed (Judges can select manually)
-            </div>
-            <div id="admin-live-stages-container" class="space-y-2.5 max-h-[26rem] overflow-y-auto pr-0.5"></div>
-          </div>
-          <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-            <button type="button" id="admin-clear-live-item-btn" onclick="handleClearLiveItem()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-              Clear All Stage Locks
+      <div id="admin-active-event-sections" class="space-y-6">
+        <!-- Horizontally Scrollable Festival Admin Sub-Tabs -->
+        <div class="border-b border-stone-200 bg-[#FAF8F5]/95">
+          <div id="admin-subtabs-nav" role="tablist" aria-label="Festival Admin Console Sections" onkeydown="handleAdminSubTabsKeydown(event)" class="admin-tabs-scroll flex items-center gap-1 sm:gap-2 overflow-x-auto -mb-px">
+            <button type="button" id="admin-tab-branding" role="tab" aria-selected="true" aria-controls="admin-panel-branding" data-admin-tab="branding" onclick="switchAdminTab('branding')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-semibold border-b-2 border-amber-700 text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
+              <span aria-hidden="true">⚙️</span>
+              <span>Branding</span>
             </button>
-            <button type="button" id="admin-push-live-item-btn" onclick="handlePushLiveItem()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
-              Push All Stage Selections
+            <button type="button" id="admin-tab-live-stages" role="tab" aria-selected="false" aria-controls="admin-panel-live-stages" data-admin-tab="live-stages" onclick="switchAdminTab('live-stages')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
+              <span aria-hidden="true">🎬</span>
+              <span>Live Stages &amp; Share</span>
+              <span id="admin-tab-count-live" class="hidden text-[11px] font-semibold tabular-nums text-amber-800 ml-0.5"></span>
+            </button>
+            <button type="button" id="admin-tab-items-participants" role="tab" aria-selected="false" aria-controls="admin-panel-items-participants" data-admin-tab="items-participants" onclick="switchAdminTab('items-participants')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
+              <span aria-hidden="true">📝</span>
+              <span>Items &amp; Participants</span>
+              <span id="admin-tab-count-items" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">0 · 0</span>
+            </button>
+            <button type="button" id="admin-tab-judges-panels" role="tab" aria-selected="false" aria-controls="admin-panel-judges-panels" data-admin-tab="judges-panels" onclick="switchAdminTab('judges-panels')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
+              <span aria-hidden="true">⚖️</span>
+              <span>Judges &amp; Panels</span>
+              <span id="admin-tab-count-stages" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">3</span>
+            </button>
+            <button type="button" id="admin-tab-houses-grading" role="tab" aria-selected="false" aria-controls="admin-panel-houses-grading" data-admin-tab="houses-grading" onclick="switchAdminTab('houses-grading')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
+              <span aria-hidden="true">🏆</span>
+              <span>Houses &amp; Grading</span>
+              <span id="admin-tab-count-groups" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">0</span>
+            </button>
+            <button type="button" id="admin-tab-submitted-scores" role="tab" aria-selected="false" aria-controls="admin-panel-submitted-scores" data-admin-tab="submitted-scores" onclick="switchAdminTab('submitted-scores')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
+              <span aria-hidden="true">📊</span>
+              <span>Submitted Scores</span>
+              <span id="admin-tab-count-scores" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">0</span>
+            </button>
+            <button type="button" id="admin-tab-danger-zone" role="tab" aria-selected="false" aria-controls="admin-panel-danger-zone" data-admin-tab="danger-zone" onclick="switchAdminTab('danger-zone')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-red-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-inset">
+              <span aria-hidden="true">🛡️</span>
+              <span>Danger Zone</span>
             </button>
           </div>
         </div>
 
-        <!-- Manage Judges & Dynamic Per-Stage Panel Size Card -->
-        <form id="admin-judges-form" onsubmit="handleSaveJudgesConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-          <div class="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <h2 id="admin-judges-heading" class="text-lg font-bold text-stone-900">Manage Judges (J1, J2, J3)</h2>
-              <p class="text-xs text-stone-500 mt-0.5">Select any stage tab below to configure independent judge panels &amp; unique 4-digit PINs per stage.</p>
-            </div>
-            <span class="text-xs font-semibold text-amber-800 tabular-nums shrink-0">Scoped to <span id="admin-judges-scope-code">—</span></span>
-          </div>
-
-          <!-- Number of Judges per Item Toggle -->
-          <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 flex flex-wrap items-center justify-between gap-2.5">
-            <div>
-              <div class="text-xs font-bold text-stone-800">Number of Judges per Item</div>
-              <div class="text-[11px] text-stone-500">Controls average divisor (/2 vs /3) &amp; Judge 3 visibility.</div>
-            </div>
-            <div role="group" aria-label="Number of Judges per Item" class="inline-flex items-center gap-1 p-1 bg-white border border-stone-300 rounded-lg">
-              <button type="button" id="admin-judges-count-2" onclick="handleSetJudgesCount(2)" class="px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap text-stone-700 hover:bg-stone-100">
-                2 Judges (J1, J2)
-              </button>
-              <button type="button" id="admin-judges-count-3" onclick="handleSetJudgesCount(3)" class="px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap bg-stone-900 text-white">
-                3 Judges (J1, J2, J3)
-              </button>
-            </div>
-          </div>
-
-          <!-- Dynamic Stage Selector Tabs for Judge Panels -->
-          <div class="space-y-2">
+        <!-- TAB 1: BRANDING -->
+        <div id="admin-panel-branding" role="tabpanel" aria-labelledby="admin-tab-branding" class="space-y-6">
+          <!-- Festival / Campus Branding Card (First when setting up a new campus/festival) -->
+          <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="text-xs font-bold text-stone-800">Select Stage Panel to Configure:</span>
-              <span id="admin-judge-active-stage-badge" class="text-[11px] font-semibold text-amber-800">Stage 1</span>
-            </div>
-            <div id="admin-judges-stage-tabs" role="tablist" aria-label="Judge Panel Stage Tabs" class="flex flex-wrap gap-1.5"></div>
-          </div>
-
-          <div class="space-y-2.5">
-            <div class="grid grid-cols-12 gap-2 items-center">
-              <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J1</div>
-              <div class="col-span-6 sm:col-span-8">
-                <label for="admin-judge-name-J1" class="sr-only">Judge 1 Official Name</label>
-                <input id="admin-judge-name-J1" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 1 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <div>
+                <h2 class="text-lg font-bold text-stone-900">Festival / Campus Branding</h2>
+                <p class="text-xs text-stone-500 mt-0.5">Customize your Institution / Festival Name and Subtitle / Venue shown in the header, public live scoreboard, TV mode, and print sheets for this Festival Code.</p>
               </div>
-              <div class="col-span-4 sm:col-span-3">
-                <label for="admin-judge-pin-J1" class="sr-only">Judge 1 4-digit PIN</label>
-                <input id="admin-judge-pin-J1" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
+                <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              </div>
+              <div>
+                <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
+                <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
               </div>
             </div>
-            <div class="grid grid-cols-12 gap-2 items-center">
-              <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J2</div>
-              <div class="col-span-6 sm:col-span-8">
-                <label for="admin-judge-name-J2" class="sr-only">Judge 2 Official Name</label>
-                <input id="admin-judge-name-J2" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 2 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-              </div>
-              <div class="col-span-4 sm:col-span-3">
-                <label for="admin-judge-pin-J2" class="sr-only">Judge 2 4-digit PIN</label>
-                <input id="admin-judge-pin-J2" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-              </div>
-            </div>
-            <div id="admin-judge-row-J3" class="grid grid-cols-12 gap-2 items-center">
-              <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J3</div>
-              <div class="col-span-6 sm:col-span-8">
-                <label for="admin-judge-name-J3" class="sr-only">Judge 3 Official Name</label>
-                <input id="admin-judge-name-J3" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 3 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-              </div>
-              <div class="col-span-4 sm:col-span-3">
-                <label for="admin-judge-pin-J3" class="sr-only">Judge 3 4-digit PIN</label>
-                <input id="admin-judge-pin-J3" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-              </div>
-            </div>
-          </div>
-          <div id="admin-judges-error" role="alert" class="hidden p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
-          <div class="flex flex-wrap items-center justify-end gap-2.5 pt-1">
-            <button type="button" onclick="generateAdminJudgePins()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap">
-              Generate New PINs
-            </button>
-            <button type="submit" id="admin-save-judges-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
-              Save Stage Panel
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Manage Groups / Houses & Live Chart Preview -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div id="admin-groups-card" class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
-          <div>
-            <h2 class="text-lg font-bold text-stone-900">Manage Groups / Houses</h2>
-            <p class="text-xs text-stone-500 mt-0.5">Add teams or houses for automatic championship points calculation. Hidden from Judges during blind scoring.</p>
-          </div>
-          <form id="admin-group-form" onsubmit="handleAddGroup(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-            <div class="sm:col-span-2">
-              <label for="admin-group-name" class="block text-xs font-semibold text-stone-700 mb-1">Group / House Name</label>
-              <input id="admin-group-name" type="text" required maxlength="80" placeholder="e.g. Red House" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-            </div>
-            <div>
-              <label for="admin-group-color" class="block text-xs font-semibold text-stone-700 mb-1">Color</label>
-              <select id="admin-group-color" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
-                <option value="AUTO">Auto Color</option>
-                <option value="#DC2626">Red</option>
-                <option value="#2563EB">Blue</option>
-                <option value="#059669">Green</option>
-                <option value="#D97706">Yellow / Gold</option>
-                <option value="#7C3AED">Violet</option>
-                <option value="#0891B2">Teal</option>
-                <option value="#DB2777">Rose</option>
-                <option value="#4F46E5">Indigo</option>
-              </select>
-            </div>
-            <div class="sm:col-span-3">
-              <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Add Group / House</button>
+            <div class="pt-1 flex justify-end">
+              <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
             </div>
           </form>
-          <div class="border-t border-stone-200 pt-4">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">Registered Groups</h3>
-              <span id="admin-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
+        </div>
+
+        <!-- TAB 2: LIVE STAGES & SHARE -->
+        <div id="admin-panel-live-stages" role="tabpanel" aria-labelledby="admin-tab-live-stages" class="hidden space-y-6">
+          <!-- Current Live Competition Item (Sync to Judges) -->
+          <div id="admin-live-stage-card" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 class="text-lg font-bold text-stone-900">Current Live Competition Item (Sync to Judges)</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Push the currently performing competition item for each stage. Judges on that stage automatically lock onto the pushed item.</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <button type="button" onclick="switchAdminTab('judges-panels')" class="text-xs font-semibold text-stone-700 hover:text-amber-800 underline underline-offset-2 whitespace-nowrap">
+                    Manage Stages &amp; Judges →
+                  </button>
+                  <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-live-item-scope-code">—</span></span>
+                </div>
+              </div>
+
+              <div id="admin-live-item-status-badge" class="px-3 py-2 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+                No live stage items pushed (Judges can select manually)
+              </div>
+              <div id="admin-live-stages-container" class="space-y-2.5 max-h-[26rem] overflow-y-auto pr-0.5"></div>
             </div>
-            <div id="admin-groups-list" class="divide-y divide-stone-200 border border-stone-200 rounded-lg max-h-56 overflow-y-auto"></div>
+            <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+              <button type="button" id="admin-clear-live-item-btn" onclick="handleClearLiveItem()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                Clear All Stage Locks
+              </button>
+              <button type="button" id="admin-push-live-item-btn" onclick="handlePushLiveItem()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                Push All Stage Selections
+              </button>
+            </div>
           </div>
 
-          <!-- Custom A / B / C Grading Thresholds -->
-          <div class="border-t border-stone-200 pt-4 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- Share Public Live Link & QR Code Card (Read-Only Spectator View) -->
+          <div id="admin-public-share-card" class="bg-white border border-emerald-200 rounded-xl p-6 space-y-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 class="text-sm font-bold text-stone-900">Custom A / B / C Grading Thresholds (%)</h3>
-                <p class="text-xs text-stone-500 mt-0.5">Override default grading (A ≥ 80%, B ≥ 70%, C ≥ 60%) for this Festival Code only.</p>
+                <h2 class="text-lg font-bold text-stone-900">Share Public Live Link &amp; QR Code</h2>
+                <p class="text-xs text-stone-600 mt-0.5 max-w-2xl">
+                  Share this read-only spectator scoreboard on WhatsApp or print the QR code for campus notice boards. Students and audiences can follow live standings, active stages, and officially published results without any PIN.
+                </p>
               </div>
-              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-grade-scope-code">—</span></span>
+              <div class="text-right shrink-0">
+                <div class="text-xs font-semibold text-emerald-800 tabular-nums">Scoped to <span id="admin-public-scope-code">—</span></div>
+                <div id="admin-public-published-summary" class="text-[11px] font-medium text-stone-500 tabular-nums mt-0.5">0 of 0 results published</div>
+              </div>
             </div>
-            <form id="admin-grade-thresholds-form" onsubmit="handleSaveGradeThresholds(event)" class="space-y-3">
-              <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+              <div class="md:col-span-8 space-y-3.5">
                 <div>
-                  <label for="admin-grade-a" class="block text-xs font-semibold text-stone-700 mb-1">A Grade Min %</label>
-                  <input id="admin-grade-a" type="number" min="1" max="100" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="80" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  <label for="admin-public-share-url" class="block text-xs font-semibold text-stone-700 mb-1">Direct Public Live URL (No PIN Required)</label>
+                  <div class="flex flex-col sm:flex-row gap-2">
+                    <input id="admin-public-share-url" type="text" readonly onclick="this.select()" class="flex-1 min-w-0 px-3 py-2.5 text-xs font-mono text-stone-800 bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+                    <button type="button" id="admin-copy-public-link-btn" onclick="handleCopyPublicLink()" class="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                      Copy Public Link
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label for="admin-grade-b" class="block text-xs font-semibold text-stone-700 mb-1">B Grade Min %</label>
-                  <input id="admin-grade-b" type="number" min="1" max="99" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="70" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" onclick="handlePreviewPublicViewFromAdmin()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
+                    Open Public View
+                  </button>
+                  <button type="button" onclick="handleDownloadPublicQr()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
+                    Download QR (PNG)
+                  </button>
+                  <a id="admin-public-whatsapp-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3.5 py-2 min-h-[40px] text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors whitespace-nowrap">
+                    Share on WhatsApp
+                  </a>
                 </div>
-                <div>
-                  <label for="admin-grade-c" class="block text-xs font-semibold text-stone-700 mb-1">C Grade Min %</label>
-                  <input id="admin-grade-c" type="number" min="0" max="98" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="60" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <p class="text-[11px] text-stone-500 leading-relaxed">
+                  Privacy guarantee: Raw judge marks (J1/J2/J3) are never visible on the Public Live Portal. Only events explicitly marked <span class="font-semibold text-stone-700">Published</span> in Live Tabulation or Competition Items appear in Public Results and Standings.
+                </p>
+              </div>
+              <div class="md:col-span-4 flex flex-col items-center justify-center">
+                <div class="p-3 bg-white border border-stone-200 rounded-xl shadow-sm flex flex-col items-center gap-2">
+                  <div id="admin-public-qr-container" class="w-40 h-40 flex items-center justify-center bg-white"></div>
+                  <div class="text-[11px] font-semibold text-stone-700 tracking-wide text-center">
+                    Scan for Live Results · <span id="admin-public-qr-code-label" class="tabular-nums text-amber-800">—</span>
+                  </div>
                 </div>
               </div>
-              <div id="admin-grade-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
-              <div class="flex flex-wrap items-center gap-2.5">
-                <button type="submit" id="admin-save-grades-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-                  Save Grade Rules
-                </button>
-                <button type="button" onclick="resetGradeThresholds()" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors">
-                  Reset Defaults (80 / 70 / 60)
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
 
-        <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
-          <div class="space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="text-lg font-bold text-stone-900">Group Standings Chart Style</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Select the chart style saved for this Festival Code in Live Tabulation.</p>
-              </div>
-            </div>
-            <div id="admin-chart-selector" role="group" aria-label="Admin Group Chart Style Selector" class="grid grid-cols-3 gap-2">
-              <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
-                Vertical Bar
-              </button>
-              <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
-                Horizontal Progress
-              </button>
-              <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
-                Doughnut / Pie
-              </button>
-            </div>
-            <div id="admin-leading-group-pill" class="rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-xs text-stone-800"></div>
-          </div>
-          <div id="admin-group-chart-preview" class="pt-2 min-h-[190px] flex items-center justify-center"></div>
-        </div>
-      </div>
-
+        <!-- TAB 3: ITEMS & PARTICIPANTS -->
+        <div id="admin-panel-items-participants" role="tabpanel" aria-labelledby="admin-tab-items-participants" class="hidden space-y-6">
       <!-- Create Forms -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <form id="admin-add-item-form" onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
@@ -2015,45 +1876,292 @@
         </div>
       </div>
 
-      <!-- Submitted Scores Log -->
-      <div id="admin-scores-log-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
-          <div>
-            <h2 class="text-base font-bold text-stone-900">Submitted Scores Log</h2>
-            <p class="text-xs text-stone-500 mt-0.5">Delete an entry to unlock and reset a judge's accidental score submission.</p>
-          </div>
-          <span id="admin-scores-count" class="text-xs font-medium text-stone-500 tabular-nums">0 scores</span>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
-                <th class="py-2.5 px-4">Item</th>
-                <th class="py-2.5 px-4">Chest No</th>
-                <th class="py-2.5 px-4">Judge</th>
-                <th class="py-2.5 px-4 text-right">Breakdown (R / E / P / O)</th>
-                <th class="py-2.5 px-4 text-right">Total</th>
-                <th class="py-2.5 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="admin-scores-body" class="divide-y divide-stone-200 text-sm"></tbody>
-          </table>
-        </div>
-      </div>
 
-      <!-- Danger Zone (Protected Event Reset at Bottom of Admin Panel) -->
-      <div id="admin-danger-zone" class="bg-red-50/40 border border-red-200/80 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="space-y-1">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-red-700">Danger Zone</div>
-          <h2 class="text-base font-bold text-stone-900">Clear Event Data</h2>
-          <p class="text-xs text-stone-600 max-w-2xl">
-            Permanently remove all competition items, groups, registered chest numbers, and submitted judge scores for this event only. Strict confirmation is required.
-          </p>
+        <!-- TAB 4: JUDGES & PANELS -->
+        <div id="admin-panel-judges-panels" role="tabpanel" aria-labelledby="admin-tab-judges-panels" class="hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Active Festival Stages (+ Add Stage) -->
+            <div id="admin-stages-manager-card" class="lg:col-span-5 bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 class="text-lg font-bold text-stone-900">Active Festival Stages</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Add unlimited venues or stages for parallel competitions. Each stage gets its own independent Judge Panel &amp; Live Sync slot.</p>
+                </div>
+                <span id="admin-stages-count" class="text-xs font-semibold text-stone-500 tabular-nums shrink-0">3 stages</span>
+              </div>
+              <div id="admin-stages-list" class="flex flex-wrap gap-1.5 min-h-[2rem]"></div>
+              <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                <label for="admin-new-stage-name" class="sr-only">New Stage Name</label>
+                <input id="admin-new-stage-name" type="text" maxlength="60" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleAddStage(); }" placeholder="Add stage (e.g. Stage 4 - Kabani)" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <button type="button" id="admin-add-stage-btn" onclick="handleAddStage()" class="px-4 py-2 min-h-[40px] text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                  + Add Stage
+                </button>
+              </div>
+              <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2 text-xs">
+                <span class="text-stone-500">Need to lock a stage to an active item?</span>
+                <button type="button" onclick="switchAdminTab('live-stages')" class="font-semibold text-amber-800 hover:underline whitespace-nowrap shrink-0">
+                  Go to Live Stages →
+                </button>
+              </div>
+            </div>
+
+            <!-- Manage Judges & Dynamic Per-Stage Panel Size Card -->
+            <form id="admin-judges-form" onsubmit="handleSaveJudgesConfig(event)" class="lg:col-span-7 bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 id="admin-judges-heading" class="text-lg font-bold text-stone-900">Manage Judges (J1, J2, J3)</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Select any stage tab below to configure independent judge panels &amp; unique 4-digit PINs per stage.</p>
+                </div>
+                <span class="text-xs font-semibold text-amber-800 tabular-nums shrink-0">Scoped to <span id="admin-judges-scope-code">—</span></span>
+              </div>
+
+              <!-- Number of Judges per Item Toggle -->
+              <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 flex flex-wrap items-center justify-between gap-2.5">
+                <div>
+                  <div class="text-xs font-bold text-stone-800">Number of Judges per Item</div>
+                  <div class="text-[11px] text-stone-500">Controls average divisor (/2 vs /3) &amp; Judge 3 visibility.</div>
+                </div>
+                <div role="group" aria-label="Number of Judges per Item" class="inline-flex items-center gap-1 p-1 bg-white border border-stone-300 rounded-lg">
+                  <button type="button" id="admin-judges-count-2" onclick="handleSetJudgesCount(2)" class="px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap text-stone-700 hover:bg-stone-100">
+                    2 Judges (J1, J2)
+                  </button>
+                  <button type="button" id="admin-judges-count-3" onclick="handleSetJudgesCount(3)" class="px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap bg-stone-900 text-white">
+                    3 Judges (J1, J2, J3)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dynamic Stage Selector Tabs for Judge Panels -->
+              <div class="space-y-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-stone-800">Select Stage Panel to Configure:</span>
+                  <span id="admin-judge-active-stage-badge" class="text-[11px] font-semibold text-amber-800">Stage 1</span>
+                </div>
+                <div id="admin-judges-stage-tabs" role="tablist" aria-label="Judge Panel Stage Tabs" class="flex flex-wrap gap-1.5"></div>
+              </div>
+
+              <div class="space-y-2.5">
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J1</div>
+                  <div class="col-span-6 sm:col-span-8">
+                    <label for="admin-judge-name-J1" class="sr-only">Judge 1 Official Name</label>
+                    <input id="admin-judge-name-J1" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 1 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                  <div class="col-span-4 sm:col-span-3">
+                    <label for="admin-judge-pin-J1" class="sr-only">Judge 1 4-digit PIN</label>
+                    <input id="admin-judge-pin-J1" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J2</div>
+                  <div class="col-span-6 sm:col-span-8">
+                    <label for="admin-judge-name-J2" class="sr-only">Judge 2 Official Name</label>
+                    <input id="admin-judge-name-J2" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 2 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                  <div class="col-span-4 sm:col-span-3">
+                    <label for="admin-judge-pin-J2" class="sr-only">Judge 2 4-digit PIN</label>
+                    <input id="admin-judge-pin-J2" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                </div>
+                <div id="admin-judge-row-J3" class="grid grid-cols-12 gap-2 items-center">
+                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J3</div>
+                  <div class="col-span-6 sm:col-span-8">
+                    <label for="admin-judge-name-J3" class="sr-only">Judge 3 Official Name</label>
+                    <input id="admin-judge-name-J3" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 3 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                  <div class="col-span-4 sm:col-span-3">
+                    <label for="admin-judge-pin-J3" class="sr-only">Judge 3 4-digit PIN</label>
+                    <input id="admin-judge-pin-J3" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  </div>
+                </div>
+              </div>
+              <div id="admin-judges-error" role="alert" class="hidden p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+              <div class="flex flex-wrap items-center justify-end gap-2.5 pt-1">
+                <button type="button" onclick="generateAdminJudgePins()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap">
+                  Generate New PINs
+                </button>
+                <button type="submit" id="admin-save-judges-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                  Save Stage Panel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
-          Clear Event Data
-        </button>
-      </div>
+
+        <!-- TAB 5: HOUSES & GRADING -->
+        <div id="admin-panel-houses-grading" role="tabpanel" aria-labelledby="admin-tab-houses-grading" class="hidden space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div id="admin-groups-card" class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+              <div>
+                <h2 class="text-lg font-bold text-stone-900">Manage Groups / Houses</h2>
+                <p class="text-xs text-stone-500 mt-0.5">Add teams or houses for automatic championship points calculation. Hidden from Judges during blind scoring.</p>
+              </div>
+              <form id="admin-group-form" onsubmit="handleAddGroup(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                <div class="sm:col-span-2">
+                  <label for="admin-group-name" class="block text-xs font-semibold text-stone-700 mb-1">Group / House Name</label>
+                  <input id="admin-group-name" type="text" required maxlength="80" placeholder="e.g. Red House" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                </div>
+                <div>
+                  <label for="admin-group-color" class="block text-xs font-semibold text-stone-700 mb-1">Color</label>
+                  <select id="admin-group-color" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                    <option value="AUTO">Auto Color</option>
+                    <option value="#DC2626">Red</option>
+                    <option value="#2563EB">Blue</option>
+                    <option value="#059669">Green</option>
+                    <option value="#D97706">Yellow / Gold</option>
+                    <option value="#7C3AED">Violet</option>
+                    <option value="#0891B2">Teal</option>
+                    <option value="#DB2777">Rose</option>
+                    <option value="#4F46E5">Indigo</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-3">
+                  <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Add Group / House</button>
+                </div>
+              </form>
+              <div class="border-t border-stone-200 pt-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">Registered Groups</h3>
+                  <span id="admin-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
+                </div>
+                <div id="admin-groups-list" class="divide-y divide-stone-200 border border-stone-200 rounded-lg max-h-56 overflow-y-auto"></div>
+              </div>
+
+              <!-- Custom A / B / C Grading Thresholds -->
+              <div class="border-t border-stone-200 pt-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 class="text-sm font-bold text-stone-900">Custom A / B / C Grading Thresholds (%)</h3>
+                    <p class="text-xs text-stone-500 mt-0.5">Override default grading (A ≥ 80%, B ≥ 70%, C ≥ 60%) for this Festival Code only.</p>
+                  </div>
+                  <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-grade-scope-code">—</span></span>
+                </div>
+                <form id="admin-grade-thresholds-form" onsubmit="handleSaveGradeThresholds(event)" class="space-y-3">
+                  <div class="grid grid-cols-3 gap-3">
+                    <div>
+                      <label for="admin-grade-a" class="block text-xs font-semibold text-stone-700 mb-1">A Grade Min %</label>
+                      <input id="admin-grade-a" type="number" min="1" max="100" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="80" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    </div>
+                    <div>
+                      <label for="admin-grade-b" class="block text-xs font-semibold text-stone-700 mb-1">B Grade Min %</label>
+                      <input id="admin-grade-b" type="number" min="1" max="99" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="70" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    </div>
+                    <div>
+                      <label for="admin-grade-c" class="block text-xs font-semibold text-stone-700 mb-1">C Grade Min %</label>
+                      <input id="admin-grade-c" type="number" min="0" max="98" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="60" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    </div>
+                  </div>
+                  <div id="admin-grade-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+                  <div class="flex flex-wrap items-center gap-2.5">
+                    <button type="submit" id="admin-save-grades-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                      Save Grade Rules
+                    </button>
+                    <button type="button" onclick="resetGradeThresholds()" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors">
+                      Reset Defaults (80 / 70 / 60)
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h2 class="text-lg font-bold text-stone-900">Group Standings Chart Style</h2>
+                    <p class="text-xs text-stone-500 mt-0.5">Select the chart style saved for this Festival Code in Live Tabulation.</p>
+                  </div>
+                </div>
+                <div id="admin-chart-selector" role="group" aria-label="Admin Group Chart Style Selector" class="grid grid-cols-3 gap-2">
+                  <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                    Vertical Bar
+                  </button>
+                  <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                    Horizontal Progress
+                  </button>
+                  <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                    Doughnut / Pie
+                  </button>
+                </div>
+                <div id="admin-leading-group-pill" class="rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-xs text-stone-800"></div>
+              </div>
+              <div id="admin-group-chart-preview" class="pt-2 min-h-[190px] flex items-center justify-center"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: SUBMITTED SCORES -->
+        <div id="admin-panel-submitted-scores" role="tabpanel" aria-labelledby="admin-tab-submitted-scores" class="hidden space-y-6">
+          <!-- Submitted Scores Log -->
+          <div id="admin-scores-log-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-stone-200 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 class="text-base font-bold text-stone-900">Submitted Scores Log</h2>
+                  <p class="text-xs text-stone-500 mt-0.5">Search or filter submitted mark sheets, or delete an entry to unlock and reset a judge's accidental score submission.</p>
+                </div>
+                <span id="admin-scores-count" class="text-xs font-medium text-stone-500 tabular-nums">0 scores</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                <div class="sm:col-span-5">
+                  <label for="admin-scores-search" class="sr-only">Search Submitted Scores</label>
+                  <input id="admin-scores-search" type="search" autocomplete="off" oninput="handleAdminScoresFilter()" placeholder="Search by chest #, item, or judge name..." class="w-full px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                </div>
+                <div class="sm:col-span-4">
+                  <label for="admin-scores-item-filter" class="sr-only">Filter Scores by Competition Item</label>
+                  <select id="admin-scores-item-filter" onchange="handleAdminScoresFilter()" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                    <option value="all">All Competition Items</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-3 flex items-center gap-2">
+                  <label for="admin-scores-slot-filter" class="sr-only">Filter Scores by Judge Slot</label>
+                  <select id="admin-scores-slot-filter" onchange="handleAdminScoresFilter()" class="flex-1 min-w-0 px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                    <option value="all">All Judges</option>
+                    <option value="J1">Judge 1 (J1)</option>
+                    <option value="J2">Judge 2 (J2)</option>
+                    <option value="J3">Judge 3 (J3)</option>
+                  </select>
+                  <button type="button" id="admin-scores-filter-clear" onclick="clearAdminScoresFilter()" class="hidden px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
+                    <th class="py-2.5 px-4">Item</th>
+                    <th class="py-2.5 px-4">Chest No</th>
+                    <th class="py-2.5 px-4">Judge</th>
+                    <th class="py-2.5 px-4 text-right">Breakdown (R / E / P / O)</th>
+                    <th class="py-2.5 px-4 text-right">Total</th>
+                    <th class="py-2.5 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-scores-body" class="divide-y divide-stone-200 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 7: DANGER ZONE -->
+        <div id="admin-panel-danger-zone" role="tabpanel" aria-labelledby="admin-tab-danger-zone" class="hidden space-y-6">
+          <!-- Danger Zone (Protected Event Reset) -->
+          <div id="admin-danger-zone" class="bg-red-50/40 border border-red-200/80 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-red-700">Danger Zone</div>
+              <h2 class="text-base font-bold text-stone-900">Clear Event Data</h2>
+              <p class="text-xs text-stone-600 max-w-2xl">
+                Permanently remove all competition items, groups, registered chest numbers, and submitted judge scores for this event only. Strict confirmation is required.
+              </p>
+            </div>
+            <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
+              Clear Event Data
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -3702,6 +3810,16 @@
     let pendingWorkspaceAuth = null;
     let isSwitchingEvent = false;
     let isDemoActionBusy = false;
+    const ADMIN_SUB_TABS = [
+      "branding",
+      "live-stages",
+      "items-participants",
+      "judges-panels",
+      "houses-grading",
+      "submitted-scores",
+      "danger-zone"
+    ];
+    let activeAdminSubTab = "branding";
     let activeJudgeSession = null;
     let activeAdminJudgeStageTab = "Stage 1";
     let judgeItemAdminOverride = false;
@@ -3877,6 +3995,9 @@
       document.getElementById("admin-no-event-banner").classList.toggle("hidden", hasEvent);
       document.getElementById("admin-active-event-sections").classList.toggle("hidden", !hasEvent);
       document.getElementById("admin-event-code-label").textContent = hasEvent ? activeEventCode : "Master Setup";
+      if (hasEvent) {
+        updateAdminSubTabCounts();
+      }
 
       const licenseSummaryEl = document.getElementById("admin-event-license-summary");
       if (licenseSummaryEl) {
@@ -4716,6 +4837,7 @@
           </span>
         `;
       }).join("");
+      updateAdminSubTabCounts();
     }
 
     async function autoRegisterStagesFromNames(rawStageNames, { persist = true } = {}) {
@@ -5036,6 +5158,7 @@
 
       if (pushAllBtn) pushAllBtn.disabled = items.length === 0;
       if (clearAllBtn) clearAllBtn.disabled = liveSummaries.length === 0;
+      updateAdminSubTabCounts();
     }
 
     function syncJudgeActiveItemUI() {
@@ -5854,9 +5977,11 @@
       if (typeof window.resetAdminItemsFilterAndEdit === "function") window.resetAdminItemsFilterAndEdit();
 
       hasCloudStagesDoc = Boolean(hasCloudStages);
+      activeAdminSubTab = "branding";
       activeAdminJudgeStageTab = getConfiguredStages()[0] || "Stage 1";
       applyBrandingUI();
       renderAdminStagesManager();
+      window.switchAdminTab("branding", { skipScroll: true });
       initJudgeSession();
       if (initialJudgeSession && !activeJudgeSession) {
         activeJudgeSession = { ...initialJudgeSession };
@@ -6764,6 +6889,16 @@
           groups.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join("");
         partGroupFilterEl.value = (currentPartGroupFilter === "all" || currentPartGroupFilter === "__unassigned__" || groups.some(g => g.id === currentPartGroupFilter))
           ? currentPartGroupFilter
+          : "all";
+      }
+
+      const scoresItemFilterEl = document.getElementById("admin-scores-item-filter");
+      if (scoresItemFilterEl) {
+        const currentScoresItemFilter = scoresItemFilterEl.value || "all";
+        scoresItemFilterEl.innerHTML = `<option value="all">All Competition Items</option>` +
+          window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)})</option>`).join("");
+        scoresItemFilterEl.value = (currentScoresItemFilter === "all" || window.state.items.some(i => i.id === currentScoresItemFilter))
+          ? currentScoresItemFilter
           : "all";
       }
 
@@ -8545,21 +8680,62 @@
         }).join("");
       }
 
-      scoresCount.textContent = `${window.state.scores.length} ${window.state.scores.length === 1 ? "score" : "scores"}`;
-      if (window.state.scores.length === 0) {
+      const scoreSearchTerm = (document.getElementById("admin-scores-search")?.value || "").trim();
+      const scoreSearchLower = scoreSearchTerm.toLowerCase();
+      const scoreItemFilter = document.getElementById("admin-scores-item-filter")?.value || "all";
+      const scoreSlotFilter = document.getElementById("admin-scores-slot-filter")?.value || "all";
+      const isScoreFilterActive = scoreSearchTerm.length > 0 || scoreItemFilter !== "all" || scoreSlotFilter !== "all";
+      const scoreClearBtn = document.getElementById("admin-scores-filter-clear");
+      if (scoreClearBtn) scoreClearBtn.classList.toggle("hidden", !isScoreFilterActive);
+
+      const totalScores = window.state.scores.length;
+      const filteredScores = window.state.scores.filter(s => {
+        if (scoreItemFilter !== "all" && s.itemId !== scoreItemFilter) return false;
+        if (scoreSlotFilter !== "all" && s.judgeSlot !== scoreSlotFilter) return false;
+        if (!scoreSearchLower) return true;
+        const item = window.state.items.find(it => it.id === s.itemId);
+        const part = window.state.participants.find(p => p.id === s.participantId);
+        return (
+          String(s.chestNo || "").toLowerCase().includes(scoreSearchLower) ||
+          String(s.judgeName || "").toLowerCase().includes(scoreSearchLower) ||
+          String(s.judgeSlot || "").toLowerCase().includes(scoreSearchLower) ||
+          String(item?.name || "").toLowerCase().includes(scoreSearchLower) ||
+          String(item?.category || "").toLowerCase().includes(scoreSearchLower) ||
+          String(part?.name || "").toLowerCase().includes(scoreSearchLower)
+        );
+      });
+
+      scoresCount.textContent = isScoreFilterActive
+        ? `${filteredScores.length} of ${totalScores} ${totalScores === 1 ? "score" : "scores"}`
+        : `${totalScores} ${totalScores === 1 ? "score" : "scores"}`;
+
+      if (totalScores === 0) {
         scoresBody.innerHTML = `
           <tr>
             <td colspan="6" class="py-6 px-4 text-center text-sm text-stone-500">No judge scores submitted yet.</td>
           </tr>
         `;
+      } else if (filteredScores.length === 0) {
+        scoresBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-6 px-4 text-center text-sm text-stone-500">
+              <span>No submitted scores match the current search or filters.</span>
+              <button type="button" onclick="clearAdminScoresFilter()" class="ml-2 text-xs font-semibold text-amber-800 hover:underline">Clear filters</button>
+            </td>
+          </tr>
+        `;
       } else {
-        scoresBody.innerHTML = window.state.scores.map(s => {
+        scoresBody.innerHTML = filteredScores.map(s => {
           const item = window.state.items.find(it => it.id === s.itemId);
+          const part = window.state.participants.find(p => p.id === s.participantId);
           const scoreItemLabel = item ? `${item.name}${item.category ? ` (${item.category})` : ""}` : s.itemId;
           return `
             <tr class="hover:bg-stone-50">
               <td class="py-2.5 px-4 font-medium text-stone-900">${escapeHtml(scoreItemLabel)}</td>
-              <td class="py-2.5 px-4 font-semibold tabular-nums">#${escapeHtml(s.chestNo)}</td>
+              <td class="py-2.5 px-4">
+                <span class="font-semibold tabular-nums text-stone-900">#${escapeHtml(s.chestNo)}</span>
+                ${part?.name ? `<span class="text-xs text-stone-500 ml-1.5">${escapeHtml(part.name)}</span>` : ""}
+              </td>
               <td class="py-2.5 px-4 text-xs text-stone-700"><span class="font-semibold">${escapeHtml(s.judgeSlot)}</span> · ${escapeHtml(s.judgeName)}</td>
               <td class="py-2.5 px-4 text-right text-xs tabular-nums text-stone-600">${s.rhythm} / ${s.expression} / ${s.perfection} / ${s.overall}</td>
               <td class="py-2.5 px-4 text-right font-bold tabular-nums text-stone-900">${s.total}</td>
@@ -8572,6 +8748,8 @@
           `;
         }).join("");
       }
+
+      updateAdminSubTabCounts();
     };
 
     window.handlePrintResults = () => {
@@ -10532,6 +10710,111 @@
       if (searchEl) searchEl.focus();
     };
 
+    function updateAdminSubTabCounts() {
+      const items = Array.isArray(window.state?.items) ? window.state.items : [];
+      const participants = Array.isArray(window.state?.participants) ? window.state.participants : [];
+      const groups = Array.isArray(window.state?.groups) ? window.state.groups : [];
+      const scores = Array.isArray(window.state?.scores) ? window.state.scores : [];
+      const stages = getConfiguredStages();
+      const stageMap = getResolvedStageLiveMap();
+      const liveCount = stages.filter(st => stageMap[st] && items.some(it => it.id === stageMap[st])).length;
+
+      const liveEl = document.getElementById("admin-tab-count-live");
+      if (liveEl) {
+        if (liveCount > 0) {
+          liveEl.textContent = `${liveCount} live`;
+          liveEl.classList.remove("hidden");
+        } else {
+          liveEl.textContent = "";
+          liveEl.classList.add("hidden");
+        }
+      }
+      const itemsEl = document.getElementById("admin-tab-count-items");
+      if (itemsEl) itemsEl.textContent = `${items.length} · ${participants.length}`;
+      const stagesEl = document.getElementById("admin-tab-count-stages");
+      if (stagesEl) stagesEl.textContent = String(stages.length);
+      const groupsEl = document.getElementById("admin-tab-count-groups");
+      if (groupsEl) groupsEl.textContent = String(groups.length);
+      const scoresEl = document.getElementById("admin-tab-count-scores");
+      if (scoresEl) scoresEl.textContent = String(scores.length);
+    }
+
+    window.switchAdminTab = (tabId, options = {}) => {
+      const { skipScroll = false } = options;
+      const targetTab = ADMIN_SUB_TABS.includes(tabId) ? tabId : "branding";
+      activeAdminSubTab = targetTab;
+
+      ADMIN_SUB_TABS.forEach((id) => {
+        const panelEl = document.getElementById(`admin-panel-${id}`);
+        const btnEl = document.getElementById(`admin-tab-${id}`);
+        const isActive = id === targetTab;
+        if (panelEl) {
+          panelEl.classList.toggle("hidden", !isActive);
+        }
+        if (btnEl) {
+          btnEl.setAttribute("aria-selected", String(isActive));
+          btnEl.setAttribute("tabindex", isActive ? "0" : "-1");
+          const isDanger = id === "danger-zone";
+          btnEl.classList.toggle("border-amber-700", isActive && !isDanger);
+          btnEl.classList.toggle("text-stone-900", isActive && !isDanger);
+          btnEl.classList.toggle("border-red-600", isActive && isDanger);
+          btnEl.classList.toggle("text-red-800", isActive && isDanger);
+          btnEl.classList.toggle("font-semibold", isActive);
+          btnEl.classList.toggle("border-transparent", !isActive);
+          btnEl.classList.toggle("text-stone-600", !isActive);
+          btnEl.classList.toggle("font-medium", !isActive);
+          if (isActive && !skipScroll && typeof btnEl.scrollIntoView === "function") {
+            try {
+              btnEl.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+            } catch {}
+          }
+        }
+      });
+
+      if (targetTab === "live-stages") {
+        if (typeof renderAdminPublicShareCard === "function") renderAdminPublicShareCard();
+        syncAdminLiveItemUI();
+      } else if (targetTab === "judges-panels") {
+        renderAdminStagesManager();
+        renderAdminJudgesForm();
+      } else if (targetTab === "houses-grading") {
+        window.renderGroupStandings();
+      } else if (targetTab === "submitted-scores") {
+        window.renderAdminLists();
+      }
+      updateAdminSubTabCounts();
+    };
+
+    window.handleAdminSubTabsKeydown = (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
+      const curIdx = ADMIN_SUB_TABS.indexOf(activeAdminSubTab);
+      if (curIdx === -1) return;
+      e.preventDefault();
+      let nextIdx = curIdx;
+      if (e.key === "ArrowRight") nextIdx = (curIdx + 1) % ADMIN_SUB_TABS.length;
+      else if (e.key === "ArrowLeft") nextIdx = (curIdx - 1 + ADMIN_SUB_TABS.length) % ADMIN_SUB_TABS.length;
+      else if (e.key === "Home") nextIdx = 0;
+      else if (e.key === "End") nextIdx = ADMIN_SUB_TABS.length - 1;
+      const nextTab = ADMIN_SUB_TABS[nextIdx];
+      window.switchAdminTab(nextTab);
+      document.getElementById(`admin-tab-${nextTab}`)?.focus();
+    };
+
+    window.handleAdminScoresFilter = () => {
+      window.renderAdminLists();
+    };
+
+    window.clearAdminScoresFilter = () => {
+      const searchEl = document.getElementById("admin-scores-search");
+      const itemEl = document.getElementById("admin-scores-item-filter");
+      const slotEl = document.getElementById("admin-scores-slot-filter");
+      if (searchEl) searchEl.value = "";
+      if (itemEl) itemEl.value = "all";
+      if (slotEl) slotEl.value = "all";
+      window.renderAdminLists();
+      if (searchEl) searchEl.focus();
+    };
+
     window.resetAdminItemsFilterAndEdit = () => {
       editingAdminItemId = null;
       const itemSearchEl = document.getElementById("admin-items-search");
@@ -10539,11 +10822,17 @@
       const partSearchEl = document.getElementById("admin-participants-search");
       const partItemEl = document.getElementById("admin-participants-item-filter");
       const partGroupEl = document.getElementById("admin-participants-group-filter");
+      const scoreSearchEl = document.getElementById("admin-scores-search");
+      const scoreItemEl = document.getElementById("admin-scores-item-filter");
+      const scoreSlotEl = document.getElementById("admin-scores-slot-filter");
       if (itemSearchEl) itemSearchEl.value = "";
       if (itemCatEl) itemCatEl.value = "all";
       if (partSearchEl) partSearchEl.value = "";
       if (partItemEl) partItemEl.value = "all";
       if (partGroupEl) partGroupEl.value = "all";
+      if (scoreSearchEl) scoreSearchEl.value = "";
+      if (scoreItemEl) scoreItemEl.value = "all";
+      if (scoreSlotEl) scoreSlotEl.value = "all";
     };
 
     window.startEditItem = (itemId) => {
@@ -12469,6 +12758,7 @@
     let quickTourSteps = [];
     let quickTourLang = "en";
     let quickTourReturnView = "admin";
+    let quickTourReturnAdminTab = "branding";
     let quickTourRafId = null;
     let quickTourScrollSettleTimer = null;
 
@@ -12575,121 +12865,97 @@
 
       return [
         {
-          selector: "#primary-nav-bar",
+          selector: "#admin-subtabs-nav",
           view: "admin",
+          adminTab: "branding",
           sectionKey: "sectionAdmin",
           en: {
-            title: "Welcome! Let's Explore Your Festival App",
-            body: "Use these three top tabs anytime to move between the Judge Portal, Live Tabulation, and Admin Panel. On the right side, you can switch Festival Codes or Lock Admin access.",
-            tip: "On judge devices, triple-tap the festival title at the top-left whenever you need to unlock Admin."
+            title: "Welcome! Explore the Organized Admin Tabs",
+            body: "Every festival setup tool is grouped into 7 clean tabs—starting with Branding, followed by Live Stages & Share, Items & Participants, Judges & Panels, Houses & Grading, Submitted Scores, and Danger Zone.",
+            tip: "Swipe horizontally on mobile or tap any tab to jump directly to that section."
           },
           ml: {
-            title: "സ്വാഗതം! നമുക്കൊരു ചെറിയ ടൂർ കാണാം",
-            body: "ജഡ്ജി പോർട്ടൽ, ലൈവ് ടാബുലേഷൻ, അഡ്മിൻ പാനൽ എന്നിവയ്ക്കിടയിൽ എപ്പോൾ വേണമെങ്കിലും മാറാൻ ഈ മുകളിലെ ടാബുകൾ ഉപയോഗിക്കാം. വലതുവശത്ത് നിന്ന് അഡ്മിൻ ലോക്ക് ചെയ്യാനും കോഡ് മാറ്റാനും സാധിക്കും.",
-            tip: "ജഡ്ജിമാരുടെ ഫോണിൽ മുകളിൽ ഇടതുവശത്തെ ടൈറ്റിൽ 3 തവണ ടാപ്പ് ചെയ്താൽ അഡ്മിൻ തുറക്കാം."
+            title: "സ്വാഗതം! അഡ്മിൻ ടാബുകൾ പരിചയപ്പെടാം",
+            body: "കലോത്സവ നിയന്ത്രണങ്ങളെല്ലാം 7 ലളിതമായ ടാബുകളായി ക്രമീകരിച്ചിട്ടുണ്ട് — ബ്രാൻഡിംഗ് മുതൽ ലൈവ് സ്റ്റേജുകൾ, മത്സരയിനങ്ങൾ, ജഡ്ജിമാർ, ഹൗസുകൾ, മാർക്കുകൾ, ഡേഞ്ചർ സോൺ വരെ.",
+            tip: "മൊബൈലിൽ വശങ്ങളിലേക്ക് സ്ക്രോൾ ചെയ്ത് ഏത് ടാബിലേക്കും വേഗത്തിൽ പോകാം."
           }
         },
         {
           selector: "#admin-branding-form",
           view: "admin",
+          adminTab: "branding",
           sectionKey: "sectionAdmin",
           en: {
             title: "1. Festival & Campus Branding",
-            body: "Enter your school, college, or festival title and venue subtitle here. Saving updates the header, public live portal, Stage TV broadcast screen, and printed PDF result sheets.",
-            tip: "Start here first so every scoreboard proudly displays your institution's name."
+            body: "Start here when setting up a new campus or festival! Enter your institution name and venue subtitle to update the header, public live portal, Stage TV screen, and printed PDF result sheets.",
+            tip: "Saving updates every scoreboard with your festival's official branding right away."
           },
           ml: {
             title: "1. ഫെസ്റ്റിവൽ പേരും വേദിയും സെറ്റ് ചെയ്യാം",
-            body: "നിങ്ങളുടെ സ്കൂൾ/കോളേജ് പേരും കലോത്സവത്തിന്റെ പേരും ഇവിടെ നൽകുക. സേവ് ചെയ്താലുടൻ ഹെഡർ, പബ്ലിക് ലൈവ് പേജ്, ടി.വി സ്കോർബോർഡ്, പ്രിന്റ് ഷീറ്റുകൾ എന്നിവയിലെല്ലാം ഈ പേര് വരും.",
-            tip: "ആദ്യം തന്നെ ഇത് സെറ്റ് ചെയ്താൽ എല്ലാ സ്ക്രീനുകളിലും നിങ്ങളുടെ സ്ഥാപനത്തിന്റെ പേര് ഭംഗിയായി കാണാം."
-          }
-        },
-        {
-          selector: "#admin-public-share-card",
-          view: "admin",
-          sectionKey: "sectionAdmin",
-          en: {
-            title: "2. Public Live Link & QR Code",
-            body: "Copy this read-only link for WhatsApp or download the QR code for campus notice boards. Students and parents can follow house standings and published results with zero PIN required.",
-            tip: "Raw judge marks (J1/J2/J3) stay 100% private and are never shown on the Public Portal."
-          },
-          ml: {
-            title: "2. പബ്ലിക് ലൈവ് ലിങ്കും QR കോഡും",
-            body: "ഈ ലിങ്ക് വാട്സാപ്പിൽ ഷെയർ ചെയ്യുകയോ QR കോഡ് ഡൗൺലോഡ് ചെയ്ത് നോട്ടീസ് ബോർഡിൽ പതിക്കുകയോ ചെയ്യാം. പിൻ നമ്പർ ഇല്ലാതെ തന്നെ വിദ്യാർത്ഥികൾക്കും പ്രേക്ഷകർക്കും ലൈവ് റിസൾട്ട് കാണാൻ കഴിയും.",
-            tip: "ജഡ്ജിമാരുടെ മാർക്കുകൾ (J1/J2/J3) പബ്ലിക് പേജിൽ ഒരിക്കലും കാണിക്കില്ല — പൂർണ്ണ സ്വകാര്യത ഉറപ്പ്!"
+            body: "പുതിയ കലോത്സവം തുടങ്ങുമ്പോൾ ആദ്യം ഇവിടെ പേര് നൽകുക! സ്കൂൾ/കോളേജ് പേരും വേദിയും സേവ് ചെയ്താൽ ഹെഡർ, പബ്ലിക് ലൈവ് പേജ്, ടി.വി സ്കോർബോർഡ്, പ്രിന്റ് ഷീറ്റുകൾ എന്നിവയിലെല്ലാം ഈ പേര് വരും.",
+            tip: "ആദ്യം തന്നെ ഇത് സെറ്റ് ചെയ്താൽ എല്ലാ സ്ക്രീനുകളിലും സ്ഥാപനത്തിന്റെ പേര് ഭംഗിയായി കാണാം."
           }
         },
         {
           selector: "#admin-live-stage-card",
           view: "admin",
+          adminTab: "live-stages",
           sectionKey: "sectionAdmin",
           en: {
-            title: "3. Stages & Live Stage Sync",
-            body: "Add as many stages as your festival needs, pick the item currently performing on each stage, and click Push. Judges on that stage automatically lock onto the right item—preventing wrong-item marks!",
-            tip: "Moving to the next stage performance takes just one click from here."
+            title: "2. Live Stage Sync (Sync to Judges)",
+            body: "Pick the competition item currently performing on each stage and click Push. Judges on that stage automatically lock onto the right item—preventing wrong-item marks!",
+            tip: "Moving to the next performance on stage takes just one click from here."
           },
           ml: {
-            title: "3. വേദികളും ലൈവ് ഐറ്റം സിങ്കും",
-            body: "ആവശ്യമുള്ളത്ര വേദികൾ (Stages) ഇവിടെ ചേർക്കാം. ഓരോ വേദിയിലും ഇപ്പോൾ നടക്കുന്ന മത്സരയിനം തിരഞ്ഞെടുത്ത് 'Push' ചെയ്താൽ ആ വേദിയിലെ ജഡ്ജിമാരുടെ ഫോണിൽ ആ ഐറ്റം താനേ ലോക്ക് ആകും.",
+            title: "2. ലൈവ് സ്റ്റേജ് സിങ്ക് (ജഡ്ജിമാരിലേക്ക്)",
+            body: "ഓരോ വേദിയിലും ഇപ്പോൾ നടക്കുന്ന മത്സരയിനം തിരഞ്ഞെടുത്ത് 'Push' ചെയ്താൽ ആ വേദിയിലെ ജഡ്ജിമാരുടെ ഫോണിൽ ആ ഐറ്റം താനേ ലോക്ക് ആകും.",
             tip: "അടുത്ത മത്സരം തുടങ്ങുമ്പോൾ ഇവിടെ മാറ്റിയാൽ ജഡ്ജിമാർക്ക് തെറ്റ് പറ്റില്ല."
           }
         },
         {
-          selector: "#admin-judges-form",
+          selector: "#admin-public-share-card",
           view: "admin",
+          adminTab: "live-stages",
           sectionKey: "sectionAdmin",
           en: {
-            title: "4. Judge Panels & Secret 4-Digit PINs",
-            body: "Choose 2 or 3 judges per item, pick a stage tab, and save official judge names with unique 4-digit PINs. Share each PIN privately so only that judge can score in their slot.",
-            tip: "Tap 'Generate New PINs' to instantly create fresh random 4-digit codes for a stage."
+            title: "3. Public Live Link & QR Code",
+            body: "Copy this read-only link for WhatsApp or download the QR code for campus notice boards. Students and parents can follow house standings and published results with zero PIN required.",
+            tip: "Raw judge marks (J1/J2/J3) stay 100% private and are never shown on the Public Portal."
           },
           ml: {
-            title: "4. ജഡ്ജിമാരും 4-അക്ക പിൻ നമ്പറുകളും",
-            body: "ഓരോ മത്സരത്തിനും 2 അല്ലെങ്കിൽ 3 ജഡ്ജിമാർ വേണമോ എന്ന് ഇവിടെ തിരഞ്ഞെടുക്കാം. ഓരോ വേദിയിലെയും ജഡ്ജിമാരുടെ പേരും രഹസ്യ 4-അക്ക പിന്നും നൽകി സേവ് ചെയ്യുക.",
-            tip: "'Generate New PINs' അമർത്തിയാൽ എളുപ്പത്തിൽ പുതിയ 4-അക്ക പിൻ നമ്പറുകൾ തയ്യാറാക്കാം."
-          }
-        },
-        {
-          selector: "#admin-groups-card",
-          view: "admin",
-          sectionKey: "sectionAdmin",
-          en: {
-            title: "5. Houses / Groups & Grade Rules",
-            body: "Add your Houses or Teams with colors to calculate championship points automatically (1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt). Scroll inside this card to customize A, B, and C grade percentages too.",
-            tip: "House names stay completely hidden from judges during blind scoring."
-          },
-          ml: {
-            title: "5. ഹൗസുകളും A/B/C ഗ്രേഡ് നിയമങ്ങളും",
-            body: "ടീമുകളെയോ ഹൗസുകളെയോ നിറങ്ങളോടെ ഇവിടെ ചേർത്താൽ ചാമ്പ്യൻഷിപ്പ് പോയിന്റുകൾ (1st=5, 2nd=3, 3rd=1) താനേ കണക്കാക്കും. താഴെ A, B, C ഗ്രേഡുകൾക്കുള്ള ശതമാനവും മാറ്റാം.",
-            tip: "ജഡ്ജിമാർക്ക് ഹൗസിന്റെ പേര് കാണില്ല, അതിനാൽ പക്ഷപാതമില്ലാത്ത വിധിനിർണ്ണയം ഉറപ്പാക്കാം."
+            title: "3. പബ്ലിക് ലൈവ് ലിങ്കും QR കോഡും",
+            body: "ഈ ലിങ്ക് വാട്സാപ്പിൽ ഷെയർ ചെയ്യുകയോ QR കോഡ് ഡൗൺലോഡ് ചെയ്ത് നോട്ടീസ് ബോർഡിൽ പതിക്കുകയോ ചെയ്യാം. പിൻ നമ്പർ ഇല്ലാതെ തന്നെ വിദ്യാർത്ഥികൾക്കും പ്രേക്ഷകർക്കും ലൈവ് റിസൾട്ട് കാണാൻ കഴിയും.",
+            tip: "ജഡ്ജിമാരുടെ മാർക്കുകൾ (J1/J2/J3) പബ്ലിക് പേജിൽ ഒരിക്കലും കാണിക്കില്ല — പൂർണ്ണ സ്വകാര്യത ഉറപ്പ്!"
           }
         },
         {
           selector: "#admin-add-item-form",
           view: "admin",
+          adminTab: "items-participants",
           sectionKey: "sectionAdmin",
           en: {
-            title: "6. Add Competition Items & AI Criteria",
-            body: "Pick from the built-in Festival Manual presets or type any custom competition item. Its 4 judging criteria (25 marks each) auto-fill—or click the AI button to generate tailored bilingual criteria!",
-            tip: "You can tweak any criterion label freely before clicking Add Competition Item."
+            title: "4. Add Competition Items & Bilingual Criteria",
+            body: "Pick from 60+ built-in Festival Manual presets or type any custom item. Its 4 bilingual judging criteria (25 marks each) auto-fill instantly—and you can edit any criterion freely.",
+            tip: "Use the quick preset picker at the top of the card to fill English & Malayalam titles together."
           },
           ml: {
-            title: "6. മത്സരയിനങ്ങളും ജഡ്ജിങ് മാനദണ്ഡങ്ങളും",
-            body: "ഫെസ്റ്റിവൽ മാനുവൽ ലിസ്റ്റിൽ നിന്ന് തിരഞ്ഞെടുക്കുകയോ പുതിയ മത്സരയിനം ടൈപ്പ് ചെയ്യുകയോ ചെയ്യാം. 25 മാർക്ക് വീതമുള്ള 4 മാനദണ്ഡങ്ങൾ താനേ വരും — അല്ലെങ്കിൽ AI ബട്ടൺ വഴി തയ്യാറാക്കാം.",
+            title: "4. മത്സരയിനങ്ങളും ജഡ്ജിങ് മാനദണ്ഡങ്ങളും",
+            body: "60+ ഫെസ്റ്റിവൽ മാനുവൽ പ്രീസെറ്റുകളിൽ നിന്ന് തിരഞ്ഞെടുക്കുകയോ പുതിയ മത്സരയിനം ടൈപ്പ് ചെയ്യുകയോ ചെയ്യാം. 25 മാർക്ക് വീതമുള്ള 4 മാനദണ്ഡങ്ങൾ താനേ വരും.",
             tip: "ചേർക്കുന്നതിന് മുമ്പ് ഏത് മാനദണ്ഡവും നിങ്ങൾക്ക് ഇഷ്ടാനുസരണം തിരുത്താം."
           }
         },
         {
           selector: "#admin-add-participant-form",
           view: "admin",
+          adminTab: "items-participants",
           sectionKey: "sectionAdmin",
           en: {
-            title: "7. Register Participant Chest Numbers",
+            title: "5. Register Participant Chest Numbers",
             body: "Choose a competition item and House, then enter each contestant's Chest Number and full name. Judges only see the Chest Number—names and houses stay secret until tabulation.",
             tip: "Keep Chest Numbers unique within each competition item for clean results."
           },
           ml: {
-            title: "7. മത്സരാർത്ഥികളുടെ ചെസ്റ്റ് നമ്പർ ചേർക്കാം",
+            title: "5. മത്സരാർത്ഥികളുടെ ചെസ്റ്റ് നമ്പർ ചേർക്കാം",
             body: "മത്സരയിനവും ഹൗസും തിരഞ്ഞെടുത്ത് മത്സരാർത്ഥിയുടെ ചെസ്റ്റ് നമ്പറും പേരും ചേർക്കുക. ജഡ്ജിമാർക്ക് ചെസ്റ്റ് നമ്പർ മാത്രമേ കാണാൻ കഴിയൂ — പേരും ഹൗസും രഹസ്യമായിരിക്കും.",
             tip: "ഒരു മത്സരയിനത്തിൽ ഓരോരുത്തർക്കും വ്യത്യസ്ത ചെസ്റ്റ് നമ്പർ നൽകാൻ ശ്രദ്ധിക്കുക."
           }
@@ -12697,30 +12963,80 @@
         {
           selector: "#admin-csv-import-card",
           view: "admin",
+          adminTab: "items-participants",
           sectionKey: "sectionAdmin",
           en: {
-            title: "8. Fast Bulk Import via CSV",
+            title: "6. Fast Bulk Import via CSV",
             body: "Got a big registration sheet in Excel or Google Sheets? Download a ready-made CSV template, fill it in, and upload dozens of items or chest numbers at once with an instant preview.",
             tip: "Keep auto-create checked to add missing items and houses automatically during import."
           },
           ml: {
-            title: "8. CSV വഴി ഒറ്റയടിക്ക് ഡാറ്റ ചേർക്കാം",
+            title: "6. CSV വഴി ഒറ്റയടിക്ക് ഡാറ്റ ചേർക്കാം",
             body: "നിരവധി മത്സരങ്ങളോ ചെസ്റ്റ് നമ്പറുകളോ എക്സലിൽ ഉണ്ടോ? ഇവിടെ നിന്ന് CSV ടെംപ്ലേറ്റ് ഡൗൺലോഡ് ചെയ്ത് പൂരിപ്പിച്ച് അപ്‌ലോഡ് ചെയ്താൽ നിമിഷങ്ങൾക്കുള്ളിൽ എല്ലാവരെയും ചേർക്കാം.",
             tip: "ഇമ്പോർട്ട് ചെയ്യുന്നതിന് മുമ്പ് ഡാറ്റയുടെ പ്രിവ്യൂ പരിശോധിക്കാനും സാധിക്കും."
           }
         },
         {
-          selector: "#admin-scores-log-card",
+          selector: "#admin-stages-manager-card",
           view: "admin",
+          adminTab: "judges-panels",
           sectionKey: "sectionAdmin",
           en: {
-            title: "9. Submitted Scores Log",
-            body: "Track every submitted judge mark sheet here with its 4-part breakdown. If a judge accidentally submits a mistake, delete that single row to unlock re-scoring on their device.",
+            title: "7. Unlimited Festival Stages (+ Add Stage)",
+            body: "Add as many stages or venues as your festival needs. Each stage gets its own dedicated Judge Panel on the right and its own Live Stage Sync control.",
+            tip: "Unused stages can be removed anytime with a single click on their × button."
+          },
+          ml: {
+            title: "7. ആവശ്യമുള്ളത്ര വേദികൾ (+ Add Stage)",
+            body: "നിങ്ങളുടെ കലോത്സവത്തിന് ആവശ്യമുള്ളത്ര വേദികൾ ഇവിടെ ചേർക്കാം. ഓരോ വേദിക്കും സ്വന്തമായി ജഡ്ജി പാനലും ലൈവ് സിങ്ക് നിയന്ത്രണവും ലഭിക്കും.",
+            tip: "ഉപയോഗിക്കാത്ത വേദികൾ എപ്പോൾ വേണമെങ്കിലും × അമർത്തി നീക്കം ചെയ്യാം."
+          }
+        },
+        {
+          selector: "#admin-judges-form",
+          view: "admin",
+          adminTab: "judges-panels",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "8. Judge Panels & Secret 4-Digit PINs",
+            body: "Choose 2 or 3 judges per item, pick a stage tab, and save official judge names with unique 4-digit PINs. Share each PIN privately so only that judge can unlock their slot.",
+            tip: "Tap 'Generate New PINs' to instantly create fresh random 4-digit codes for a stage."
+          },
+          ml: {
+            title: "8. ജഡ്ജിമാരും 4-അക്ക പിൻ നമ്പറുകളും",
+            body: "ഓരോ മത്സരത്തിനും 2 അല്ലെങ്കിൽ 3 ജഡ്ജിമാർ വേണമോ എന്ന് ഇവിടെ തിരഞ്ഞെടുക്കാം. ഓരോ വേദിയിലെയും ജഡ്ജിമാരുടെ പേരും രഹസ്യ 4-അക്ക പിന്നും നൽകി സേവ് ചെയ്യുക.",
+            tip: "'Generate New PINs' അമർത്തിയാൽ എളുപ്പത്തിൽ പുതിയ 4-അക്ക പിൻ നമ്പറുകൾ തയ്യാറാക്കാം."
+          }
+        },
+        {
+          selector: "#admin-groups-card",
+          view: "admin",
+          adminTab: "houses-grading",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "9. Houses / Groups, Grading & Chart Style",
+            body: "Add your Houses or Teams with colors to calculate championship points automatically (1st = 5 pts, 2nd = 3 pts, 3rd = 1 pt), customize A/B/C grade percentages, and choose your Live Tabulation chart style.",
+            tip: "House names stay completely hidden from judges during blind scoring."
+          },
+          ml: {
+            title: "9. ഹൗസുകളും A/B/C ഗ്രേഡ് നിയമങ്ങളും",
+            body: "ടീമുകളെയോ ഹൗസുകളെയോ നിറങ്ങളോടെ ഇവിടെ ചേർത്താൽ ചാമ്പ്യൻഷിപ്പ് പോയിന്റുകൾ (1st=5, 2nd=3, 3rd=1) താനേ കണക്കാക്കും. A, B, C ഗ്രേഡ് ശതമാനവും ചാർട്ട് സ്റ്റൈലും ഇവിടെ മാറ്റാം.",
+            tip: "ജഡ്ജിമാർക്ക് ഹൗസിന്റെ പേര് കാണില്ല, അതിനാൽ പക്ഷപാതമില്ലാത്ത വിധിനിർണ്ണയം ഉറപ്പാക്കാം."
+          }
+        },
+        {
+          selector: "#admin-scores-log-card",
+          view: "admin",
+          adminTab: "submitted-scores",
+          sectionKey: "sectionAdmin",
+          en: {
+            title: "10. Submitted Scores Log",
+            body: "Search or filter every submitted judge mark sheet with its 4-part breakdown. If a judge accidentally submits a mistake, delete that single row to unlock re-scoring on their device.",
             tip: "Deleting a row only clears that specific judge's score for that chest number."
           },
           ml: {
-            title: "9. സമർപ്പിച്ച മാർക്കുകളുടെ പട്ടിക",
-            body: "ജഡ്ജിമാർ നൽകുന്ന എല്ലാ മാർക്കുകളും ഇവിടെ തത്സമയം കാണാം. ഏതെങ്കിലും ജഡ്ജിക്ക് അബദ്ധത്തിൽ മാർക്ക് തെറ്റിപ്പോയാൽ ആ വരി ഇവിടെ ഡിലീറ്റ് ചെയ്താൽ അവർക്ക് വീണ്ടും മാർക്ക് നൽകാൻ കഴിയും.",
+            title: "10. സമർപ്പിച്ച മാർക്കുകളുടെ പട്ടിക",
+            body: "ജഡ്ജിമാർ നൽകുന്ന എല്ലാ മാർക്കുകളും ഇവിടെ തിരയാനും ഫിൽറ്റർ ചെയ്യാനും കാണാം. അബദ്ധത്തിൽ മാർക്ക് തെറ്റിപ്പോയാൽ ആ വരി ഡിലീറ്റ് ചെയ്താൽ അവർക്ക് വീണ്ടും മാർക്ക് നൽകാൻ കഴിയും.",
             tip: "ഒരു വരി ഡിലീറ്റ് ചെയ്താൽ ആ ജഡ്ജിയുടെ ആ ചെസ്റ്റ് നമ്പറിലെ മാർക്ക് മാത്രമേ റീസെറ്റ് ആകൂ."
           }
         },
@@ -12729,13 +13045,13 @@
           view: "tabulation",
           sectionKey: "sectionTab",
           en: {
-            title: "10. Live Tabulation, TV Mode & Publish",
-            body: "Here's Live Tabulation! Averages, ranks, A/B/C grades, and House charts update in real time. Use Stage / TV Mode for projectors, print official PDFs, and click 'Publish Result to Public' below when ready to announce.",
+            title: "11. Live Tabulation, TV Mode & Publish",
+            body: "Here's Live Tabulation! Averages, ranks, A/B/C grades, and House charts update in real time with smooth row animations. Use Stage / TV Mode for projectors, print official PDFs, and click 'Publish Result to Public' when ready.",
             tip: "Results stay safely in Draft mode until you click Publish Result to Public."
           },
           ml: {
-            title: "10. ലൈവ് ടാബുലേഷൻ, ടി.വി മോഡ് & പബ്ലിഷ്",
-            body: "ഇതാണ് ലൈവ് ടാബുലേഷൻ! ശരാശരി മാർക്ക്, റാങ്കുകൾ, ഗ്രേഡുകൾ, ഹൗസ് ചാർട്ടുകൾ എന്നിവ ഇവിടെ തത്സമയം അപ്ഡേറ്റ് ആകും. പ്രൊജക്ടറിനായി 'Stage / TV Mode', പ്രിന്റ്/PDF, താഴെയുള്ള 'Publish Result to Public' ബട്ടണും ഇവിടെയുണ്ട്.",
+            title: "11. ലൈവ് ടാബുലേഷൻ, ടി.വി മോഡ് & പബ്ലിഷ്",
+            body: "ഇതാണ് ലൈവ് ടാബുലേഷൻ! ശരാശരി മാർക്ക്, റാങ്കുകൾ, ഗ്രേഡുകൾ, ഹൗസ് ചാർട്ടുകൾ എന്നിവ ഇവിടെ തത്സമയം അപ്ഡേറ്റ് ആകും. പ്രൊജക്ടറിനായി 'Stage / TV Mode', പ്രിന്റ്/PDF, 'Publish Result to Public' ബട്ടണും ഇവിടെയുണ്ട്.",
             tip: "നിങ്ങൾ 'Publish' ചെയ്യുന്നത് വരെ ഒരു റിസൾട്ടും പബ്ലിക് പേജിൽ കാണിക്കില്ല."
           }
         },
@@ -12744,13 +13060,13 @@
           view: "judge",
           sectionKey: "sectionJudge",
           en: {
-            title: "11. Blind Judge Scoring Portal",
-            body: "Finally, this is what your judges use! They pick their Stage & Slot, unlock with their 4-digit PIN, select a Chest Number, and enter 4 criterion marks (0–25 each). Works offline too and syncs automatically!",
+            title: "12. Blind Judge Scoring Portal",
+            body: "Finally, this is what your judges use! After verifying their 4-digit Stage Judge PIN, they select a Chest Number and enter 4 criterion marks (0–25 each). Works offline too and syncs automatically!",
             tip: "All done! Click Finish Tour to head right back to your Admin Console."
           },
           ml: {
-            title: "11. ബ്ലൈൻഡ് ജഡ്ജിങ് പോർട്ടൽ",
-            body: "ജഡ്ജിമാർ ഉപയോഗിക്കുന്ന പേജാണിത്! അവർ സ്വന്തം വേദിയും സ്ലോട്ടും തിരഞ്ഞെടുത്ത് 4-അക്ക പിൻ നൽകി തുറക്കുന്നു. ചെസ്റ്റ് നമ്പർ തിരഞ്ഞെടുത്ത് 4 മാനദണ്ഡങ്ങൾക്കും (0–25) മാർക്ക് നൽകാം. നെറ്റ്‌വർക്ക് പോയാലും ഓഫ്‌ലൈനിൽ സേവ് ആയി പിന്നീട് സിങ്ക് ആകും!",
+            title: "12. ബ്ലൈൻഡ് ജഡ്ജിങ് പോർട്ടൽ",
+            body: "ജഡ്ജിമാർ ഉപയോഗിക്കുന്ന പേജാണിത്! 4-അക്ക പിൻ നൽകി തുറന്ന ശേഷം ചെസ്റ്റ് നമ്പർ തിരഞ്ഞെടുത്ത് 4 മാനദണ്ഡങ്ങൾക്കും (0–25) മാർക്ക് നൽകാം. നെറ്റ്‌വർക്ക് പോയാലും ഓഫ്‌ലൈനിൽ സേവ് ആയി പിന്നീട് സിങ്ക് ആകും!",
             tip: "അഭിനന്ദനങ്ങൾ! ടൂർ പൂർത്തിയായി. അഡ്മിൻ കൺസോളിലേക്ക് മടങ്ങാൻ 'പൂർത്തിയാക്കുക' അമർത്തുക."
           }
         }
@@ -12933,11 +13249,14 @@
       const total = quickTourSteps.length;
       const isLast = quickTourIndex === total - 1;
 
-      // Switch underlying app view automatically if this step lives in another view
+      // Switch underlying app view & Admin sub-tab automatically if this step lives in another view/tab
       if (step.view && activeEventCode && !isSwitchingEvent) {
         const viewEl = document.getElementById("view-" + step.view);
         if (viewEl && viewEl.classList.contains("hidden")) {
           window.switchView(step.view, { skipHistorySync: true });
+        }
+        if (step.view === "admin" && step.adminTab && activeAdminSubTab !== step.adminTab) {
+          window.switchAdminTab(step.adminTab, { skipScroll: false });
         }
       }
 
@@ -13041,6 +13360,7 @@
       if (!isAdminUnlocked) return;
       if (isStageTvMode) window.exitStageTvMode(true, { skipHistorySync: true });
       quickTourReturnView = getCurrentLogicalRoute() === "tabulation" ? "tabulation" : "admin";
+      quickTourReturnAdminTab = activeAdminSubTab || "branding";
       quickTourSteps = getQuickTourStepsForCurrentContext();
       if (!quickTourSteps.length) return;
       quickTourIndex = 0;
@@ -13083,6 +13403,9 @@
       if (!skipRestoreView && isAdminUnlocked && !isSwitchingEvent) {
         const restoreTarget = activeEventCode ? (quickTourReturnView || "admin") : "admin";
         window.switchView(restoreTarget, { skipHistorySync: true });
+        if (restoreTarget === "admin" && activeEventCode) {
+          window.switchAdminTab(quickTourReturnAdminTab || "branding", { skipScroll: true });
+        }
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
