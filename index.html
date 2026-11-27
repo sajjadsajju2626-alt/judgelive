@@ -38,56 +38,95 @@
       position: relative;
       z-index: 0;
       will-change: transform;
-      transition: background-color 360ms ease, box-shadow 360ms ease, opacity 280ms ease;
+      transition: background-color 320ms ease, box-shadow 320ms ease, opacity 260ms ease;
     }
     .tab-animated-row.tab-row-flip-play {
       transition:
         transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
-        background-color 420ms ease,
-        box-shadow 420ms ease;
+        background-color 380ms ease,
+        box-shadow 380ms ease;
     }
     .tab-animated-row.tab-row-moving {
       will-change: transform;
     }
     .tab-animated-row.tab-row-rising {
       z-index: 3;
-      background-color: rgba(16, 185, 129, 0.09);
-      box-shadow: 0 6px 16px -6px rgba(28, 25, 23, 0.14);
+      box-shadow: 0 8px 20px -8px rgba(28, 25, 23, 0.16);
+    }
+    .tab-animated-row.tab-row-rising > td,
+    .public-standing-row.tab-row-rising {
+      background-color: rgba(16, 185, 129, 0.08);
     }
     .tab-animated-row.tab-row-falling {
       z-index: 1;
-      background-color: rgba(245, 158, 11, 0.06);
+    }
+    .tab-animated-row.tab-row-falling > td,
+    .public-standing-row.tab-row-falling {
+      background-color: rgba(245, 158, 11, 0.055);
     }
     body.stage-tv-mode .tab-animated-row.tab-row-rising {
-      background-color: rgba(16, 185, 129, 0.16);
-      box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 10px 26px -8px rgba(0, 0, 0, 0.6);
     }
-    body.stage-tv-mode .tab-animated-row.tab-row-falling {
+    body.stage-tv-mode .tab-animated-row.tab-row-rising > td {
+      background-color: rgba(16, 185, 129, 0.16);
+    }
+    body.stage-tv-mode .tab-animated-row.tab-row-falling > td {
       background-color: rgba(245, 158, 11, 0.09);
     }
     .tab-row-enter {
       animation: tabRowFadeIn 380ms cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .rank-up-flash {
-      animation: rankUpHighlight 1300ms cubic-bezier(0.22, 1, 0.36, 1);
+    tr.rank-up-flash > td,
+    .public-standing-row.rank-up-flash {
+      animation: rankUpHighlight 1500ms cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .rank-down-flash {
-      animation: rankDownHighlight 1300ms cubic-bezier(0.22, 1, 0.36, 1);
+    tr.rank-up-flash > td:first-child {
+      animation: rankUpEdgeHighlight 1500ms cubic-bezier(0.22, 1, 0.36, 1);
     }
-    body.stage-tv-mode .rank-up-flash {
-      animation: rankUpHighlightDark 1300ms cubic-bezier(0.22, 1, 0.36, 1);
+    tr.rank-down-flash > td,
+    .public-standing-row.rank-down-flash {
+      animation: rankDownHighlight 1350ms cubic-bezier(0.22, 1, 0.36, 1);
     }
-    body.stage-tv-mode .rank-down-flash {
-      animation: rankDownHighlightDark 1300ms cubic-bezier(0.22, 1, 0.36, 1);
+    tr.rank-down-flash > td:first-child {
+      animation: rankDownEdgeHighlight 1350ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    tr.score-row-updated > td,
+    .public-standing-row.score-row-updated {
+      animation: scoreRowHighlight 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    tr.score-row-updated > td:first-child {
+      animation: scoreRowEdgeHighlight 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode tr.rank-up-flash > td {
+      animation: rankUpHighlightDark 1500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode tr.rank-up-flash > td:first-child {
+      animation: rankUpEdgeHighlightDark 1500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode tr.rank-down-flash > td {
+      animation: rankDownHighlightDark 1350ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode tr.rank-down-flash > td:first-child {
+      animation: rankDownEdgeHighlightDark 1350ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode tr.score-row-updated > td {
+      animation: scoreRowHighlightDark 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    body.stage-tv-mode tr.score-row-updated > td:first-child {
+      animation: scoreRowEdgeHighlightDark 1400ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .score-updated-flash {
-      animation: scorePulseHighlight 900ms cubic-bezier(0.22, 1, 0.36, 1);
+      animation: scorePulseHighlight 1100ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     body.stage-tv-mode .score-updated-flash {
-      animation: scorePulseHighlightDark 900ms cubic-bezier(0.22, 1, 0.36, 1);
+      animation: scorePulseHighlightDark 1100ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .rank-pill-transition {
       transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), background-color 320ms ease, color 320ms ease;
+    }
+    .rank-pill-bump {
+      display: inline-block;
+      animation: rankPillBump 460ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     .rank-delta-cue {
       display: inline-block;
@@ -120,32 +159,79 @@
       to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
     @keyframes rankUpHighlight {
-      0% { background-color: rgba(16, 185, 129, 0.20); }
+      0% { background-color: rgba(16, 185, 129, 0.22); }
       45% { background-color: rgba(16, 185, 129, 0.11); }
       100% { background-color: transparent; }
     }
+    @keyframes rankUpEdgeHighlight {
+      0% { background-color: rgba(16, 185, 129, 0.22); box-shadow: inset 3px 0 0 rgba(5, 150, 105, 0.85); }
+      45% { background-color: rgba(16, 185, 129, 0.11); box-shadow: inset 3px 0 0 rgba(5, 150, 105, 0.45); }
+      100% { background-color: transparent; box-shadow: inset 3px 0 0 rgba(5, 150, 105, 0); }
+    }
     @keyframes rankDownHighlight {
-      0% { background-color: rgba(245, 158, 11, 0.16); }
+      0% { background-color: rgba(245, 158, 11, 0.18); }
       45% { background-color: rgba(245, 158, 11, 0.08); }
       100% { background-color: transparent; }
     }
+    @keyframes rankDownEdgeHighlight {
+      0% { background-color: rgba(245, 158, 11, 0.18); box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.72); }
+      45% { background-color: rgba(245, 158, 11, 0.08); box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.35); }
+      100% { background-color: transparent; box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0); }
+    }
+    @keyframes scoreRowHighlight {
+      0% { background-color: rgba(251, 191, 36, 0.20); }
+      45% { background-color: rgba(251, 191, 36, 0.09); }
+      100% { background-color: transparent; }
+    }
+    @keyframes scoreRowEdgeHighlight {
+      0% { background-color: rgba(251, 191, 36, 0.20); box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.78); }
+      45% { background-color: rgba(251, 191, 36, 0.09); box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0.38); }
+      100% { background-color: transparent; box-shadow: inset 3px 0 0 rgba(217, 119, 6, 0); }
+    }
     @keyframes rankUpHighlightDark {
-      0% { background-color: rgba(16, 185, 129, 0.28); }
+      0% { background-color: rgba(16, 185, 129, 0.30); }
       45% { background-color: rgba(16, 185, 129, 0.14); }
       100% { background-color: transparent; }
     }
+    @keyframes rankUpEdgeHighlightDark {
+      0% { background-color: rgba(16, 185, 129, 0.30); box-shadow: inset 3px 0 0 rgba(52, 211, 153, 0.9); }
+      45% { background-color: rgba(16, 185, 129, 0.14); box-shadow: inset 3px 0 0 rgba(52, 211, 153, 0.45); }
+      100% { background-color: transparent; box-shadow: inset 3px 0 0 rgba(52, 211, 153, 0); }
+    }
     @keyframes rankDownHighlightDark {
-      0% { background-color: rgba(245, 158, 11, 0.22); }
+      0% { background-color: rgba(245, 158, 11, 0.24); }
       45% { background-color: rgba(245, 158, 11, 0.10); }
       100% { background-color: transparent; }
     }
+    @keyframes rankDownEdgeHighlightDark {
+      0% { background-color: rgba(245, 158, 11, 0.24); box-shadow: inset 3px 0 0 rgba(251, 191, 36, 0.75); }
+      45% { background-color: rgba(245, 158, 11, 0.10); box-shadow: inset 3px 0 0 rgba(251, 191, 36, 0.35); }
+      100% { background-color: transparent; box-shadow: inset 3px 0 0 rgba(251, 191, 36, 0); }
+    }
+    @keyframes scoreRowHighlightDark {
+      0% { background-color: rgba(251, 191, 36, 0.24); }
+      45% { background-color: rgba(251, 191, 36, 0.10); }
+      100% { background-color: transparent; }
+    }
+    @keyframes scoreRowEdgeHighlightDark {
+      0% { background-color: rgba(251, 191, 36, 0.24); box-shadow: inset 3px 0 0 rgba(251, 191, 36, 0.82); }
+      45% { background-color: rgba(251, 191, 36, 0.10); box-shadow: inset 3px 0 0 rgba(251, 191, 36, 0.38); }
+      100% { background-color: transparent; box-shadow: inset 3px 0 0 rgba(251, 191, 36, 0); }
+    }
     @keyframes scorePulseHighlight {
-      0% { color: #B45309; background-color: rgba(245, 158, 11, 0.12); }
+      0% { color: #B45309; background-color: rgba(245, 158, 11, 0.18); }
+      35% { color: #92400E; background-color: rgba(245, 158, 11, 0.10); }
       100% { color: inherit; background-color: transparent; }
     }
     @keyframes scorePulseHighlightDark {
-      0% { color: #FCD34D; background-color: rgba(251, 191, 36, 0.14); }
+      0% { color: #FDE68A; background-color: rgba(251, 191, 36, 0.22); }
+      35% { color: #FCD34D; background-color: rgba(251, 191, 36, 0.11); }
       100% { color: inherit; background-color: transparent; }
+    }
+    @keyframes rankPillBump {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.16); }
+      100% { transform: scale(1); }
     }
     @keyframes rankDeltaFade {
       0% { opacity: 0; transform: translate3d(0, 3px, 0); }
@@ -158,7 +244,7 @@
         transition: none !important;
         animation: none !important;
       }
-      .tab-row-enter, .rank-up-flash, .rank-down-flash, .score-updated-flash, .rank-delta-cue {
+      .tab-row-enter, tr.rank-up-flash > td, tr.rank-down-flash > td, tr.score-row-updated > td, .public-standing-row.rank-up-flash, .public-standing-row.rank-down-flash, .public-standing-row.score-row-updated, .score-updated-flash, .rank-pill-bump, .rank-delta-cue {
         animation: none !important;
       }
       .rank-delta-cue {
@@ -7407,29 +7493,87 @@
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    function animateNumericCell(el, targetValue, decimals = 0, suffix = "") {
+    function setPreservingAnimClasses(el, baseClass) {
       if (!el) return;
-      const numericTarget = Number(targetValue);
-      if (!Number.isFinite(numericTarget)) {
+      const keep = [];
+      if (el.classList.contains("score-updated-flash")) keep.push("score-updated-flash");
+      if (el.classList.contains("rank-pill-bump")) keep.push("rank-pill-bump");
+      el.className = keep.length ? `${baseClass} ${keep.join(" ")}` : baseClass;
+    }
+
+    function triggerTransientAnim(el, animClass, clearClasses = [animClass], fallbackMs = 1600) {
+      if (!el || prefersReducedMotion()) return;
+      if (el._transientAnimTimer) {
+        clearTimeout(el._transientAnimTimer);
+        el._transientAnimTimer = null;
+      }
+      clearClasses.forEach(c => el.classList.remove(c));
+      void el.offsetWidth;
+      el.classList.add(animClass);
+      const cleanup = () => {
+        el.classList.remove(animClass);
+        if (el._transientAnimTimer) {
+          clearTimeout(el._transientAnimTimer);
+          el._transientAnimTimer = null;
+        }
+      };
+      el.addEventListener("animationend", cleanup, { once: true });
+      el._transientAnimTimer = setTimeout(cleanup, fallbackMs);
+    }
+
+    function animateNumericCell(el, targetValue, decimals = 0, suffix = "", { isNew = false } = {}) {
+      if (!el) return false;
+      const prevAttr = el.getAttribute("data-num-val");
+      const isTargetEmpty = targetValue === null || targetValue === undefined || targetValue === "" || !Number.isFinite(Number(targetValue));
+
+      if (isTargetEmpty) {
+        if (el._tweenRaf) {
+          cancelAnimationFrame(el._tweenRaf);
+          el._tweenRaf = null;
+        }
+        const hadValue = prevAttr !== null && prevAttr !== "" && prevAttr !== "__empty__";
         el.textContent = "—";
-        el.removeAttribute("data-num-val");
-        return;
+        el.setAttribute("data-num-val", "__empty__");
+        if (!isNew && hadValue && !prefersReducedMotion()) {
+          triggerTransientAnim(el, "score-updated-flash", ["score-updated-flash"], 1200);
+          return true;
+        }
+        return false;
       }
 
-      const prevAttr = el.getAttribute("data-num-val");
-      const prevValue = prevAttr !== null && prevAttr !== "" ? Number(prevAttr) : null;
+      const numericTarget = Number(targetValue);
+      const wasEmpty = prevAttr === "__empty__";
+      const prevValue = !wasEmpty && prevAttr !== null && prevAttr !== "" ? Number(prevAttr) : null;
       el.setAttribute("data-num-val", String(numericTarget));
 
       const formatVal = (v) => (decimals > 0 ? v.toFixed(decimals) : String(Math.round(v))) + suffix;
 
-      if (prevValue === null || !Number.isFinite(prevValue) || Math.abs(prevValue - numericTarget) < 1e-6 || prefersReducedMotion()) {
+      // Initial render (new row or uninitialized cell) — render quietly without flashing
+      if (isNew || prevAttr === null) {
         el.textContent = formatVal(numericTarget);
-        return;
+        return false;
       }
 
-      el.classList.remove("score-updated-flash");
-      void el.offsetWidth;
-      el.classList.add("score-updated-flash");
+      // First score arriving on an existing row ("—" -> score)
+      if (wasEmpty) {
+        el.textContent = formatVal(numericTarget);
+        if (!prefersReducedMotion()) {
+          triggerTransientAnim(el, "score-updated-flash", ["score-updated-flash"], 1200);
+        }
+        return true;
+      }
+
+      if (prevValue === null || !Number.isFinite(prevValue) || Math.abs(prevValue - numericTarget) < 1e-6) {
+        el.textContent = formatVal(numericTarget);
+        return false;
+      }
+
+      if (prefersReducedMotion()) {
+        el.textContent = formatVal(numericTarget);
+        return true;
+      }
+
+      triggerTransientAnim(el, "score-updated-flash", ["score-updated-flash"], 1200);
 
       if (el._tweenRaf) cancelAnimationFrame(el._tweenRaf);
       const start = performance.now();
@@ -7447,6 +7591,7 @@
         }
       };
       el._tweenRaf = requestAnimationFrame(tick);
+      return true;
     }
 
     function clearRowFlipState(el) {
@@ -7485,7 +7630,7 @@
       }, 2850);
     }
 
-    function reconcileAnimatedRows(tbody, rowsData, getKey, createRow, updateRow) {
+    function reconcileAnimatedRows(tbody, rowsData, getKey, createRow, updateRow, rowSelector = "tr[data-row-key]") {
       if (!tbody) return;
       if (tbody._flipRafOuter) {
         cancelAnimationFrame(tbody._flipRafOuter);
@@ -7504,7 +7649,7 @@
       const prevRanks = new Map();
       const prevIndices = new Map();
 
-      Array.from(tbody.querySelectorAll("tr[data-row-key]")).forEach((tr, idx) => {
+      Array.from(tbody.querySelectorAll(`:scope > ${rowSelector}`)).forEach((tr, idx) => {
         const key = tr.getAttribute("data-row-key");
         existingMap.set(key, tr);
         if (isVisible) {
@@ -7542,14 +7687,16 @@
         }
         const prevRank = prevRanks.has(key) ? prevRanks.get(key) : null;
         const prevIndex = prevIndices.has(key) ? prevIndices.get(key) : null;
-        const newRank = updateRow(tr, item, index, prevRank, isNew);
+        const updateResult = updateRow(tr, item, index, prevRank, isNew);
+        const newRank = (updateResult && typeof updateResult === "object") ? updateResult.rank : updateResult;
+        const scoreChanged = Boolean(updateResult && typeof updateResult === "object" && updateResult.scoreChanged);
         if (newRank !== null && newRank !== undefined) {
           tr.setAttribute("data-rank-num", String(newRank));
         } else {
           tr.removeAttribute("data-rank-num");
         }
         tr.setAttribute("data-row-index", String(index));
-        orderedRows.push({ key, tr, isNew, prevRank, newRank, prevIndex, newIndex: index });
+        orderedRows.push({ key, tr, isNew, prevRank, newRank, prevIndex, newIndex: index, scoreChanged });
       });
 
       // Remove stale rows cleanly
@@ -7573,32 +7720,30 @@
 
       if (!isVisible || prefersReducedMotion()) return;
 
+      const rowFlashClasses = ["rank-up-flash", "rank-down-flash", "score-row-updated"];
       const movedRows = [];
-      orderedRows.forEach(({ key, tr, isNew, prevRank, newRank, prevIndex, newIndex }) => {
+      orderedRows.forEach(({ key, tr, isNew, prevRank, newRank, prevIndex, newIndex, scoreChanged }) => {
         if (!isNew) {
           const movedUpByRank = prevRank !== null && newRank !== null && newRank < prevRank;
           const movedDownByRank = prevRank !== null && newRank !== null && newRank > prevRank;
           const newlyRankedUp = prevRank === null && newRank !== null && prevIndex !== null && newIndex < prevIndex;
           const newlyRankedHere = prevRank === null && newRank !== null && !newlyRankedUp;
+          const rankLabelEl = tr.querySelector('[data-col="rank-label"]');
 
           if (movedUpByRank || newlyRankedUp) {
-            tr.classList.remove("rank-up-flash", "rank-down-flash");
-            void tr.offsetWidth;
-            tr.classList.add("rank-up-flash");
-            tr.addEventListener("animationend", () => tr.classList.remove("rank-up-flash"), { once: true });
+            triggerTransientAnim(tr, "rank-up-flash", rowFlashClasses, 1600);
+            if (rankLabelEl) triggerTransientAnim(rankLabelEl, "rank-pill-bump", ["rank-pill-bump"], 520);
             const steps = movedUpByRank ? (prevRank - newRank) : (prevIndex - newIndex);
             applyRankDeltaCue(tr, "up", steps);
           } else if (movedDownByRank) {
-            tr.classList.remove("rank-up-flash", "rank-down-flash");
-            void tr.offsetWidth;
-            tr.classList.add("rank-down-flash");
-            tr.addEventListener("animationend", () => tr.classList.remove("rank-down-flash"), { once: true });
+            triggerTransientAnim(tr, "rank-down-flash", rowFlashClasses, 1450);
+            if (rankLabelEl) triggerTransientAnim(rankLabelEl, "rank-pill-bump", ["rank-pill-bump"], 520);
             applyRankDeltaCue(tr, "down", newRank - prevRank);
           } else if (newlyRankedHere) {
-            tr.classList.remove("rank-up-flash", "rank-down-flash");
-            void tr.offsetWidth;
-            tr.classList.add("rank-up-flash");
-            tr.addEventListener("animationend", () => tr.classList.remove("rank-up-flash"), { once: true });
+            triggerTransientAnim(tr, "rank-up-flash", rowFlashClasses, 1600);
+            if (rankLabelEl) triggerTransientAnim(rankLabelEl, "rank-pill-bump", ["rank-pill-bump"], 520);
+          } else if (scoreChanged) {
+            triggerTransientAnim(tr, "score-row-updated", rowFlashClasses, 1500);
           }
         }
 
@@ -7904,7 +8049,7 @@
               `;
               return tr;
             },
-            (tr, g) => {
+            (tr, g, _index, _prevRank, isNew) => {
               const isLeaderRow = g.rank === 1 && hasAnyPoints;
               tr.classList.toggle("bg-amber-50/40", !dark && isLeaderRow);
               tr.classList.toggle("hover:bg-stone-50", !dark && !isLeaderRow);
@@ -7912,7 +8057,7 @@
               tr.classList.toggle("hover:bg-stone-800/60", dark && !isLeaderRow);
 
               const rankTd = tr.querySelector('[data-col="rank"]');
-              rankTd.className = `py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${dark ? (isLeaderRow ? "text-amber-300" : "text-stone-200") : "text-stone-900"}`;
+              setPreservingAnimClasses(rankTd, `py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${dark ? (isLeaderRow ? "text-amber-300" : "text-stone-200") : "text-stone-900"}`);
               const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
               if (rankLabelEl) {
                 rankLabelEl.textContent = `#${g.rank}`;
@@ -7927,17 +8072,22 @@
               nameEl.textContent = g.name;
 
               const medalsTd = tr.querySelector('[data-col="medals"]');
-              medalsTd.className = `py-2.5 px-3 text-right ${dark ? "text-sm text-stone-300" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`;
-              medalsTd.textContent = `${g.firsts} / ${g.seconds} / ${g.thirds}`;
+              const nextMedalsText = `${g.firsts} / ${g.seconds} / ${g.thirds}`;
+              const prevMedalsText = medalsTd.getAttribute("data-medals-val");
+              const medalsChanged = !isNew && prevMedalsText !== null && prevMedalsText !== nextMedalsText;
+              medalsTd.setAttribute("data-medals-val", nextMedalsText);
+              setPreservingAnimClasses(medalsTd, `py-2.5 px-3 text-right ${dark ? "text-sm text-stone-300" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
+              medalsTd.textContent = nextMedalsText;
+              if (medalsChanged) triggerTransientAnim(medalsTd, "score-updated-flash", ["score-updated-flash"], 1200);
 
               const rawTd = tr.querySelector('[data-col="raw"]');
-              rawTd.className = `py-2.5 px-3 text-right ${dark ? "text-sm text-stone-300" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`;
-              animateNumericCell(rawTd, g.rawMarks, 1, "");
+              setPreservingAnimClasses(rawTd, `py-2.5 px-3 text-right ${dark ? "text-sm text-stone-300" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
+              const rawChanged = animateNumericCell(rawTd, g.rawMarks, 1, "", { isNew });
 
               const ptsTd = tr.querySelector('[data-col="pts"]');
-              ptsTd.className = `py-2.5 px-3 text-right font-bold ${dark ? "text-amber-300" : "text-stone-900"} tabular-nums whitespace-nowrap`;
-              animateNumericCell(ptsTd, g.points, 0, " pts");
-              return g.rank;
+              setPreservingAnimClasses(ptsTd, `py-2.5 px-3 text-right font-bold ${dark ? "text-amber-300" : "text-stone-900"} tabular-nums whitespace-nowrap`);
+              const ptsChanged = animateNumericCell(ptsTd, g.points, 0, " pts", { isNew });
+              return { rank: g.rank, scoreChanged: medalsChanged || rawChanged || ptsChanged };
             }
           );
         }
@@ -8393,7 +8543,7 @@
           `;
           return tr;
         },
-        (tr, r) => {
+        (tr, r, _index, _prevRank, isNew) => {
           const groupLabel = r.groupObj?.name || r.p.groupName || "";
           const groupColor = r.groupObj?.color || "#78716C";
           const isLeaderRow = r.rankNum === 1;
@@ -8402,11 +8552,11 @@
           tr.classList.toggle("bg-amber-950/35", dark && isLeaderRow);
 
           const rankTd = tr.querySelector('[data-col="rank"]');
-          rankTd.className = `py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${
+          setPreservingAnimClasses(rankTd, `py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${
             dark
               ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300" : "text-stone-300")
               : "text-stone-900"
-          }`;
+          }`);
           const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
           if (rankLabelEl) {
             rankLabelEl.textContent = r.rankLabel;
@@ -8444,24 +8594,35 @@
           const j3Td = tr.querySelector('[data-col="j3"]');
           const avgTd = tr.querySelector('[data-col="avg"]');
           const judgeCellClass = `py-3 px-4 text-right tabular-nums whitespace-nowrap ${dark ? "text-stone-300" : "text-stone-700"}`;
-          j1Td.className = judgeCellClass;
-          j2Td.className = judgeCellClass;
-          j3Td.className = showJ3 ? judgeCellClass : `${judgeCellClass} hidden`;
-          avgTd.className = `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-base sm:text-lg" : "text-stone-900"}`;
+          setPreservingAnimClasses(j1Td, judgeCellClass);
+          setPreservingAnimClasses(j2Td, judgeCellClass);
+          setPreservingAnimClasses(j3Td, showJ3 ? judgeCellClass : `${judgeCellClass} hidden`);
+          setPreservingAnimClasses(avgTd, `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-base sm:text-lg" : "text-stone-900"}`);
 
-          animateNumericCell(j1Td, r.j1, 0, "");
-          animateNumericCell(j2Td, r.j2, 0, "");
+          const j1Changed = animateNumericCell(j1Td, r.j1, 0, "", { isNew });
+          const j2Changed = animateNumericCell(j2Td, r.j2, 0, "", { isNew });
+          let j3Changed = false;
           if (showJ3) {
-            animateNumericCell(j3Td, r.j3, 0, "");
+            j3Changed = animateNumericCell(j3Td, r.j3, 0, "", { isNew });
           } else {
             j3Td.textContent = "—";
+            j3Td.setAttribute("data-num-val", "__empty__");
           }
-          animateNumericCell(avgTd, r.avg, 2, "");
+          const avgChanged = animateNumericCell(avgTd, r.avg, 2, "", { isNew });
 
           const gradeTd = tr.querySelector('[data-col="grade"]');
-          gradeTd.className = `py-3 px-4 text-right font-medium whitespace-nowrap ${dark ? "text-sm font-semibold text-amber-300" : "text-xs text-stone-700"}`;
-          gradeTd.textContent = r.grade;
-          return r.rankNum;
+          const prevGrade = gradeTd.getAttribute("data-grade-val");
+          const nextGrade = String(r.grade || "—");
+          const gradeChanged = !isNew && prevGrade !== null && prevGrade !== nextGrade;
+          gradeTd.setAttribute("data-grade-val", nextGrade);
+          setPreservingAnimClasses(gradeTd, `py-3 px-4 text-right font-medium whitespace-nowrap ${dark ? "text-sm font-semibold text-amber-300" : "text-xs text-stone-700"}`);
+          gradeTd.textContent = nextGrade;
+          if (gradeChanged) triggerTransientAnim(gradeTd, "score-updated-flash", ["score-updated-flash"], 1200);
+
+          return {
+            rank: r.rankNum,
+            scoreChanged: j1Changed || j2Changed || j3Changed || avgChanged || gradeChanged
+          };
         }
       );
 
@@ -12363,39 +12524,76 @@
       }
 
       const maxPts = Math.max(1, ...standings.map((g) => g.points));
-      listEl.innerHTML = standings.map((g) => {
-        const pct = g.points > 0 ? Math.max(4, Math.round((g.points / maxPts) * 100)) : 0;
-        const isFirst = g.rank === 1 && g.points > 0;
-        return `
-          <div class="px-5 py-4 space-y-2.5 ${isFirst ? "bg-amber-50/40" : ""}">
+      reconcileAnimatedRows(
+        listEl,
+        standings,
+        (g) => g.id,
+        () => {
+          const row = document.createElement("div");
+          row.className = "public-standing-row px-5 py-4 space-y-2.5 tab-animated-row";
+          row.innerHTML = `
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-3 min-w-0">
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold tabular-nums shrink-0 ${
-                  isFirst ? "bg-amber-700 text-white" : "bg-stone-100 text-stone-700"
-                }">#${g.rank}</span>
+                <span data-col="rank-badge" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold tabular-nums shrink-0 rank-pill-transition"><span data-col="rank-label"></span></span>
                 <div class="min-w-0">
                   <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
-                    <span class="text-sm sm:text-base font-bold text-stone-900 truncate">${escapeHtml(g.name)}</span>
+                    <span data-col="dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
+                    <span data-col="name" class="text-sm sm:text-base font-bold text-stone-900 truncate"></span>
+                    <span data-col="rank-delta" aria-hidden="true" class="rank-delta-cue hidden"></span>
                   </div>
-                  <div class="text-xs text-stone-500 tabular-nums mt-0.5">
-                    <span class="font-semibold text-amber-800">${g.firsts}</span> Gold ·
-                    <span class="font-semibold text-stone-700">${g.seconds}</span> Silver ·
-                    <span class="font-semibold text-amber-700">${g.thirds}</span> Bronze
-                  </div>
+                  <div data-col="medals" class="text-xs text-stone-500 tabular-nums mt-0.5"></div>
                 </div>
               </div>
               <div class="text-right shrink-0">
-                <div class="text-xl sm:text-2xl font-bold text-stone-900 tabular-nums leading-none">${g.points}</div>
+                <div data-col="pts" class="text-xl sm:text-2xl font-bold text-stone-900 tabular-nums leading-none px-1 rounded"></div>
                 <div class="text-[11px] font-medium text-stone-500 mt-0.5">points</div>
               </div>
             </div>
             <div class="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-300" style="width: ${pct}%; background-color: ${escapeHtml(g.color)};"></div>
+              <div data-col="bar" class="h-full rounded-full progress-fill-transition" style="width: 0%;"></div>
             </div>
-          </div>
-        `;
-      }).join("");
+          `;
+          return row;
+        },
+        (row, g, _index, _prevRank, isNew) => {
+          const pct = g.points > 0 ? Math.max(4, Math.round((g.points / maxPts) * 100)) : 0;
+          const isFirst = g.rank === 1 && g.points > 0;
+          row.classList.toggle("bg-amber-50/40", isFirst);
+
+          const rankBadge = row.querySelector('[data-col="rank-badge"]');
+          if (rankBadge) {
+            rankBadge.className = `inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold tabular-nums shrink-0 rank-pill-transition ${
+              isFirst ? "bg-amber-700 text-white" : "bg-stone-100 text-stone-700"
+            }`;
+          }
+          const rankLabel = row.querySelector('[data-col="rank-label"]');
+          if (rankLabel) rankLabel.textContent = `#${g.rank}`;
+
+          const dotEl = row.querySelector('[data-col="dot"]');
+          if (dotEl) dotEl.style.backgroundColor = g.color;
+
+          const nameEl = row.querySelector('[data-col="name"]');
+          if (nameEl) nameEl.textContent = g.name;
+
+          const medalsEl = row.querySelector('[data-col="medals"]');
+          if (medalsEl) {
+            medalsEl.innerHTML = `<span class="font-semibold text-amber-800">${g.firsts}</span> Gold · <span class="font-semibold text-stone-700">${g.seconds}</span> Silver · <span class="font-semibold text-amber-700">${g.thirds}</span> Bronze`;
+          }
+
+          const ptsEl = row.querySelector('[data-col="pts"]');
+          setPreservingAnimClasses(ptsEl, "text-xl sm:text-2xl font-bold text-stone-900 tabular-nums leading-none px-1 rounded");
+          const ptsChanged = animateNumericCell(ptsEl, g.points, 0, "", { isNew });
+
+          const barEl = row.querySelector('[data-col="bar"]');
+          if (barEl) {
+            barEl.style.width = `${pct}%`;
+            barEl.style.backgroundColor = g.color;
+          }
+
+          return { rank: g.rank, scoreChanged: ptsChanged };
+        },
+        "div[data-row-key]"
+      );
     }
 
     window.renderPublicResults = () => {
