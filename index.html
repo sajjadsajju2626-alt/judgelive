@@ -443,6 +443,17 @@
     .admin-tabs-scroll::-webkit-scrollbar {
       display: none;
     }
+    .admin-tab-pill {
+      transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+                  color 150ms cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .admin-tab-pill {
+        transition: none !important;
+      }
+    }
     .quick-tour-ring {
       position: fixed;
       pointer-events: none;
@@ -1221,22 +1232,29 @@
     </section>
 
     <!-- VIEW 3: ADMIN PANEL (Hidden unless unlocked via triple-tap + Master PIN 2026) -->
-    <section id="view-admin" class="no-print hidden space-y-8">
-      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-        <div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 font-display">Festival Admin Console — <span id="admin-event-code-label" class="tabular-nums text-amber-800">—</span></h1>
-          <p class="text-sm text-stone-600 mt-1">
+    <section id="view-admin" class="no-print hidden space-y-7">
+      <!-- Modern SaaS Admin Console Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-stone-200/80">
+        <div class="space-y-1.5 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 font-display flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span>Festival Admin Console</span>
+              <span class="text-stone-300 font-normal select-none" aria-hidden="true">—</span>
+              <span id="admin-event-code-label" class="inline-flex items-center px-3 py-0.5 rounded-full text-base sm:text-lg font-bold tabular-nums tracking-wide bg-amber-50 text-amber-900 border border-amber-200/90 shadow-sm">—</span>
+            </h1>
+          </div>
+          <p class="text-sm text-stone-500 leading-relaxed max-w-3xl">
             Configure festival branding, live stage sync, judge panels, houses, competition items, chest numbers, and scores.
-            <span id="admin-event-license-summary" class="hidden sm:inline font-semibold text-stone-800 ml-1 tabular-nums"></span>
+            <span id="admin-event-license-summary" class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 ml-1.5 tabular-nums"></span>
           </p>
         </div>
         <!-- Admin Controls Header Actions -->
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-          <button type="button" id="admin-quick-tour-btn" onclick="startQuickTour()" class="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] text-xs font-semibold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
-            <span aria-hidden="true">🎯</span>
+          <button type="button" id="admin-quick-tour-btn" onclick="startQuickTour()" class="inline-flex items-center gap-2 px-4 py-2 min-h-[40px] text-xs font-semibold text-amber-950 bg-white hover:bg-amber-50/90 border border-amber-200/90 hover:border-amber-300 rounded-full shadow-sm hover:shadow transition-all duration-150 active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2">
+            <span aria-hidden="true" class="text-sm leading-none">🎯</span>
             <span>Quick Tour</span>
           </button>
-          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="hidden px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap shrink-0">
+          <button type="button" id="admin-load-sample-btn" onclick="handleLoadSampleData()" class="hidden px-4 py-2 min-h-[40px] text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200/90 hover:border-stone-300 rounded-full shadow-sm transition-all duration-150 active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer">
             Load Sample Data
           </button>
         </div>
@@ -1245,66 +1263,66 @@
       <!-- Master Setup Commercial License Controls (Visible only when unlocked with Master PIN) -->
       <div id="admin-master-setup-section" class="hidden space-y-6">
         <!-- Live Presentation / Demo Mode Launcher -->
-        <div id="admin-demo-launcher-card" class="bg-white border border-stone-200 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div id="admin-demo-launcher-card" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="space-y-1">
             <div class="text-xs font-semibold text-amber-800">Client Presentation Sandbox</div>
             <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Live Presentation / Demo Mode</h2>
-            <p class="text-xs text-stone-600 max-w-2xl">
+            <p class="text-xs text-stone-500 leading-relaxed max-w-2xl">
               Launch an isolated <span class="font-semibold text-stone-900 tabular-nums">DEMOFEST</span> workspace pre-loaded with 4 Houses, 4 Kerala Arts Fest items, 12 chest numbers (<span class="tabular-nums">101–112</span>), and live scores without touching campus events.
             </p>
           </div>
-          <button type="button" id="launch-demo-mode-btn" onclick="handleLaunchDemoMode()" class="px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+          <button type="button" id="launch-demo-mode-btn" onclick="handleLaunchDemoMode()" class="px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
             Launch Live Demo Mode
           </button>
         </div>
 
         <!-- Create New Campus / Event Card -->
-        <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4">
+        <form id="admin-create-event-form" onsubmit="handleCreateNewEvent(event)" class="bg-white border border-amber-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
           <div class="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <h2 class="text-lg font-bold text-stone-900">Create New Campus / Event</h2>
-              <p class="text-xs text-stone-500 mt-0.5">Issue a licensed Festival Code with an expiry date. Leave the Initial Admin PIN blank to initialize with default PIN <span class="tabular-nums font-semibold text-stone-700">1234</span>.</p>
+              <h2 class="text-lg font-bold text-stone-900 font-display">Create New Campus / Event</h2>
+              <p class="text-xs text-stone-500 mt-1">Issue a licensed Festival Code with an expiry date. Leave the Initial Admin PIN blank to initialize with default PIN <span class="tabular-nums font-semibold text-stone-700">1234</span>.</p>
             </div>
-            <span class="text-xs font-semibold text-amber-800">Master Setup</span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[11px] font-semibold text-amber-900">Master Setup</span>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end">
             <div class="sm:col-span-4">
-              <label for="create-event-code" class="block text-xs font-semibold text-stone-700 mb-1">Festival Code</label>
-              <input id="create-event-code" type="text" required maxlength="32" autocomplete="off" placeholder="e.g. CAMPUS02" class="w-full px-3.5 py-2.5 text-sm uppercase tabular-nums tracking-wider border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <label for="create-event-code" class="block text-xs font-semibold text-stone-700 mb-1.5">Festival Code</label>
+              <input id="create-event-code" type="text" required maxlength="32" autocomplete="off" placeholder="e.g. CAMPUS02" class="w-full px-3.5 py-2.5 text-sm uppercase tabular-nums tracking-wider bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
             </div>
             <div class="sm:col-span-3">
-              <label for="create-event-pin" class="block text-xs font-semibold text-stone-700 mb-1">Initial Event PIN (Optional)</label>
-              <input id="create-event-pin" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Default: 1234" class="w-full px-3.5 py-2.5 text-sm tabular-nums tracking-widest border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <label for="create-event-pin" class="block text-xs font-semibold text-stone-700 mb-1.5">Initial Event PIN (Optional)</label>
+              <input id="create-event-pin" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Default: 1234" class="w-full px-3.5 py-2.5 text-sm tabular-nums tracking-widest bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
             </div>
             <div class="sm:col-span-3">
-              <label for="create-event-expiry" class="block text-xs font-semibold text-stone-700 mb-1">Event Expiry Date</label>
-              <input id="create-event-expiry" type="date" required class="w-full px-3.5 py-2.5 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <label for="create-event-expiry" class="block text-xs font-semibold text-stone-700 mb-1.5">Event Expiry Date</label>
+              <input id="create-event-expiry" type="date" required class="w-full px-3.5 py-2.5 text-sm tabular-nums bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
             </div>
             <div class="sm:col-span-2">
-              <button type="submit" class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap">
+              <button type="submit" class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap cursor-pointer">
                 Create Event
               </button>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-2 text-xs">
             <span class="text-stone-500 font-medium">Validity preset:</span>
-            <button type="button" onclick="setCreateExpiryDays(3)" class="px-2.5 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">3 Days</button>
-            <button type="button" onclick="setCreateExpiryDays(7)" class="px-2.5 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">7 Days</button>
-            <button type="button" onclick="setCreateExpiryDays(30)" class="px-2.5 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors">30 Days</button>
+            <button type="button" onclick="setCreateExpiryDays(3)" class="px-3 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 rounded-full transition-colors cursor-pointer">3 Days</button>
+            <button type="button" onclick="setCreateExpiryDays(7)" class="px-3 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 rounded-full transition-colors cursor-pointer">7 Days</button>
+            <button type="button" onclick="setCreateExpiryDays(30)" class="px-3 py-1 font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 rounded-full transition-colors cursor-pointer">30 Days</button>
           </div>
-          <div id="create-event-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+          <div id="create-event-error" role="alert" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
         </form>
 
         <!-- Registered Campus Events Table -->
-        <div id="admin-registered-events-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3">
+        <div id="admin-registered-events-card" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-5 sm:px-6 py-4 border-b border-stone-200/80 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 class="text-base sm:text-lg font-bold text-stone-900">Registered Campus Events</h2>
+              <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Registered Campus Events</h2>
               <p class="text-xs text-stone-500 mt-0.5">Manage active licenses, suspend unauthorized events, or extend campus expiry dates.</p>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-              <span id="master-events-count" class="text-xs font-medium text-stone-500 tabular-nums">0 events</span>
-              <button type="button" onclick="refreshRegisteredEvents(true)" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+            <div class="flex items-center gap-2.5 shrink-0">
+              <span id="master-events-count" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 tabular-nums">0 events</span>
+              <button type="button" onclick="refreshRegisteredEvents(true)" class="px-3.5 py-1.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-xl shadow-sm transition-colors whitespace-nowrap cursor-pointer">
                 Refresh List
               </button>
             </div>
@@ -1312,59 +1330,59 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
-                  <th class="py-2.5 px-4">Festival Code &amp; Name</th>
-                  <th class="py-2.5 px-4">Expiry Date</th>
-                  <th class="py-2.5 px-4">License Status</th>
-                  <th class="py-2.5 px-4 text-right">License Controls</th>
+                <tr class="border-b border-stone-200/80 bg-stone-50/80 text-xs font-semibold text-stone-600">
+                  <th class="py-3 px-5">Festival Code &amp; Name</th>
+                  <th class="py-3 px-4">Expiry Date</th>
+                  <th class="py-3 px-4">License Status</th>
+                  <th class="py-3 px-5 text-right">License Controls</th>
                 </tr>
               </thead>
-              <tbody id="admin-registered-events-body" class="divide-y divide-stone-200 text-xs sm:text-sm"></tbody>
+              <tbody id="admin-registered-events-body" class="divide-y divide-stone-100 text-xs sm:text-sm"></tbody>
             </table>
           </div>
         </div>
       </div>
 
       <!-- Prompt shown when Super Admin unlocks before selecting/creating a Festival Code -->
-      <div id="admin-no-event-banner" class="hidden bg-stone-100 border border-stone-200 rounded-xl p-5 text-sm text-stone-700">
+      <div id="admin-no-event-banner" class="hidden bg-stone-100/80 border border-stone-200/80 rounded-2xl p-5 text-sm text-stone-700">
         No Festival Code is currently active. Create a new event above, open one from <span class="font-semibold text-stone-900">Registered Campus Events</span>, or click <span class="font-semibold text-stone-900">Change Festival Code</span> in the header.
       </div>
 
       <div id="admin-active-event-sections" class="space-y-6">
-        <!-- Horizontally Scrollable Festival Admin Sub-Tabs -->
-        <div class="border-b border-stone-200 bg-[#FAF8F5]/95">
-          <div id="admin-subtabs-nav" role="tablist" aria-label="Festival Admin Console Sections" onkeydown="handleAdminSubTabsKeydown(event)" class="admin-tabs-scroll flex items-center gap-1 sm:gap-2 overflow-x-auto -mb-px">
-            <button type="button" id="admin-tab-branding" role="tab" aria-selected="true" aria-controls="admin-panel-branding" data-admin-tab="branding" onclick="switchAdminTab('branding')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-semibold border-b-2 border-amber-700 text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
-              <span aria-hidden="true">⚙️</span>
+        <!-- Modern Segmented Pill Sub-Navigation Bar (Horizontally Scrollable on Mobile/Tablet) -->
+        <div class="bg-stone-200/60 border border-stone-200/80 p-1.5 rounded-2xl shadow-[inset_0_1px_2px_rgba(28,25,23,0.04)]">
+          <div id="admin-subtabs-nav" role="tablist" aria-label="Festival Admin Console Sections" onkeydown="handleAdminSubTabsKeydown(event)" class="admin-tabs-scroll flex items-center gap-1 overflow-x-auto">
+            <button type="button" id="admin-tab-branding" role="tab" aria-selected="true" aria-controls="admin-panel-branding" data-admin-tab="branding" onclick="switchAdminTab('branding')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-semibold rounded-xl bg-white text-stone-900 shadow-sm ring-1 ring-stone-200/90 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+              <span aria-hidden="true" class="text-sm leading-none">⚙️</span>
               <span>Branding</span>
             </button>
-            <button type="button" id="admin-tab-live-stages" role="tab" aria-selected="false" aria-controls="admin-panel-live-stages" data-admin-tab="live-stages" onclick="switchAdminTab('live-stages')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
-              <span aria-hidden="true">🎬</span>
+            <button type="button" id="admin-tab-live-stages" role="tab" aria-selected="false" aria-controls="admin-panel-live-stages" data-admin-tab="live-stages" onclick="switchAdminTab('live-stages')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-medium rounded-xl text-stone-600 hover:text-stone-900 hover:bg-white/60 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+              <span aria-hidden="true" class="text-sm leading-none">🎬</span>
               <span>Live Stages &amp; Share</span>
-              <span id="admin-tab-count-live" class="hidden text-[11px] font-semibold tabular-nums text-amber-800 ml-0.5"></span>
+              <span id="admin-tab-count-live" data-tab-count="live" class="hidden inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums leading-none bg-amber-100/90 text-amber-900 border border-amber-200/80"></span>
             </button>
-            <button type="button" id="admin-tab-items-participants" role="tab" aria-selected="false" aria-controls="admin-panel-items-participants" data-admin-tab="items-participants" onclick="switchAdminTab('items-participants')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
-              <span aria-hidden="true">📝</span>
+            <button type="button" id="admin-tab-items-participants" role="tab" aria-selected="false" aria-controls="admin-panel-items-participants" data-admin-tab="items-participants" onclick="switchAdminTab('items-participants')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-medium rounded-xl text-stone-600 hover:text-stone-900 hover:bg-white/60 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+              <span aria-hidden="true" class="text-sm leading-none">📝</span>
               <span>Items &amp; Participants</span>
-              <span id="admin-tab-count-items" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">0 · 0</span>
+              <span id="admin-tab-count-items" data-tab-count="default" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums leading-none bg-stone-200/80 text-stone-600 border border-stone-300/60">0 · 0</span>
             </button>
-            <button type="button" id="admin-tab-judges-panels" role="tab" aria-selected="false" aria-controls="admin-panel-judges-panels" data-admin-tab="judges-panels" onclick="switchAdminTab('judges-panels')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
-              <span aria-hidden="true">⚖️</span>
+            <button type="button" id="admin-tab-judges-panels" role="tab" aria-selected="false" aria-controls="admin-panel-judges-panels" data-admin-tab="judges-panels" onclick="switchAdminTab('judges-panels')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-medium rounded-xl text-stone-600 hover:text-stone-900 hover:bg-white/60 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+              <span aria-hidden="true" class="text-sm leading-none">⚖️</span>
               <span>Judges &amp; Panels</span>
-              <span id="admin-tab-count-stages" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">3</span>
+              <span id="admin-tab-count-stages" data-tab-count="default" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums leading-none bg-stone-200/80 text-stone-600 border border-stone-300/60">3</span>
             </button>
-            <button type="button" id="admin-tab-houses-grading" role="tab" aria-selected="false" aria-controls="admin-panel-houses-grading" data-admin-tab="houses-grading" onclick="switchAdminTab('houses-grading')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
-              <span aria-hidden="true">🏆</span>
+            <button type="button" id="admin-tab-houses-grading" role="tab" aria-selected="false" aria-controls="admin-panel-houses-grading" data-admin-tab="houses-grading" onclick="switchAdminTab('houses-grading')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-medium rounded-xl text-stone-600 hover:text-stone-900 hover:bg-white/60 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+              <span aria-hidden="true" class="text-sm leading-none">🏆</span>
               <span>Houses &amp; Grading</span>
-              <span id="admin-tab-count-groups" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">0</span>
+              <span id="admin-tab-count-groups" data-tab-count="default" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums leading-none bg-stone-200/80 text-stone-600 border border-stone-300/60">0</span>
             </button>
-            <button type="button" id="admin-tab-submitted-scores" role="tab" aria-selected="false" aria-controls="admin-panel-submitted-scores" data-admin-tab="submitted-scores" onclick="switchAdminTab('submitted-scores')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-stone-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-inset">
-              <span aria-hidden="true">📊</span>
+            <button type="button" id="admin-tab-submitted-scores" role="tab" aria-selected="false" aria-controls="admin-panel-submitted-scores" data-admin-tab="submitted-scores" onclick="switchAdminTab('submitted-scores')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-medium rounded-xl text-stone-600 hover:text-stone-900 hover:bg-white/60 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600">
+              <span aria-hidden="true" class="text-sm leading-none">📊</span>
               <span>Submitted Scores</span>
-              <span id="admin-tab-count-scores" class="text-[11px] font-medium tabular-nums text-stone-400 ml-0.5">0</span>
+              <span id="admin-tab-count-scores" data-tab-count="default" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums leading-none bg-stone-200/80 text-stone-600 border border-stone-300/60">0</span>
             </button>
-            <button type="button" id="admin-tab-danger-zone" role="tab" aria-selected="false" aria-controls="admin-panel-danger-zone" data-admin-tab="danger-zone" onclick="switchAdminTab('danger-zone')" class="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 min-h-[42px] text-xs sm:text-sm font-medium border-b-2 border-transparent text-stone-600 hover:text-red-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-inset">
-              <span aria-hidden="true">🛡️</span>
+            <button type="button" id="admin-tab-danger-zone" role="tab" aria-selected="false" aria-controls="admin-panel-danger-zone" data-admin-tab="danger-zone" onclick="switchAdminTab('danger-zone')" class="admin-tab-pill inline-flex items-center gap-2 px-3.5 py-2 min-h-[40px] text-xs sm:text-sm font-medium rounded-xl text-stone-600 hover:text-red-700 hover:bg-white/60 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600">
+              <span aria-hidden="true" class="text-sm leading-none">🛡️</span>
               <span>Danger Zone</span>
             </button>
           </div>
@@ -1373,26 +1391,26 @@
         <!-- TAB 1: BRANDING -->
         <div id="admin-panel-branding" role="tabpanel" aria-labelledby="admin-tab-branding" class="space-y-6">
           <!-- Festival / Campus Branding Card (First when setting up a new campus/festival) -->
-          <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
+          <form id="admin-branding-form" onsubmit="handleSaveEventConfig(event)" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 class="text-lg font-bold text-stone-900">Festival / Campus Branding</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Customize your Institution / Festival Name and Subtitle / Venue shown in the header, public live scoreboard, TV mode, and print sheets for this Festival Code.</p>
+                <h2 class="text-lg font-bold text-stone-900 font-display">Festival / Campus Branding</h2>
+                <p class="text-xs text-stone-500 mt-1 leading-relaxed max-w-2xl">Customize your Institution / Festival Name and Subtitle / Venue shown in the header, public live scoreboard, TV mode, and print sheets for this Festival Code.</p>
               </div>
-              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-brand-scope-code">—</span></span>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50/90 border border-amber-200/80 text-[11px] font-semibold text-amber-900 tabular-nums shrink-0">Scoped to <span id="admin-brand-scope-code" class="ml-1">—</span></span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1">Institution / Festival Name</label>
-                <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-brand-name" class="block text-xs font-semibold text-stone-700 mb-1.5">Institution / Festival Name</label>
+                <input id="admin-brand-name" type="text" maxlength="120" placeholder="Defaults to Festival Code" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
               <div>
-                <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1">Subtitle / Venue</label>
-                <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-brand-subtitle" class="block text-xs font-semibold text-stone-700 mb-1.5">Subtitle / Venue</label>
+                <input id="admin-brand-subtitle" type="text" maxlength="160" placeholder="e.g. Annual Inter-House Arts Festival" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
             </div>
-            <div class="pt-1 flex justify-end">
-              <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Save Branding Settings</button>
+            <div class="pt-3 border-t border-stone-100 flex justify-end">
+              <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2">Save Branding Settings</button>
             </div>
           </form>
         </div>
@@ -1400,69 +1418,69 @@
         <!-- TAB 2: LIVE STAGES & SHARE -->
         <div id="admin-panel-live-stages" role="tabpanel" aria-labelledby="admin-tab-live-stages" class="hidden space-y-6">
           <!-- Current Live Competition Item (Sync to Judges) -->
-          <div id="admin-live-stage-card" class="bg-white border border-amber-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
+          <div id="admin-live-stage-card" class="bg-white border border-amber-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5 flex flex-col justify-between">
             <div class="space-y-4">
-              <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 class="text-lg font-bold text-stone-900">Current Live Competition Item (Sync to Judges)</h2>
-                  <p class="text-xs text-stone-500 mt-0.5">Push the currently performing competition item for each stage. Judges on that stage automatically lock onto the pushed item.</p>
+                  <h2 class="text-lg font-bold text-stone-900 font-display">Current Live Competition Item (Sync to Judges)</h2>
+                  <p class="text-xs text-stone-500 mt-1 leading-relaxed">Push the currently performing competition item for each stage. Judges on that stage automatically lock onto the pushed item.</p>
                 </div>
-                <div class="flex items-center gap-3 shrink-0">
-                  <button type="button" onclick="switchAdminTab('judges-panels')" class="text-xs font-semibold text-stone-700 hover:text-amber-800 underline underline-offset-2 whitespace-nowrap">
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <button type="button" onclick="switchAdminTab('judges-panels')" class="text-xs font-semibold text-stone-700 hover:text-amber-800 underline underline-offset-4 whitespace-nowrap cursor-pointer">
                     Manage Stages &amp; Judges →
                   </button>
-                  <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-live-item-scope-code">—</span></span>
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50/90 border border-amber-200/80 text-[11px] font-semibold text-amber-900 tabular-nums">Scoped to <span id="admin-live-item-scope-code" class="ml-1">—</span></span>
                 </div>
               </div>
 
-              <div id="admin-live-item-status-badge" class="px-3 py-2 rounded-lg text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+              <div id="admin-live-item-status-badge" class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-stone-50 text-stone-700 border border-stone-200/80">
                 No live stage items pushed (Judges can select manually)
               </div>
               <div id="admin-live-stages-container" class="space-y-2.5 max-h-[26rem] overflow-y-auto pr-0.5"></div>
             </div>
-            <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-              <button type="button" id="admin-clear-live-item-btn" onclick="handleClearLiveItem()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+            <div class="flex flex-wrap items-center justify-end gap-2.5 pt-3 border-t border-stone-100">
+              <button type="button" id="admin-clear-live-item-btn" onclick="handleClearLiveItem()" class="px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-xl shadow-sm transition-all duration-150 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 Clear All Stage Locks
               </button>
-              <button type="button" id="admin-push-live-item-btn" onclick="handlePushLiveItem()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="button" id="admin-push-live-item-btn" onclick="handlePushLiveItem()" class="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 Push All Stage Selections
               </button>
             </div>
           </div>
 
           <!-- Share Public Live Link & QR Code Card (Read-Only Spectator View) -->
-          <div id="admin-public-share-card" class="bg-white border border-emerald-200 rounded-xl p-6 space-y-5">
+          <div id="admin-public-share-card" class="bg-white border border-emerald-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 class="text-lg font-bold text-stone-900">Share Public Live Link &amp; QR Code</h2>
-                <p class="text-xs text-stone-600 mt-0.5 max-w-2xl">
+                <h2 class="text-lg font-bold text-stone-900 font-display">Share Public Live Link &amp; QR Code</h2>
+                <p class="text-xs text-stone-500 mt-1 leading-relaxed max-w-2xl">
                   Share this read-only spectator scoreboard on WhatsApp or print the QR code for campus notice boards. Students and audiences can follow live standings, active stages, and officially published results without any PIN.
                 </p>
               </div>
-              <div class="text-right shrink-0">
-                <div class="text-xs font-semibold text-emerald-800 tabular-nums">Scoped to <span id="admin-public-scope-code">—</span></div>
-                <div id="admin-public-published-summary" class="text-[11px] font-medium text-stone-500 tabular-nums mt-0.5">0 of 0 results published</div>
+              <div class="flex flex-col items-end gap-1 shrink-0">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[11px] font-semibold text-emerald-900 tabular-nums">Scoped to <span id="admin-public-scope-code" class="ml-1">—</span></span>
+                <div id="admin-public-published-summary" class="text-[11px] font-medium text-stone-500 tabular-nums">0 of 0 results published</div>
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-              <div class="md:col-span-8 space-y-3.5">
+              <div class="md:col-span-8 space-y-4">
                 <div>
-                  <label for="admin-public-share-url" class="block text-xs font-semibold text-stone-700 mb-1">Direct Public Live URL (No PIN Required)</label>
+                  <label for="admin-public-share-url" class="block text-xs font-semibold text-stone-700 mb-1.5">Direct Public Live URL (No PIN Required)</label>
                   <div class="flex flex-col sm:flex-row gap-2">
-                    <input id="admin-public-share-url" type="text" readonly onclick="this.select()" class="flex-1 min-w-0 px-3 py-2.5 text-xs font-mono text-stone-800 bg-stone-50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600" />
-                    <button type="button" id="admin-copy-public-link-btn" onclick="handleCopyPublicLink()" class="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                    <input id="admin-public-share-url" type="text" readonly onclick="this.select()" class="flex-1 min-w-0 px-3.5 py-2.5 text-xs font-mono text-stone-800 bg-stone-50/90 border border-stone-200/90 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15" />
+                    <button type="button" id="admin-copy-public-link-btn" onclick="handleCopyPublicLink()" class="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer">
                       Copy Public Link
                     </button>
                   </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <button type="button" onclick="handlePreviewPublicViewFromAdmin()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
+                  <button type="button" onclick="handlePreviewPublicViewFromAdmin()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-stone-100 hover:bg-stone-200/80 border border-stone-200/90 rounded-xl transition-colors whitespace-nowrap cursor-pointer">
                     Open Public View
                   </button>
-                  <button type="button" onclick="handleDownloadPublicQr()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white hover:bg-stone-50 border border-stone-300 rounded-lg transition-colors whitespace-nowrap">
+                  <button type="button" onclick="handleDownloadPublicQr()" class="px-3.5 py-2 min-h-[40px] text-xs font-semibold text-stone-800 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-xl shadow-sm transition-colors whitespace-nowrap cursor-pointer">
                     Download QR (PNG)
                   </button>
-                  <a id="admin-public-whatsapp-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3.5 py-2 min-h-[40px] text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors whitespace-nowrap">
+                  <a id="admin-public-whatsapp-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-3.5 py-2 min-h-[40px] text-xs font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-xl transition-colors whitespace-nowrap">
                     Share on WhatsApp
                   </a>
                 </div>
@@ -1471,7 +1489,7 @@
                 </p>
               </div>
               <div class="md:col-span-4 flex flex-col items-center justify-center">
-                <div class="p-3 bg-white border border-stone-200 rounded-xl shadow-sm flex flex-col items-center gap-2">
+                <div class="p-3.5 bg-white border border-stone-200/90 rounded-2xl shadow-sm flex flex-col items-center gap-2.5">
                   <div id="admin-public-qr-container" class="w-40 h-40 flex items-center justify-center bg-white"></div>
                   <div class="text-[11px] font-semibold text-stone-700 tracking-wide text-center">
                     Scan for Live Results · <span id="admin-public-qr-code-label" class="tabular-nums text-amber-800">—</span>
@@ -1484,13 +1502,16 @@
 
         <!-- TAB 3: ITEMS & PARTICIPANTS -->
         <div id="admin-panel-items-participants" role="tabpanel" aria-labelledby="admin-tab-items-participants" class="hidden space-y-6">
-      <!-- Create Forms -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <form id="admin-add-item-form" onsubmit="handleAddItem(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-          <h2 class="text-lg font-bold text-stone-900">1. Add Competition Item</h2>
-          <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80">
-            <label for="admin-manual-event-picker" class="block text-[11px] font-semibold text-amber-950 mb-1">Quick Select Event Preset (College / University Festival Manual)</label>
-            <select id="admin-manual-event-picker" onchange="handleSelectFestivalManualEvent(this.value)" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-amber-300 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-600">
+      <!-- Create Forms (Side-by-side on medium/desktop screens, stacked cleanly on mobile) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <form id="admin-add-item-form" onsubmit="handleAddItem(event)" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+          <div class="pb-1">
+            <h2 class="text-lg font-bold text-stone-900 font-display">1. Add Competition Item</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Pick a Festival Manual preset or enter a custom item and 4 judging criteria.</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1.5">
+            <label for="admin-manual-event-picker" class="block text-xs font-semibold text-amber-950">Quick Select Event Preset <span class="font-normal text-amber-800/80">(College / University Festival Manual)</span></label>
+            <select id="admin-manual-event-picker" onchange="handleSelectFestivalManualEvent(this.value)" class="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-amber-300/90 rounded-xl text-stone-800 shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
               <option value="">Or pick from Festival Manual (Auto-fills Name &amp; 4 Criteria)...</option>
               <optgroup label="Literary &amp; Off-Stage (101–125)">
                 <option value="essay_ml">101 · Essay Writing (Malayalam) / ഉപന്യാസം (മലയാളം)</option>
@@ -1595,17 +1616,17 @@
             </select>
           </div>
           <div>
-            <label for="admin-item-name" class="block text-xs font-semibold text-stone-700 mb-1">Item Name (English)</label>
-            <input id="admin-item-name" type="text" required oninput="handleAddItemNameInput()" placeholder="e.g. Duffmuttu, Oppana, Elocution, Kuchipudi, Poster Making" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <label for="admin-item-name" class="block text-xs font-semibold text-stone-700 mb-1.5">Item Name (English)</label>
+            <input id="admin-item-name" type="text" required oninput="handleAddItemNameInput()" placeholder="e.g. Duffmuttu, Oppana, Elocution, Kuchipudi, Poster Making" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
           </div>
           <div>
-            <label for="admin-item-ml" class="block text-xs font-semibold text-stone-700 mb-1">Malayalam Name</label>
-            <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" placeholder="e.g. ദഫ്‌മുട്ട്, ഒപ്പന, കുച്ചിപ്പുടി, പോസ്റ്റർ രചന" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <label for="admin-item-ml" class="block text-xs font-semibold text-stone-700 mb-1.5">Malayalam Name</label>
+            <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" placeholder="e.g. ദഫ്‌മുട്ട്, ഒപ്പന, കുച്ചിപ്പുടി, പോസ്റ്റർ രചന" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label for="admin-item-cat" class="block text-xs font-semibold text-stone-700 mb-1">Category</label>
-              <select id="admin-item-cat" onchange="handleAddItemCategoryChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+              <label for="admin-item-cat" class="block text-xs font-semibold text-stone-700 mb-1.5">Category</label>
+              <select id="admin-item-cat" onchange="handleAddItemCategoryChange()" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                 <option value="High School">High School</option>
                 <option value="Higher Secondary">Higher Secondary</option>
                 <option value="Junior">Junior</option>
@@ -1616,19 +1637,19 @@
                 <option value="General">General</option>
                 <option value="__custom__">+ Custom Category...</option>
               </select>
-              <input id="admin-item-cat-custom" type="text" maxlength="60" placeholder="Enter custom category (e.g. Degree)" class="hidden mt-2 w-full px-3 py-1.5 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <input id="admin-item-cat-custom" type="text" maxlength="60" placeholder="Enter custom category (e.g. Degree)" class="hidden mt-2 w-full px-3.5 py-2 text-sm bg-white border border-stone-200/90 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
             </div>
             <div>
-              <label for="admin-item-stage" class="block text-xs font-semibold text-stone-700 mb-1">Stage</label>
-              <input id="admin-item-stage" type="text" list="admin-stages-datalist" required maxlength="60" value="Stage 1" placeholder="e.g. Stage 1 or Stage 4 - Kabani" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <label for="admin-item-stage" class="block text-xs font-semibold text-stone-700 mb-1.5">Stage</label>
+              <input id="admin-item-stage" type="text" list="admin-stages-datalist" required maxlength="60" value="Stage 1" placeholder="e.g. Stage 1 or Stage 4 - Kabani" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               <datalist id="admin-stages-datalist"></datalist>
             </div>
           </div>
-          <div class="pt-2 border-t border-stone-200 space-y-2.5">
+          <div class="pt-3.5 border-t border-stone-100 space-y-3">
             <div>
-              <label for="admin-item-criteria-preset" class="block text-xs font-semibold text-stone-700 mb-1">Judging Criteria Template (25 marks each)</label>
+              <label for="admin-item-criteria-preset" class="block text-xs font-semibold text-stone-700 mb-1.5">Judging Criteria Template (25 marks each)</label>
               <div class="flex flex-col sm:flex-row gap-2">
-                <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="flex-1 min-w-0 px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <select id="admin-item-criteria-preset" onchange="handleAddItemPresetChange()" class="flex-1 min-w-0 px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                   <option value="dance">Classical Dance (Bharathanatyam / Kuchipudi / Mohiniyattam)</option>
                   <option value="folk_dance">Folk Dance / നാടോടിനൃത്തം</option>
                   <option value="thiruvathira">Thiruvathirakkali / തിരുവാതിരക്കളി</option>
@@ -1677,81 +1698,88 @@
                   <option value="drama">Drama &amp; Skit / നാടകം / സ്കിറ്റ്</option>
                   <option value="custom">Custom / Editable Rubric</option>
                 </select>
-                <button type="button" id="admin-ai-criteria-btn" onclick="handleAiGenerateItemCriteria()" class="px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors whitespace-nowrap shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="button" id="admin-ai-criteria-btn" onclick="handleAiGenerateItemCriteria()" class="px-3.5 py-2.5 text-xs font-semibold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
                   ✨ Auto-Fill Criteria
                 </button>
               </div>
               <div id="admin-ai-criteria-status" role="status" class="hidden mt-1.5 text-[11px] font-medium"></div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-stone-50 border border-stone-200">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3.5 rounded-xl bg-stone-50/80 border border-stone-200/80">
               <div>
-                <label for="admin-item-crit-1" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 1 (0–25)</label>
-                <input id="admin-item-crit-1" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Nritta (Footwork &amp; Adavus) / നൃത്തവും അടവുകളുടെ കൃത്യതയും" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-1" class="block text-[11px] font-semibold text-stone-600 mb-1">Criterion 1 (0–25)</label>
+                <input id="admin-item-crit-1" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Nritta (Footwork &amp; Adavus) / നൃത്തവും അടവുകളുടെ കൃത്യതയും" class="w-full px-3 py-2 text-xs bg-white border border-stone-200/90 hover:border-stone-300 rounded-lg transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
               <div>
-                <label for="admin-item-crit-2" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 2 (0–25)</label>
-                <input id="admin-item-crit-2" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Abhinaya (Facial &amp; Bhava Expression) / മുഖാഭിനയവും ഭാവാവിഷ്കാരവും" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-2" class="block text-[11px] font-semibold text-stone-600 mb-1">Criterion 2 (0–25)</label>
+                <input id="admin-item-crit-2" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Abhinaya (Facial &amp; Bhava Expression) / മുഖാഭിനയവും ഭാവാവിഷ്കാരവും" class="w-full px-3 py-2 text-xs bg-white border border-stone-200/90 hover:border-stone-300 rounded-lg transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
               <div>
-                <label for="admin-item-crit-3" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 3 (0–25)</label>
-                <input id="admin-item-crit-3" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Talam &amp; Laya Precision / താളലയ കൃത്യത" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-3" class="block text-[11px] font-semibold text-stone-600 mb-1">Criterion 3 (0–25)</label>
+                <input id="admin-item-crit-3" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Talam &amp; Laya Precision / താളലയ കൃത്യത" class="w-full px-3 py-2 text-xs bg-white border border-stone-200/90 hover:border-stone-300 rounded-lg transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
               <div>
-                <label for="admin-item-crit-4" class="block text-[11px] font-medium text-stone-600 mb-0.5">Criterion 4 (0–25)</label>
-                <input id="admin-item-crit-4" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Aharya (Costume &amp; Stage Presence) / ആഹാര്യവും വേദിയിലെ സാന്നിധ്യവും" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <label for="admin-item-crit-4" class="block text-[11px] font-semibold text-stone-600 mb-1">Criterion 4 (0–25)</label>
+                <input id="admin-item-crit-4" type="text" required maxlength="120" oninput="handleAddItemCriteriaInput()" value="Aharya (Costume &amp; Stage Presence) / ആഹാര്യവും വേദിയിലെ സാന്നിധ്യവും" class="w-full px-3 py-2 text-xs bg-white border border-stone-200/90 hover:border-stone-300 rounded-lg transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
             </div>
           </div>
-          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Add Competition Item</button>
+          <div class="pt-1">
+            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2">Add Competition Item</button>
+          </div>
         </form>
 
-        <form id="admin-add-participant-form" onsubmit="handleAddParticipant(event)" class="bg-white border border-stone-200 rounded-xl p-6 space-y-4">
-          <h2 class="text-lg font-bold text-stone-900">2. Register Participant Chest No</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form id="admin-add-participant-form" onsubmit="handleAddParticipant(event)" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+          <div class="pb-1">
+            <h2 class="text-lg font-bold text-stone-900 font-display">2. Register Participant Chest No</h2>
+            <p class="text-xs text-stone-500 mt-0.5">Assign a chest number and house to any competition item for blind judge scoring.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label for="admin-part-item" class="block text-xs font-semibold text-stone-700 mb-1">Select Item</label>
-              <select id="admin-part-item" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+              <label for="admin-part-item" class="block text-xs font-semibold text-stone-700 mb-1.5">Select Item</label>
+              <select id="admin-part-item" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15"></select>
             </div>
             <div>
-              <label for="admin-part-group" class="block text-xs font-semibold text-stone-700 mb-1">Select Group</label>
-              <select id="admin-part-group" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"></select>
+              <label for="admin-part-group" class="block text-xs font-semibold text-stone-700 mb-1.5">Select Group</label>
+              <select id="admin-part-group" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15"></select>
             </div>
           </div>
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-3 gap-3.5">
             <div>
-              <label for="admin-part-chest" class="block text-xs font-semibold text-stone-700 mb-1">Chest No</label>
-              <input id="admin-part-chest" type="text" required placeholder="105" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <label for="admin-part-chest" class="block text-xs font-semibold text-stone-700 mb-1.5">Chest No</label>
+              <input id="admin-part-chest" type="text" required placeholder="105" class="w-full px-3.5 py-2.5 text-sm tabular-nums bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
             </div>
             <div class="col-span-2">
-              <label for="admin-part-name" class="block text-xs font-semibold text-stone-700 mb-1">Participant Name</label>
-              <input id="admin-part-name" type="text" required placeholder="Full Name" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+              <label for="admin-part-name" class="block text-xs font-semibold text-stone-700 mb-1.5">Participant Name</label>
+              <input id="admin-part-name" type="text" required placeholder="Full Name" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
             </div>
           </div>
           <div>
-            <label for="admin-part-school" class="block text-xs font-semibold text-stone-700 mb-1">School / Institution <span class="font-normal text-stone-400">(Optional)</span></label>
-            <input id="admin-part-school" type="text" placeholder="Optional for intra-campus / house events" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+            <label for="admin-part-school" class="block text-xs font-semibold text-stone-700 mb-1.5">School / Institution <span class="font-normal text-stone-400">(Optional)</span></label>
+            <input id="admin-part-school" type="text" placeholder="Optional for intra-campus / house events" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
           </div>
-          <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Register Participant</button>
+          <div class="pt-1">
+            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2">Register Participant</button>
+          </div>
         </form>
       </div>
 
       <!-- Bulk Import via CSV (Scoped to active Festival Code) -->
-      <div id="admin-csv-import-card" class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+      <div id="admin-csv-import-card" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-lg font-bold text-stone-900">Bulk Import via CSV</h2>
-              <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-csv-scope-code">—</span></span>
+              <h2 class="text-lg font-bold text-stone-900 font-display">Bulk Import via CSV</h2>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-50/90 border border-amber-200/80 text-[11px] font-semibold text-amber-900 tabular-nums">Scoped to <span id="admin-csv-scope-code" class="ml-1">—</span></span>
             </div>
-            <p class="text-xs text-stone-500 mt-0.5">
+            <p class="text-xs text-stone-500 mt-1">
               Upload a CSV file to bulk-register Competition Items or Participant Chest Numbers directly into the active festival workspace.
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <button type="button" onclick="downloadCsvTemplate('items')" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+            <button type="button" onclick="downloadCsvTemplate('items')" class="px-3.5 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 rounded-xl transition-colors whitespace-nowrap cursor-pointer">
               Items CSV Template
             </button>
-            <button type="button" onclick="downloadCsvTemplate('participants')" class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-lg transition-colors whitespace-nowrap">
+            <button type="button" onclick="downloadCsvTemplate('participants')" class="px-3.5 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 border border-stone-200/80 rounded-xl transition-colors whitespace-nowrap cursor-pointer">
               Participants CSV Template
             </button>
           </div>
@@ -1759,24 +1787,24 @@
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
           <div class="md:col-span-4">
-            <label for="csv-import-mode" class="block text-xs font-semibold text-stone-700 mb-1">Import Target</label>
-            <select id="csv-import-mode" onchange="handleCsvModeChange()" class="w-full px-3 py-2 text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+            <label for="csv-import-mode" class="block text-xs font-semibold text-stone-700 mb-1.5">Import Target</label>
+            <select id="csv-import-mode" onchange="handleCsvModeChange()" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
               <option value="participants">Participant Chest Numbers</option>
               <option value="items">Competition Items</option>
             </select>
           </div>
           <div class="md:col-span-6">
-            <label for="csv-file-input" class="block text-xs font-semibold text-stone-700 mb-1">Choose CSV File (.csv)</label>
-            <input id="csv-file-input" type="file" accept=".csv,text/csv" onchange="handleCsvFileSelect(event)" class="block w-full text-xs text-stone-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-stone-900 file:text-white hover:file:bg-stone-800 border border-stone-300 rounded-lg bg-white cursor-pointer" />
+            <label for="csv-file-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Choose CSV File (.csv)</label>
+            <input id="csv-file-input" type="file" accept=".csv,text/csv" onchange="handleCsvFileSelect(event)" class="block w-full text-xs text-stone-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-stone-900 file:text-white hover:file:bg-stone-800 border border-stone-200/90 rounded-xl bg-white p-1 cursor-pointer" />
           </div>
           <div class="md:col-span-2 flex items-center gap-2">
-            <button type="button" id="csv-clear-btn" onclick="clearCsvImport()" class="hidden w-full px-3 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors whitespace-nowrap">
+            <button type="button" id="csv-clear-btn" onclick="clearCsvImport()" class="hidden w-full px-3.5 py-2.5 text-xs font-semibold text-stone-700 bg-white border border-stone-200/90 rounded-xl hover:bg-stone-50 transition-colors whitespace-nowrap cursor-pointer">
               Clear File
             </button>
           </div>
         </div>
 
-        <div id="csv-format-hint" class="text-xs text-stone-600 bg-stone-50 border border-stone-200 rounded-lg px-3.5 py-2.5">
+        <div id="csv-format-hint" class="text-xs text-stone-600 bg-stone-50/90 border border-stone-200/80 rounded-xl px-4 py-3">
           Expected columns: <span class="font-semibold text-stone-900">Item Name, Chest No, Participant Name</span> (optional: <span class="font-medium text-stone-800">Group, Category, School, Stage, Malayalam Name</span>).
         </div>
 
@@ -1785,14 +1813,14 @@
           <span>Automatically create missing Competition Items &amp; Groups referenced in the CSV</span>
         </label>
 
-        <div id="csv-error-banner" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
-        <div id="csv-result-banner" role="status" class="hidden p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-medium text-emerald-900"></div>
+        <div id="csv-error-banner" role="alert" class="hidden p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+        <div id="csv-result-banner" role="status" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-medium text-emerald-900"></div>
 
         <!-- Parsed Preview Area -->
-        <div id="csv-preview-box" class="hidden border border-stone-200 rounded-xl overflow-hidden">
-          <div class="px-4 py-3 bg-stone-50 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2">
+        <div id="csv-preview-box" class="hidden border border-stone-200/80 rounded-2xl overflow-hidden">
+          <div class="px-4 py-3 bg-stone-50/90 border-b border-stone-200/80 flex flex-wrap items-center justify-between gap-2">
             <div id="csv-preview-summary" class="text-xs font-semibold text-stone-800"></div>
-            <button type="button" id="csv-import-submit-btn" onclick="executeCsvImport()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-700 rounded-lg hover:bg-amber-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+            <button type="button" id="csv-import-submit-btn" onclick="executeCsvImport()" class="px-4 py-2 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 active:scale-[0.99] rounded-xl shadow-sm transition-all duration-150 whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
               Import Entries
             </button>
           </div>
@@ -1801,7 +1829,7 @@
           <div class="overflow-x-auto max-h-60 overflow-y-auto">
             <table class="w-full text-left border-collapse text-xs">
               <thead id="csv-preview-head" class="bg-stone-50/80 border-b border-stone-200 text-stone-600 font-semibold"></thead>
-              <tbody id="csv-preview-body" class="divide-y divide-stone-200"></tbody>
+              <tbody id="csv-preview-body" class="divide-y divide-stone-100"></tbody>
             </table>
           </div>
         </div>
@@ -1809,20 +1837,20 @@
 
       <!-- Manage Entries: Competition Items & Registered Chest Numbers -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-stone-200 space-y-3">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-bold text-stone-900">Competition Items</h2>
-              <span id="admin-items-count" class="text-xs font-medium text-stone-500 tabular-nums">0 items</span>
+        <div class="bg-white border border-stone-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-5 sm:px-6 py-4 border-b border-stone-200/80 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-stone-900 font-display">Competition Items</h2>
+              <span id="admin-items-count" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 tabular-nums">0 items</span>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <div class="flex-1 min-w-0">
                 <label for="admin-items-search" class="sr-only">Search Competition Items</label>
-                <input id="admin-items-search" type="search" autocomplete="off" oninput="handleAdminItemsSearch()" placeholder="Search items by name or stage..." class="w-full px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                <input id="admin-items-search" type="search" autocomplete="off" oninput="handleAdminItemsSearch()" placeholder="Search items by name or stage..." class="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <label for="admin-items-category-filter" class="sr-only">Filter Competition Items by Category</label>
-                <select id="admin-items-category-filter" onchange="handleAdminItemsSearch()" class="px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                <select id="admin-items-category-filter" onchange="handleAdminItemsSearch()" class="px-3 py-2 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                   <option value="all">All Categories</option>
                   <option value="High School">High School</option>
                   <option value="Higher Secondary">Higher Secondary</option>
@@ -1833,46 +1861,46 @@
                   <option value="HSS">HSS</option>
                   <option value="General">General</option>
                 </select>
-                <button type="button" id="admin-items-search-clear" onclick="clearAdminItemsSearch()" class="hidden px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                <button type="button" id="admin-items-search-clear" onclick="clearAdminItemsSearch()" class="hidden px-3 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer">
                   Clear
                 </button>
               </div>
             </div>
           </div>
-          <div id="admin-items-list" class="divide-y divide-stone-200 max-h-80 overflow-y-auto"></div>
+          <div id="admin-items-list" class="divide-y divide-stone-100 max-h-80 overflow-y-auto"></div>
         </div>
 
-        <div class="bg-white border border-stone-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-stone-200 space-y-3">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-bold text-stone-900">Registered Chest Numbers</h2>
-              <span id="admin-participants-count" class="text-xs font-medium text-stone-500 tabular-nums">0 entries</span>
+        <div class="bg-white border border-stone-200/80 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-5 sm:px-6 py-4 border-b border-stone-200/80 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="text-base font-bold text-stone-900 font-display">Registered Chest Numbers</h2>
+              <span id="admin-participants-count" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 tabular-nums">0 entries</span>
             </div>
             <div class="space-y-2">
               <div class="flex items-center gap-2">
                 <label for="admin-participants-search" class="sr-only">Search Registered Participants</label>
-                <input id="admin-participants-search" type="search" autocomplete="off" oninput="handleAdminParticipantsFilter()" placeholder="Search by chest #, name, or school..." class="w-full px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-                <button type="button" id="admin-participants-filter-clear" onclick="clearAdminParticipantsFilter()" class="hidden px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                <input id="admin-participants-search" type="search" autocomplete="off" oninput="handleAdminParticipantsFilter()" placeholder="Search by chest #, name, or school..." class="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
+                <button type="button" id="admin-participants-filter-clear" onclick="clearAdminParticipantsFilter()" class="hidden px-3 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer">
                   Clear
                 </button>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label for="admin-participants-item-filter" class="sr-only">Filter Participants by Item</label>
-                  <select id="admin-participants-item-filter" onchange="handleAdminParticipantsFilter()" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                  <select id="admin-participants-item-filter" onchange="handleAdminParticipantsFilter()" class="w-full px-3 py-2 text-xs bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                     <option value="all">All Competition Items</option>
                   </select>
                 </div>
                 <div>
                   <label for="admin-participants-group-filter" class="sr-only">Filter Participants by Group</label>
-                  <select id="admin-participants-group-filter" onchange="handleAdminParticipantsFilter()" class="w-full px-2.5 py-1.5 text-xs bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                  <select id="admin-participants-group-filter" onchange="handleAdminParticipantsFilter()" class="w-full px-3 py-2 text-xs bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                     <option value="all">All Groups / Houses</option>
                   </select>
                 </div>
               </div>
             </div>
           </div>
-          <div id="admin-participants-list" class="divide-y divide-stone-200 max-h-80 overflow-y-auto"></div>
+          <div id="admin-participants-list" class="divide-y divide-stone-100 max-h-80 overflow-y-auto"></div>
         </div>
       </div>
 
@@ -1882,106 +1910,106 @@
         <div id="admin-panel-judges-panels" role="tabpanel" aria-labelledby="admin-tab-judges-panels" class="hidden space-y-6">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <!-- Active Festival Stages (+ Add Stage) -->
-            <div id="admin-stages-manager-card" class="lg:col-span-5 bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+            <div id="admin-stages-manager-card" class="lg:col-span-5 bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
               <div class="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h2 class="text-lg font-bold text-stone-900">Active Festival Stages</h2>
-                  <p class="text-xs text-stone-500 mt-0.5">Add unlimited venues or stages for parallel competitions. Each stage gets its own independent Judge Panel &amp; Live Sync slot.</p>
+                  <h2 class="text-lg font-bold text-stone-900 font-display">Active Festival Stages</h2>
+                  <p class="text-xs text-stone-500 mt-1 leading-relaxed">Add unlimited venues or stages for parallel competitions. Each stage gets its own independent Judge Panel &amp; Live Sync slot.</p>
                 </div>
-                <span id="admin-stages-count" class="text-xs font-semibold text-stone-500 tabular-nums shrink-0">3 stages</span>
+                <span id="admin-stages-count" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 tabular-nums shrink-0">3 stages</span>
               </div>
-              <div id="admin-stages-list" class="flex flex-wrap gap-1.5 min-h-[2rem]"></div>
+              <div id="admin-stages-list" class="flex flex-wrap gap-2 min-h-[2rem]"></div>
               <div class="flex flex-col sm:flex-row gap-2 pt-1">
                 <label for="admin-new-stage-name" class="sr-only">New Stage Name</label>
-                <input id="admin-new-stage-name" type="text" maxlength="60" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleAddStage(); }" placeholder="Add stage (e.g. Stage 4 - Kabani)" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
-                <button type="button" id="admin-add-stage-btn" onclick="handleAddStage()" class="px-4 py-2 min-h-[40px] text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                <input id="admin-new-stage-name" type="text" maxlength="60" onkeydown="if (event.key === 'Enter') { event.preventDefault(); handleAddStage(); }" placeholder="Add stage (e.g. Stage 4 - Kabani)" class="flex-1 min-w-0 px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
+                <button type="button" id="admin-add-stage-btn" onclick="handleAddStage()" class="px-4 py-2.5 min-h-[42px] text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer">
                   + Add Stage
                 </button>
               </div>
               <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2 text-xs">
                 <span class="text-stone-500">Need to lock a stage to an active item?</span>
-                <button type="button" onclick="switchAdminTab('live-stages')" class="font-semibold text-amber-800 hover:underline whitespace-nowrap shrink-0">
+                <button type="button" onclick="switchAdminTab('live-stages')" class="font-semibold text-amber-800 hover:underline underline-offset-4 whitespace-nowrap shrink-0 cursor-pointer">
                   Go to Live Stages →
                 </button>
               </div>
             </div>
 
             <!-- Manage Judges & Dynamic Per-Stage Panel Size Card -->
-            <form id="admin-judges-form" onsubmit="handleSaveJudgesConfig(event)" class="lg:col-span-7 bg-white border border-stone-200 rounded-xl p-6 space-y-4">
+            <form id="admin-judges-form" onsubmit="handleSaveJudgesConfig(event)" class="lg:col-span-7 bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
               <div class="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h2 id="admin-judges-heading" class="text-lg font-bold text-stone-900">Manage Judges (J1, J2, J3)</h2>
-                  <p class="text-xs text-stone-500 mt-0.5">Select any stage tab below to configure independent judge panels &amp; unique 4-digit PINs per stage.</p>
+                  <h2 id="admin-judges-heading" class="text-lg font-bold text-stone-900 font-display">Manage Judges (J1, J2, J3)</h2>
+                  <p class="text-xs text-stone-500 mt-1 leading-relaxed">Select any stage tab below to configure independent judge panels &amp; unique 4-digit PINs per stage.</p>
                 </div>
-                <span class="text-xs font-semibold text-amber-800 tabular-nums shrink-0">Scoped to <span id="admin-judges-scope-code">—</span></span>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50/90 border border-amber-200/80 text-[11px] font-semibold text-amber-900 tabular-nums shrink-0">Scoped to <span id="admin-judges-scope-code" class="ml-1">—</span></span>
               </div>
 
               <!-- Number of Judges per Item Toggle -->
-              <div class="p-3 rounded-lg bg-stone-50 border border-stone-200 flex flex-wrap items-center justify-between gap-2.5">
+              <div class="p-3.5 rounded-xl bg-stone-50/90 border border-stone-200/80 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div class="text-xs font-bold text-stone-800">Number of Judges per Item</div>
-                  <div class="text-[11px] text-stone-500">Controls average divisor (/2 vs /3) &amp; Judge 3 visibility.</div>
+                  <div class="text-[11px] text-stone-500 mt-0.5">Controls average divisor (/2 vs /3) &amp; Judge 3 visibility.</div>
                 </div>
-                <div role="group" aria-label="Number of Judges per Item" class="inline-flex items-center gap-1 p-1 bg-white border border-stone-300 rounded-lg">
-                  <button type="button" id="admin-judges-count-2" onclick="handleSetJudgesCount(2)" class="px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap text-stone-700 hover:bg-stone-100">
+                <div role="group" aria-label="Number of Judges per Item" class="inline-flex items-center gap-1 p-1 bg-stone-200/70 border border-stone-200/80 rounded-xl">
+                  <button type="button" id="admin-judges-count-2" onclick="handleSetJudgesCount(2)" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap text-stone-700 hover:bg-white/70 cursor-pointer">
                     2 Judges (J1, J2)
                   </button>
-                  <button type="button" id="admin-judges-count-3" onclick="handleSetJudgesCount(3)" class="px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap bg-stone-900 text-white">
+                  <button type="button" id="admin-judges-count-3" onclick="handleSetJudgesCount(3)" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap bg-stone-900 text-white shadow-sm cursor-pointer">
                     3 Judges (J1, J2, J3)
                   </button>
                 </div>
               </div>
 
               <!-- Dynamic Stage Selector Tabs for Judge Panels -->
-              <div class="space-y-2">
+              <div class="space-y-2.5">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <span class="text-xs font-bold text-stone-800">Select Stage Panel to Configure:</span>
-                  <span id="admin-judge-active-stage-badge" class="text-[11px] font-semibold text-amber-800">Stage 1</span>
+                  <span id="admin-judge-active-stage-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200/80 text-[11px] font-semibold text-amber-900">Stage 1</span>
                 </div>
                 <div id="admin-judges-stage-tabs" role="tablist" aria-label="Judge Panel Stage Tabs" class="flex flex-wrap gap-1.5"></div>
               </div>
 
               <div class="space-y-2.5">
-                <div class="grid grid-cols-12 gap-2 items-center">
-                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J1</div>
+                <div class="grid grid-cols-12 gap-2.5 items-center">
+                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-700 bg-stone-100 border border-stone-200/90 rounded-xl py-2.5 text-center">J1</div>
                   <div class="col-span-6 sm:col-span-8">
                     <label for="admin-judge-name-J1" class="sr-only">Judge 1 Official Name</label>
-                    <input id="admin-judge-name-J1" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 1 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="admin-judge-name-J1" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 1 Official Name" class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                   </div>
                   <div class="col-span-4 sm:col-span-3">
                     <label for="admin-judge-pin-J1" class="sr-only">Judge 1 4-digit PIN</label>
-                    <input id="admin-judge-pin-J1" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="admin-judge-pin-J1" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2.5 text-xs sm:text-sm tabular-nums tracking-widest text-center bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                   </div>
                 </div>
-                <div class="grid grid-cols-12 gap-2 items-center">
-                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J2</div>
+                <div class="grid grid-cols-12 gap-2.5 items-center">
+                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-700 bg-stone-100 border border-stone-200/90 rounded-xl py-2.5 text-center">J2</div>
                   <div class="col-span-6 sm:col-span-8">
                     <label for="admin-judge-name-J2" class="sr-only">Judge 2 Official Name</label>
-                    <input id="admin-judge-name-J2" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 2 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="admin-judge-name-J2" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 2 Official Name" class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                   </div>
                   <div class="col-span-4 sm:col-span-3">
                     <label for="admin-judge-pin-J2" class="sr-only">Judge 2 4-digit PIN</label>
-                    <input id="admin-judge-pin-J2" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="admin-judge-pin-J2" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2.5 text-xs sm:text-sm tabular-nums tracking-widest text-center bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                   </div>
                 </div>
-                <div id="admin-judge-row-J3" class="grid grid-cols-12 gap-2 items-center">
-                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-800 bg-stone-100 border border-stone-200 rounded-lg py-2 text-center">J3</div>
+                <div id="admin-judge-row-J3" class="grid grid-cols-12 gap-2.5 items-center">
+                  <div class="col-span-2 sm:col-span-1 text-xs font-bold text-stone-700 bg-stone-100 border border-stone-200/90 rounded-xl py-2.5 text-center">J3</div>
                   <div class="col-span-6 sm:col-span-8">
                     <label for="admin-judge-name-J3" class="sr-only">Judge 3 Official Name</label>
-                    <input id="admin-judge-name-J3" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 3 Official Name" class="w-full px-3 py-2 text-xs sm:text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="admin-judge-name-J3" type="text" required maxlength="100" oninput="hideAdminJudgesError()" placeholder="Judge 3 Official Name" class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                   </div>
                   <div class="col-span-4 sm:col-span-3">
                     <label for="admin-judge-pin-J3" class="sr-only">Judge 3 4-digit PIN</label>
-                    <input id="admin-judge-pin-J3" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2 text-xs sm:text-sm tabular-nums tracking-widest text-center border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                    <input id="admin-judge-pin-J3" type="text" inputmode="numeric" required minlength="4" maxlength="4" pattern="\d{4}" autocomplete="off" oninput="hideAdminJudgesError()" placeholder="PIN" class="w-full px-2.5 py-2.5 text-xs sm:text-sm tabular-nums tracking-widest text-center bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                   </div>
                 </div>
               </div>
-              <div id="admin-judges-error" role="alert" class="hidden p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
-              <div class="flex flex-wrap items-center justify-end gap-2.5 pt-1">
-                <button type="button" onclick="generateAdminJudgePins()" class="px-3.5 py-2 text-xs font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap">
+              <div id="admin-judges-error" role="alert" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+              <div class="flex flex-wrap items-center justify-end gap-2.5 pt-3 border-t border-stone-100">
+                <button type="button" onclick="generateAdminJudgePins()" class="px-4 py-2.5 text-xs font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-xl shadow-sm transition-colors whitespace-nowrap cursor-pointer">
                   Generate New PINs
                 </button>
-                <button type="submit" id="admin-save-judges-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                <button type="submit" id="admin-save-judges-btn" class="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
                   Save Stage Panel
                 </button>
               </div>
@@ -1991,20 +2019,20 @@
 
         <!-- TAB 5: HOUSES & GRADING -->
         <div id="admin-panel-houses-grading" role="tabpanel" aria-labelledby="admin-tab-houses-grading" class="hidden space-y-6">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div id="admin-groups-card" class="bg-white border border-stone-200 rounded-xl p-6 space-y-5">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div id="admin-groups-card" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
               <div>
-                <h2 class="text-lg font-bold text-stone-900">Manage Groups / Houses</h2>
-                <p class="text-xs text-stone-500 mt-0.5">Add teams or houses for automatic championship points calculation. Hidden from Judges during blind scoring.</p>
+                <h2 class="text-lg font-bold text-stone-900 font-display">Manage Groups / Houses</h2>
+                <p class="text-xs text-stone-500 mt-1 leading-relaxed">Add teams or houses for automatic championship points calculation. Hidden from Judges during blind scoring.</p>
               </div>
-              <form id="admin-group-form" onsubmit="handleAddGroup(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <form id="admin-group-form" onsubmit="handleAddGroup(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-end">
                 <div class="sm:col-span-2">
-                  <label for="admin-group-name" class="block text-xs font-semibold text-stone-700 mb-1">Group / House Name</label>
-                  <input id="admin-group-name" type="text" required maxlength="80" placeholder="e.g. Red House" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  <label for="admin-group-name" class="block text-xs font-semibold text-stone-700 mb-1.5">Group / House Name</label>
+                  <input id="admin-group-name" type="text" required maxlength="80" placeholder="e.g. Red House" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                 </div>
                 <div>
-                  <label for="admin-group-color" class="block text-xs font-semibold text-stone-700 mb-1">Color</label>
-                  <select id="admin-group-color" class="w-full px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                  <label for="admin-group-color" class="block text-xs font-semibold text-stone-700 mb-1.5">Color</label>
+                  <select id="admin-group-color" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                     <option value="AUTO">Auto Color</option>
                     <option value="#DC2626">Red</option>
                     <option value="#2563EB">Blue</option>
@@ -2017,47 +2045,47 @@
                   </select>
                 </div>
                 <div class="sm:col-span-3">
-                  <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors">Add Group / House</button>
+                  <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 cursor-pointer">Add Group / House</button>
                 </div>
               </form>
-              <div class="border-t border-stone-200 pt-4">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">Registered Groups</h3>
-                  <span id="admin-groups-count" class="text-xs font-medium text-stone-500 tabular-nums">0 groups</span>
+              <div class="border-t border-stone-100 pt-4">
+                <div class="flex items-center justify-between mb-2.5">
+                  <h3 class="text-xs font-bold text-stone-600">Registered Groups</h3>
+                  <span id="admin-groups-count" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 tabular-nums">0 groups</span>
                 </div>
-                <div id="admin-groups-list" class="divide-y divide-stone-200 border border-stone-200 rounded-lg max-h-56 overflow-y-auto"></div>
+                <div id="admin-groups-list" class="divide-y divide-stone-100 border border-stone-200/80 rounded-xl max-h-56 overflow-y-auto"></div>
               </div>
 
               <!-- Custom A / B / C Grading Thresholds -->
-              <div class="border-t border-stone-200 pt-4 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="border-t border-stone-100 pt-4 space-y-3.5">
+                <div class="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h3 class="text-sm font-bold text-stone-900">Custom A / B / C Grading Thresholds (%)</h3>
+                    <h3 class="text-sm font-bold text-stone-900 font-display">Custom A / B / C Grading Thresholds (%)</h3>
                     <p class="text-xs text-stone-500 mt-0.5">Override default grading (A ≥ 80%, B ≥ 70%, C ≥ 60%) for this Festival Code only.</p>
                   </div>
-                  <span class="text-xs font-semibold text-amber-800 tabular-nums">Scoped to <span id="admin-grade-scope-code">—</span></span>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-50/90 border border-amber-200/80 text-[11px] font-semibold text-amber-900 tabular-nums">Scoped to <span id="admin-grade-scope-code" class="ml-1">—</span></span>
                 </div>
-                <form id="admin-grade-thresholds-form" onsubmit="handleSaveGradeThresholds(event)" class="space-y-3">
+                <form id="admin-grade-thresholds-form" onsubmit="handleSaveGradeThresholds(event)" class="space-y-3.5">
                   <div class="grid grid-cols-3 gap-3">
                     <div>
-                      <label for="admin-grade-a" class="block text-xs font-semibold text-stone-700 mb-1">A Grade Min %</label>
-                      <input id="admin-grade-a" type="number" min="1" max="100" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="80" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                      <label for="admin-grade-a" class="block text-xs font-semibold text-stone-700 mb-1.5">A Grade Min %</label>
+                      <input id="admin-grade-a" type="number" min="1" max="100" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="80" class="w-full px-3.5 py-2.5 text-sm tabular-nums bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                     </div>
                     <div>
-                      <label for="admin-grade-b" class="block text-xs font-semibold text-stone-700 mb-1">B Grade Min %</label>
-                      <input id="admin-grade-b" type="number" min="1" max="99" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="70" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                      <label for="admin-grade-b" class="block text-xs font-semibold text-stone-700 mb-1.5">B Grade Min %</label>
+                      <input id="admin-grade-b" type="number" min="1" max="99" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="70" class="w-full px-3.5 py-2.5 text-sm tabular-nums bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                     </div>
                     <div>
-                      <label for="admin-grade-c" class="block text-xs font-semibold text-stone-700 mb-1">C Grade Min %</label>
-                      <input id="admin-grade-c" type="number" min="0" max="98" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="60" class="w-full px-3 py-2 text-sm tabular-nums border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                      <label for="admin-grade-c" class="block text-xs font-semibold text-stone-700 mb-1.5">C Grade Min %</label>
+                      <input id="admin-grade-c" type="number" min="0" max="98" step="0.5" required inputmode="decimal" oninput="hideGradeThresholdError()" value="60" class="w-full px-3.5 py-2.5 text-sm tabular-nums bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                     </div>
                   </div>
-                  <div id="admin-grade-error" role="alert" class="hidden p-3 rounded-lg bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
+                  <div id="admin-grade-error" role="alert" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-900"></div>
                   <div class="flex flex-wrap items-center gap-2.5">
-                    <button type="submit" id="admin-save-grades-btn" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                    <button type="submit" id="admin-save-grades-btn" class="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
                       Save Grade Rules
                     </button>
-                    <button type="button" onclick="resetGradeThresholds()" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-stone-700 bg-stone-100 border border-stone-300 rounded-lg hover:bg-stone-200 transition-colors">
+                    <button type="button" onclick="resetGradeThresholds()" class="px-4 py-2.5 text-xs sm:text-sm font-semibold text-stone-700 bg-white hover:bg-stone-50 border border-stone-200/90 rounded-xl shadow-sm transition-colors cursor-pointer">
                       Reset Defaults (80 / 70 / 60)
                     </button>
                   </div>
@@ -2065,26 +2093,26 @@
               </div>
             </div>
 
-            <div class="bg-white border border-stone-200 rounded-xl p-6 space-y-4 flex flex-col justify-between">
-              <div class="space-y-3">
+            <div class="bg-white border border-stone-200/80 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5 flex flex-col justify-between">
+              <div class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <h2 class="text-lg font-bold text-stone-900">Group Standings Chart Style</h2>
-                    <p class="text-xs text-stone-500 mt-0.5">Select the chart style saved for this Festival Code in Live Tabulation.</p>
+                    <h2 class="text-lg font-bold text-stone-900 font-display">Group Standings Chart Style</h2>
+                    <p class="text-xs text-stone-500 mt-1">Select the chart style saved for this Festival Code in Live Tabulation.</p>
                   </div>
                 </div>
                 <div id="admin-chart-selector" role="group" aria-label="Admin Group Chart Style Selector" class="grid grid-cols-3 gap-2">
-                  <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                  <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-2.5 text-xs font-semibold rounded-xl border transition-all text-center cursor-pointer">
                     Vertical Bar
                   </button>
-                  <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                  <button type="button" data-chart-btn="horizontal" onclick="setGroupChartType('horizontal')" class="px-3 py-2.5 text-xs font-semibold rounded-xl border transition-all text-center cursor-pointer">
                     Horizontal Progress
                   </button>
-                  <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-2 text-xs font-semibold rounded-lg border transition-colors text-center">
+                  <button type="button" data-chart-btn="doughnut" onclick="setGroupChartType('doughnut')" class="px-3 py-2.5 text-xs font-semibold rounded-xl border transition-all text-center cursor-pointer">
                     Doughnut / Pie
                   </button>
                 </div>
-                <div id="admin-leading-group-pill" class="rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-xs text-stone-800"></div>
+                <div id="admin-leading-group-pill" class="rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-xs text-stone-800"></div>
               </div>
               <div id="admin-group-chart-preview" class="pt-2 min-h-[190px] flex items-center justify-center"></div>
             </div>
@@ -2094,35 +2122,35 @@
         <!-- TAB 6: SUBMITTED SCORES -->
         <div id="admin-panel-submitted-scores" role="tabpanel" aria-labelledby="admin-tab-submitted-scores" class="hidden space-y-6">
           <!-- Submitted Scores Log -->
-          <div id="admin-scores-log-card" class="bg-white border border-stone-200 rounded-xl overflow-hidden">
-            <div class="px-5 py-4 border-b border-stone-200 space-y-3">
+          <div id="admin-scores-log-card" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-5 sm:px-6 py-4 border-b border-stone-200/80 space-y-3.5">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 class="text-base font-bold text-stone-900">Submitted Scores Log</h2>
+                  <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Submitted Scores Log</h2>
                   <p class="text-xs text-stone-500 mt-0.5">Search or filter submitted mark sheets, or delete an entry to unlock and reset a judge's accidental score submission.</p>
                 </div>
-                <span id="admin-scores-count" class="text-xs font-medium text-stone-500 tabular-nums">0 scores</span>
+                <span id="admin-scores-count" class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200/80 text-xs font-semibold text-stone-700 tabular-nums">0 scores</span>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
                 <div class="sm:col-span-5">
                   <label for="admin-scores-search" class="sr-only">Search Submitted Scores</label>
-                  <input id="admin-scores-search" type="search" autocomplete="off" oninput="handleAdminScoresFilter()" placeholder="Search by chest #, item, or judge name..." class="w-full px-3 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600" />
+                  <input id="admin-scores-search" type="search" autocomplete="off" oninput="handleAdminScoresFilter()" placeholder="Search by chest #, item, or judge name..." class="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
                 </div>
                 <div class="sm:col-span-4">
                   <label for="admin-scores-item-filter" class="sr-only">Filter Scores by Competition Item</label>
-                  <select id="admin-scores-item-filter" onchange="handleAdminScoresFilter()" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                  <select id="admin-scores-item-filter" onchange="handleAdminScoresFilter()" class="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                     <option value="all">All Competition Items</option>
                   </select>
                 </div>
                 <div class="sm:col-span-3 flex items-center gap-2">
                   <label for="admin-scores-slot-filter" class="sr-only">Filter Scores by Judge Slot</label>
-                  <select id="admin-scores-slot-filter" onchange="handleAdminScoresFilter()" class="flex-1 min-w-0 px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600">
+                  <select id="admin-scores-slot-filter" onchange="handleAdminScoresFilter()" class="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15">
                     <option value="all">All Judges</option>
                     <option value="J1">Judge 1 (J1)</option>
                     <option value="J2">Judge 2 (J2)</option>
                     <option value="J3">Judge 3 (J3)</option>
                   </select>
-                  <button type="button" id="admin-scores-filter-clear" onclick="clearAdminScoresFilter()" class="hidden px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors whitespace-nowrap shrink-0">
+                  <button type="button" id="admin-scores-filter-clear" onclick="clearAdminScoresFilter()" class="hidden px-3 py-2 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer">
                     Clear
                   </button>
                 </div>
@@ -2131,16 +2159,16 @@
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="border-b border-stone-200 bg-stone-50 text-xs font-semibold text-stone-600">
-                    <th class="py-2.5 px-4">Item</th>
-                    <th class="py-2.5 px-4">Chest No</th>
-                    <th class="py-2.5 px-4">Judge</th>
-                    <th class="py-2.5 px-4 text-right">Breakdown (R / E / P / O)</th>
-                    <th class="py-2.5 px-4 text-right">Total</th>
-                    <th class="py-2.5 px-4 text-right">Action</th>
+                  <tr class="border-b border-stone-200/80 bg-stone-50/80 text-xs font-semibold text-stone-600">
+                    <th class="py-3 px-5">Item</th>
+                    <th class="py-3 px-4">Chest No</th>
+                    <th class="py-3 px-4">Judge</th>
+                    <th class="py-3 px-4 text-right">Breakdown (R / E / P / O)</th>
+                    <th class="py-3 px-4 text-right">Total</th>
+                    <th class="py-3 px-5 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody id="admin-scores-body" class="divide-y divide-stone-200 text-sm"></tbody>
+                <tbody id="admin-scores-body" class="divide-y divide-stone-100 text-sm"></tbody>
               </table>
             </div>
           </div>
@@ -2149,15 +2177,15 @@
         <!-- TAB 7: DANGER ZONE -->
         <div id="admin-panel-danger-zone" role="tabpanel" aria-labelledby="admin-tab-danger-zone" class="hidden space-y-6">
           <!-- Danger Zone (Protected Event Reset) -->
-          <div id="admin-danger-zone" class="bg-red-50/40 border border-red-200/80 rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div id="admin-danger-zone" class="bg-red-50/45 border border-red-200/80 rounded-2xl shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="space-y-1">
-              <div class="text-[11px] font-bold uppercase tracking-wider text-red-700">Danger Zone</div>
-              <h2 class="text-base font-bold text-stone-900">Clear Event Data</h2>
-              <p class="text-xs text-stone-600 max-w-2xl">
+              <div class="text-xs font-bold text-red-700">Danger Zone</div>
+              <h2 class="text-base sm:text-lg font-bold text-stone-900 font-display">Clear Event Data</h2>
+              <p class="text-xs text-stone-600 leading-relaxed max-w-2xl">
                 Permanently remove all competition items, groups, registered chest numbers, and submitted judge scores for this event only. Strict confirmation is required.
               </p>
             </div>
-            <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-red-700 rounded-lg hover:bg-red-800 transition-colors whitespace-nowrap shrink-0">
+            <button type="button" id="admin-clear-data-btn" onclick="openClearModal()" class="px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-red-700 hover:bg-red-800 active:scale-[0.99] rounded-xl shadow-sm hover:shadow transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer">
               Clear Event Data
             </button>
           </div>
@@ -4829,11 +4857,11 @@
         const isLive = Boolean(stageMap[stageName] && items.some(it => it.id === stageMap[stageName]));
         const canRemove = stages.length > 1;
         return `
-          <span class="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 text-xs font-semibold rounded-md border ${isLive ? "bg-red-50 text-red-900 border-red-200" : "bg-white text-stone-800 border-stone-300"}">
+          <span class="inline-flex items-center gap-1.5 pl-3 pr-2 py-1 text-xs font-semibold rounded-full border shadow-[0_1px_2px_rgba(28,25,23,0.03)] ${isLive ? "bg-red-50 text-red-900 border-red-200/90" : "bg-stone-50/90 text-stone-800 border-stone-200/90"}">
             ${isLive ? `<span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shrink-0"></span>` : ""}
             <span class="truncate max-w-[160px]">${escapeHtml(stageName)}</span>
             <span class="text-[10px] font-medium text-stone-500 tabular-nums">(${assignedCount})</span>
-            ${canRemove ? `<button type="button" onclick="handleRemoveStageByIdx(${idx})" title="Remove unused stage" aria-label="Remove stage ${escapeHtml(stageName)}" class="ml-0.5 w-4 h-4 inline-flex items-center justify-center rounded hover:bg-stone-200 text-stone-500 hover:text-red-700 transition-colors">×</button>` : ""}
+            ${canRemove ? `<button type="button" onclick="handleRemoveStageByIdx(${idx})" title="Remove unused stage" aria-label="Remove stage ${escapeHtml(stageName)}" class="ml-0.5 w-4 h-4 inline-flex items-center justify-center rounded-full hover:bg-stone-200 text-stone-500 hover:text-red-700 transition-colors cursor-pointer">×</button>` : ""}
           </span>
         `;
       }).join("");
@@ -5515,10 +5543,10 @@
         tabsEl.innerHTML = stages.map((stageName, idx) => {
           const isSelected = stageName === activeAdminJudgeStageTab;
           return `
-            <button type="button" role="tab" aria-selected="${isSelected ? "true" : "false"}" onclick="selectAdminJudgeStageTabByIdx(${idx})" class="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap ${
+            <button type="button" role="tab" aria-selected="${isSelected ? "true" : "false"}" onclick="selectAdminJudgeStageTabByIdx(${idx})" class="px-3.5 py-1.5 text-xs font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
               isSelected
-                ? "bg-amber-700 text-white border-amber-700"
-                : "bg-white text-stone-700 border-stone-300 hover:bg-stone-100"
+                ? "bg-amber-700 text-white border-amber-700 shadow-sm"
+                : "bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300"
             }">
               ${escapeHtml(stageName)}
             </button>
@@ -5539,13 +5567,13 @@
       const btn2 = document.getElementById("admin-judges-count-2");
       const btn3 = document.getElementById("admin-judges-count-3");
       if (btn2) {
-        btn2.className = `px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
-          isTwoJudges ? "bg-stone-900 text-white" : "text-stone-700 hover:bg-stone-100"
+        btn2.className = `px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+          isTwoJudges ? "bg-stone-900 text-white shadow-sm" : "text-stone-700 hover:bg-white/70"
         }`;
       }
       if (btn3) {
-        btn3.className = `px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
-          !isTwoJudges ? "bg-stone-900 text-white" : "text-stone-700 hover:bg-stone-100"
+        btn3.className = `px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+          !isTwoJudges ? "bg-stone-900 text-white shadow-sm" : "text-stone-700 hover:bg-white/70"
         }`;
       }
 
@@ -10755,14 +10783,26 @@
           btnEl.setAttribute("aria-selected", String(isActive));
           btnEl.setAttribute("tabindex", isActive ? "0" : "-1");
           const isDanger = id === "danger-zone";
-          btnEl.classList.toggle("border-amber-700", isActive && !isDanger);
+          btnEl.classList.toggle("bg-white", isActive);
+          btnEl.classList.toggle("shadow-sm", isActive);
+          btnEl.classList.toggle("ring-1", isActive);
+          btnEl.classList.toggle("ring-stone-200/90", isActive && !isDanger);
           btnEl.classList.toggle("text-stone-900", isActive && !isDanger);
-          btnEl.classList.toggle("border-red-600", isActive && isDanger);
-          btnEl.classList.toggle("text-red-800", isActive && isDanger);
+          btnEl.classList.toggle("ring-red-200", isActive && isDanger);
+          btnEl.classList.toggle("text-red-700", isActive && isDanger);
           btnEl.classList.toggle("font-semibold", isActive);
-          btnEl.classList.toggle("border-transparent", !isActive);
           btnEl.classList.toggle("text-stone-600", !isActive);
+          btnEl.classList.toggle("hover:bg-white/60", !isActive);
           btnEl.classList.toggle("font-medium", !isActive);
+          const countPill = btnEl.querySelector("[data-tab-count='default']");
+          if (countPill) {
+            countPill.classList.toggle("bg-amber-100/90", isActive);
+            countPill.classList.toggle("text-amber-900", isActive);
+            countPill.classList.toggle("border-amber-200/80", isActive);
+            countPill.classList.toggle("bg-stone-200/80", !isActive);
+            countPill.classList.toggle("text-stone-600", !isActive);
+            countPill.classList.toggle("border-stone-300/60", !isActive);
+          }
           if (isActive && !skipScroll && typeof btnEl.scrollIntoView === "function") {
             try {
               btnEl.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
