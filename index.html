@@ -279,7 +279,10 @@
     body.stage-tv-mode #status-strip,
     body.stage-tv-mode #demo-mode-bar,
     body.stage-tv-mode #tab-standard-header,
-    body.stage-tv-mode #tab-chart-selector {
+    body.stage-tv-mode #tab-chart-selector,
+    body.stage-tv-mode #tab-group-points-caption,
+    body.stage-tv-mode #tab-grade-rules-badge,
+    body.stage-tv-mode #tab-chart-mode-label {
       display: none !important;
     }
     body.stage-tv-mode #app-main {
@@ -322,23 +325,23 @@
     body.stage-tv-mode #tab-chart-card-header h3,
     body.stage-tv-mode #tab-standings-card-header h3 {
       color: #FAFAF9;
-      font-size: 1.05rem;
+      font-size: 0.98rem;
     }
     body.stage-tv-mode #tab-chart-mode-label,
     body.stage-tv-mode #tab-groups-count {
       color: #D6D3D1;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
     }
     body.stage-tv-mode #tab-standings-card thead tr,
     body.stage-tv-mode #tab-leaderboard-card thead tr {
       background-color: #171412;
       border-color: #292524;
       color: #E7E5E4;
-      font-size: 0.875rem;
+      font-size: 0.82rem;
     }
     body.stage-tv-mode #group-standings-body,
     body.stage-tv-mode #leaderboard-body {
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
     body.stage-tv-mode #group-standings-body tr,
     body.stage-tv-mode #leaderboard-body tr {
@@ -346,8 +349,8 @@
     }
     body.stage-tv-mode #group-standings-body td,
     body.stage-tv-mode #leaderboard-body td {
-      padding-top: 0.75rem;
-      padding-bottom: 0.75rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
     }
     body.stage-tv-mode #tab-col-j1-header,
     body.stage-tv-mode #tab-col-j2-header,
@@ -366,7 +369,7 @@
         width: 100%;
         flex: 1 1 0%;
         min-height: 0;
-        padding: 0.875rem 1.5rem 1rem;
+        padding: 0.65rem 1.25rem 0.75rem;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -376,7 +379,7 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 0.55rem;
       }
       body.stage-tv-mode #view-tabulation > :not([hidden]) ~ :not([hidden]),
       body.stage-tv-mode #tab-dashboard-grid > :not([hidden]) ~ :not([hidden]),
@@ -386,12 +389,12 @@
       }
       body.stage-tv-mode #stage-tv-header {
         flex-shrink: 0;
-        padding-bottom: 0.625rem;
-        gap: 0.75rem;
+        padding-bottom: 0.45rem;
+        gap: 0.55rem;
       }
       body.stage-tv-mode #tv-current-item-title {
-        font-size: clamp(1.4rem, 2.2vw, 2.05rem);
-        line-height: 1.15;
+        font-size: clamp(1.3rem, 2vw, 1.9rem);
+        line-height: 1.12;
       }
       body.stage-tv-mode #live-results-ticker {
         flex-shrink: 0;
@@ -401,62 +404,77 @@
         min-height: 0;
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 1.25rem;
+        grid-template-rows: minmax(0, 1fr);
+        gap: 1.15rem;
         overflow: hidden;
       }
-      body.stage-tv-mode #tab-group-standings-section {
-        grid-column: span 6 / span 6;
+      body.stage-tv-mode #tab-item-results-section {
+        grid-column: 1 / span 5;
+        grid-row: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: 0.6rem;
         overflow: hidden;
       }
-      body.stage-tv-mode #tab-group-standings-section h2 {
-        font-size: clamp(1.25rem, 1.55vw, 1.55rem);
-        line-height: 1.2;
-      }
-      body.stage-tv-mode #tab-group-standings-section p {
-        font-size: 0.82rem;
-      }
-      body.stage-tv-mode #leading-group-banner {
-        flex-shrink: 0;
-        padding: 0.95rem 1.25rem;
-      }
-      body.stage-tv-mode #tab-standings-inner-grid {
-        flex: 1 1 0%;
-        min-height: 0;
+      body.stage-tv-mode #tab-item-results-section > div:first-child > div:first-child {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        align-items: flex-start;
+        gap: 0.125rem;
       }
-      body.stage-tv-mode #tab-chart-card {
-        flex: 0 0 auto;
-        padding: 0.9rem 1.15rem;
+      body.stage-tv-mode #tab-item-results-heading {
+        font-size: clamp(1.15rem, 1.4vw, 1.42rem);
+        line-height: 1.15;
       }
-      body.stage-tv-mode #tab-chart-card-header {
-        padding-bottom: 0.5rem;
-        margin-bottom: 0.55rem;
+      body.stage-tv-mode #tab-grade-rules-badge {
+        font-size: 0.78rem;
+        line-height: 1.25;
       }
-      body.stage-tv-mode #tab-group-chart-container {
+      body.stage-tv-mode #tab-leaderboard-card {
+        flex: 0 1 auto;
         min-height: 0;
+        max-height: 54%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-leaderboard-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+        overscroll-behavior: contain;
+        padding-bottom: 0.3rem;
+      }
+      body.stage-tv-mode #tab-leaderboard-card thead th {
+        padding: 0.42rem 0.6rem;
+        font-size: 0.76rem;
+        white-space: nowrap;
+      }
+      body.stage-tv-mode #leaderboard-body td {
+        padding: 0.42rem 0.6rem;
+        font-size: 0.9rem;
+        line-height: 1.22;
       }
       body.stage-tv-mode #tab-standings-card {
         flex: 1 1 0%;
-        min-height: 0;
+        min-height: 170px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
       }
       body.stage-tv-mode #tab-standings-card-header {
         flex-shrink: 0;
-        padding: 0.6rem 1rem;
+        padding: 0.45rem 0.75rem;
       }
       body.stage-tv-mode #tab-standings-table-scroll {
         flex: 1 1 0%;
         min-height: 0;
         overflow-y: auto;
         overflow-x: auto;
+        overscroll-behavior: contain;
+        padding-bottom: 0.3rem;
       }
       body.stage-tv-mode #tab-standings-card thead th,
       body.stage-tv-mode #tab-leaderboard-card thead th {
@@ -466,45 +484,68 @@
         background-color: #171412;
       }
       body.stage-tv-mode #tab-standings-card thead th {
-        padding: 0.6rem 0.85rem;
-        font-size: 0.875rem;
+        padding: 0.4rem 0.58rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
       }
       body.stage-tv-mode #group-standings-body td {
-        padding: 0.65rem 0.85rem;
-        font-size: 1rem;
+        padding: 0.42rem 0.58rem;
+        font-size: 0.88rem;
+        line-height: 1.22;
       }
-      body.stage-tv-mode #tab-item-results-section {
-        grid-column: span 6 / span 6;
+      body.stage-tv-mode #tab-group-standings-section {
+        grid-column: 6 / span 7;
+        grid-row: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.6rem;
+        gap: 0.65rem;
         overflow: hidden;
       }
-      body.stage-tv-mode #tab-item-results-heading {
-        font-size: clamp(1.25rem, 1.5vw, 1.5rem);
-        line-height: 1.2;
+      body.stage-tv-mode #tab-group-standings-section h2 {
+        font-size: clamp(1.15rem, 1.4vw, 1.42rem);
+        line-height: 1.15;
       }
-      body.stage-tv-mode #tab-leaderboard-card {
+      body.stage-tv-mode #tab-group-standings-section p {
+        font-size: 0.78rem;
+        line-height: 1.25;
+        margin-top: 0.125rem;
+      }
+      body.stage-tv-mode #leading-group-banner {
+        flex-shrink: 0;
+        padding: 0.9rem 1.3rem;
+      }
+      body.stage-tv-mode #tab-standings-inner-grid {
         flex: 1 1 0%;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
       }
-      body.stage-tv-mode #tab-leaderboard-scroll {
+      body.stage-tv-mode #tab-chart-card {
         flex: 1 1 0%;
         min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 0.9rem 1.25rem;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-chart-card-header {
+        flex-shrink: 0;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.6rem;
+      }
+      body.stage-tv-mode #tab-chart-card-header h3 {
+        font-size: 1.12rem;
+      }
+      body.stage-tv-mode #tab-chart-mode-label {
+        font-size: 0.88rem;
+      }
+      body.stage-tv-mode #tab-group-chart-container {
+        flex: 1 1 0%;
+        min-height: 0 !important;
         overflow-y: auto;
-        overflow-x: auto;
-      }
-      body.stage-tv-mode #tab-leaderboard-card thead th {
-        padding: 0.65rem 0.9rem;
-        font-size: 0.875rem;
-      }
-      body.stage-tv-mode #leaderboard-body td {
-        padding: 0.65rem 0.9rem;
-        font-size: 1rem;
+        overflow-x: hidden;
+        align-items: safe center;
       }
     }
     @media print {
@@ -1229,14 +1270,14 @@
         </div>
       </div>
 
-      <!-- Widescreen Broadcast Grid (Vertical stack in standard/mobile, 5+7 side-by-side in Stage / TV Mode lg+) -->
+      <!-- Widescreen Broadcast Grid (Vertical stack in standard/mobile, Left 5-col Item Results + Right 7-col Group Standings in Stage / TV Mode lg+) -->
       <div id="tab-dashboard-grid" class="space-y-8">
         <!-- Group Points & Standings Dashboard (Included in Print / Save as PDF) -->
         <div id="tab-group-standings-section" class="space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
             <div>
               <h2 class="text-lg sm:text-xl font-bold text-stone-900 font-display">Group Points &amp; Standings</h2>
-              <p class="text-xs text-stone-500 mt-0.5">1st Place = 5 pts · 2nd Place = 3 pts · 3rd Place = 1 pt · Tie-breaker: Total Raw Judge Marks</p>
+              <p id="tab-group-points-caption" class="text-xs text-stone-500 mt-0.5">1st Place = 5 pts · 2nd Place = 3 pts · 3rd Place = 1 pt · Tie-breaker: Total Raw Judge Marks</p>
             </div>
             <div id="tab-chart-selector" role="group" aria-label="Group Chart Type Selector" class="no-print inline-flex flex-wrap items-center gap-1 p-1 bg-stone-100 border border-stone-200 rounded-lg self-start sm:self-auto">
               <button type="button" data-chart-btn="bar" onclick="setGroupChartType('bar')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap">
@@ -7375,11 +7416,11 @@
       }
 
       if (chartType === "doughnut") {
-        const size = compact ? 148 : (dark ? 188 : 176);
+        const size = compact ? 148 : (dark ? 260 : 176);
         const cx = size / 2;
         const cy = size / 2;
-        const r = compact ? 48 : (dark ? 64 : 58);
-        const strokeW = compact ? 22 : (dark ? 26 : 26);
+        const r = compact ? 48 : (dark ? 92 : 58);
+        const strokeW = compact ? 22 : (dark ? 36 : 26);
         const circ = 2 * Math.PI * r;
         let offset = 0;
 
@@ -7394,27 +7435,27 @@
           : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${dark ? "#292524" : "#E7E5E4"}" stroke-width="${strokeW}" />`;
 
         return `
-          <div class="w-full flex flex-col sm:flex-row items-center justify-center ${dark ? "gap-6" : "gap-6"}">
-            <div class="shrink-0 flex items-center justify-center">
-              <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="Group Points Doughnut Chart">
+          <div class="w-full h-full flex flex-col sm:flex-row items-center justify-center ${dark ? "gap-8 px-2" : "gap-6"}">
+            <div class="shrink-0 h-full flex items-center justify-center">
+              <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="max-h-full w-auto" role="img" aria-label="Group Points Doughnut Chart">
                 ${slicesMarkup}
-                <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="${compact ? 18 : (dark ? 26 : 22)}" font-weight="700" fill="${dark ? "#FAFAF9" : "#1C1917"}" class="tabular-nums">${totalPts}</text>
-                <text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="${dark ? 11 : 10}" font-weight="600" fill="${dark ? "#D6D3D1" : "#78716C"}">TOTAL PTS</text>
+                <text x="${cx}" y="${cy - (dark ? 4 : 2)}" text-anchor="middle" font-size="${compact ? 18 : (dark ? 38 : 22)}" font-weight="700" fill="${dark ? "#FAFAF9" : "#1C1917"}" class="tabular-nums">${totalPts}</text>
+                <text x="${cx}" y="${cy + (dark ? 22 : 14)}" text-anchor="middle" font-size="${dark ? 13 : 10}" font-weight="700" letter-spacing="${dark ? "0.08em" : "0"}" fill="${dark ? "#D6D3D1" : "#78716C"}">TOTAL PTS</text>
               </svg>
             </div>
-            <div class="w-full max-w-sm ${dark ? "space-y-1.5" : "space-y-2"}">
+            <div class="w-full ${dark ? "max-w-md space-y-2.5" : "max-w-sm space-y-2"}">
               ${standings.map(g => {
                 const share = totalPts > 0 ? Math.round((g.points / totalPts) * 100) : 0;
                 return `
-                  <div class="flex items-center justify-between gap-3 ${dark ? "text-sm xl:text-base border-stone-800 py-1" : "text-xs border-stone-100 py-1"} border-b last:border-b-0">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                      <span class="font-bold ${dark ? "text-amber-300" : "text-stone-500"} tabular-nums w-6 shrink-0">#${g.rank}</span>
-                      <span class="${dark ? "w-3 h-3" : "w-2.5 h-2.5"} rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
-                      <span class="font-semibold ${dark ? "text-white" : "text-stone-900"} truncate">${escapeHtml(g.name)}</span>
+                  <div class="flex items-center justify-between gap-3 ${dark ? "text-base xl:text-xl border-stone-800 py-1.5" : "text-xs border-stone-100 py-1"} border-b last:border-b-0">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <span class="font-bold ${dark ? "text-amber-300 w-8" : "text-stone-500 w-6"} tabular-nums shrink-0">#${g.rank}</span>
+                      <span class="${dark ? "w-4 h-4" : "w-2.5 h-2.5"} rounded-full shrink-0" style="background-color: ${escapeHtml(g.color)}"></span>
+                      <span class="font-bold ${dark ? "text-white" : "text-stone-900 font-semibold"} truncate">${escapeHtml(g.name)}</span>
                     </div>
-                    <div class="flex items-center gap-2.5 shrink-0 tabular-nums">
-                      <span class="${dark ? "text-stone-300 text-xs xl:text-sm" : "text-stone-400"}">${share}%</span>
-                      <span class="font-bold ${dark ? "text-amber-300 text-base xl:text-lg" : "text-stone-900"}">${g.points} pts</span>
+                    <div class="flex items-center gap-3 shrink-0 tabular-nums">
+                      <span class="${dark ? "text-stone-300 text-sm xl:text-base" : "text-stone-400"}">${share}%</span>
+                      <span class="font-bold ${dark ? "text-amber-300 text-lg xl:text-2xl" : "text-stone-900"}">${g.points} pts</span>
                     </div>
                   </div>
                 `;
@@ -7425,49 +7466,50 @@
       }
 
       // Default: Vertical Bar Chart ("bar")
-      const width = 560;
-      const height = compact ? 190 : (dark ? 225 : 230);
-      const padLeft = dark ? 42 : 36;
-      const padRight = 18;
-      const padTop = dark ? 32 : 26;
-      const padBottom = dark ? 48 : 42;
+      const width = dark ? 700 : 560;
+      const height = compact ? 190 : (dark ? 360 : 230);
+      const padLeft = dark ? 48 : 36;
+      const padRight = dark ? 24 : 18;
+      const padTop = dark ? 42 : 26;
+      const padBottom = dark ? 64 : 42;
       const plotW = width - padLeft - padRight;
       const plotH = height - padTop - padBottom;
       const step = plotW / standings.length;
-      const barW = Math.min(dark ? 62 : 54, Math.max(22, step * 0.58));
+      const barW = Math.min(dark ? 92 : 54, Math.max(dark ? 36 : 22, step * 0.56));
       const tickSteps = [0, 0.5, 1];
 
       const gridLines = tickSteps.map(ratio => {
         const y = padTop + plotH - (ratio * plotH);
         const val = Math.round(maxPts * ratio);
         return `
-          <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${width - padRight}" y2="${y.toFixed(1)}" stroke="${dark ? "#292524" : "#E7E5E4"}" stroke-dasharray="3 3" />
-          <text x="${padLeft - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="${dark ? 12 : 10}" fill="${dark ? "#D6D3D1" : "#78716C"}" class="tabular-nums">${val}</text>
+          <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${width - padRight}" y2="${y.toFixed(1)}" stroke="${dark ? "#292524" : "#E7E5E4"}" stroke-dasharray="${dark ? "4 4" : "3 3"}" />
+          <text x="${padLeft - 10}" y="${(y + 5).toFixed(1)}" text-anchor="end" font-size="${dark ? 14 : 10}" font-weight="${dark ? 600 : 400}" fill="${dark ? "#D6D3D1" : "#78716C"}" class="tabular-nums">${val}</text>
         `;
       }).join("");
 
       const bars = standings.map((g, idx) => {
         const cx = padLeft + step * idx + step / 2;
-        const barH = g.points > 0 ? Math.max(6, (g.points / maxPts) * plotH) : 3;
+        const barH = g.points > 0 ? Math.max(dark ? 10 : 6, (g.points / maxPts) * plotH) : (dark ? 5 : 3);
         const x = cx - barW / 2;
         const y = padTop + plotH - barH;
-        const shortName = g.name.length > 13 ? g.name.slice(0, 12) + "…" : g.name;
+        const maxChars = dark ? 16 : 13;
+        const shortName = g.name.length > maxChars ? g.name.slice(0, maxChars - 1) + "…" : g.name;
         return `
           <g>
             <title>${escapeHtml(g.name)} — Rank #${g.rank}: ${g.points} pts (${g.rawMarks.toFixed(1)} raw marks)</title>
-            <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="6" fill="${escapeHtml(g.color)}" />
-            <text x="${cx.toFixed(1)}" y="${(y - 8).toFixed(1)}" text-anchor="middle" font-size="${dark ? 16 : 11}" font-weight="700" fill="${dark ? "#FCD34D" : "#1C1917"}" class="tabular-nums">${g.points} pts</text>
-            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 18).toFixed(1)}" text-anchor="middle" font-size="${dark ? 14 : 11}" font-weight="700" fill="${dark ? "#FFFFFF" : "#1C1917"}">${escapeHtml(shortName)}</text>
-            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + 35).toFixed(1)}" text-anchor="middle" font-size="${dark ? 12 : 10}" font-weight="600" fill="${dark ? "#D6D3D1" : "#78716C"}" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
+            <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="${dark ? 10 : 6}" fill="${escapeHtml(g.color)}" />
+            <text x="${cx.toFixed(1)}" y="${(y - (dark ? 12 : 7)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 22 : 11}" font-weight="700" fill="${dark ? "#FCD34D" : "#1C1917"}" class="tabular-nums">${g.points} pts</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + (dark ? 26 : 17)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 18 : 11}" font-weight="700" fill="${dark ? "#FFFFFF" : "#1C1917"}">${escapeHtml(shortName)}</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + (dark ? 48 : 33)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 14 : 10}" font-weight="600" fill="${dark ? "#D6D3D1" : "#78716C"}" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
           </g>
         `;
       }).join("");
 
       return `
-        <div class="w-full">
-          <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto ${dark ? "max-h-52 xl:max-h-60" : "max-h-64"}" role="img" aria-label="Group Points Vertical Bar Chart">
+        <div class="w-full h-full flex items-center justify-center">
+          <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="w-full ${dark ? "h-full max-h-full" : "h-auto max-h-64"}" role="img" aria-label="Group Points Vertical Bar Chart">
             ${gridLines}
-            <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="${dark ? "#44403C" : "#D6D3D1"}" />
+            <line x1="${padLeft}" y1="${padTop + plotH}" x2="${width - padRight}" y2="${padTop + plotH}" stroke="${dark ? "#44403C" : "#D6D3D1"}" stroke-width="${dark ? 1.5 : 1}" />
             ${bars}
           </svg>
         </div>
@@ -7804,10 +7846,10 @@
       const maxPts = Math.max(1, ...standings.map(g => g.points));
       let wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
       if (!wrapper) {
-        containerEl.innerHTML = `<div data-horizontal-bars-wrap class="w-full ${dark ? "space-y-2" : "space-y-3"}"></div>`;
+        containerEl.innerHTML = `<div data-horizontal-bars-wrap class="w-full ${dark ? "space-y-4 py-1" : "space-y-3"}"></div>`;
         wrapper = containerEl.querySelector("[data-horizontal-bars-wrap]");
       } else {
-        wrapper.className = `w-full ${dark ? "space-y-2" : "space-y-3"}`;
+        wrapper.className = `w-full ${dark ? "space-y-4 py-1" : "space-y-3"}`;
       }
 
       if (wrapper._flipRafOuter) {
@@ -7862,34 +7904,34 @@
             </div>
           `;
         }
-        rowEl.className = `${dark ? "space-y-1.5" : "space-y-1.5"} tab-animated-row`;
+        rowEl.className = `${dark ? "space-y-2" : "space-y-1.5"} tab-animated-row`;
         const rowHeader = rowEl.querySelector('[data-col="row-header"]');
         if (rowHeader) {
-          rowHeader.className = `flex items-center justify-between gap-3 ${dark ? "text-sm sm:text-base xl:text-lg" : "text-xs sm:text-sm"}`;
+          rowHeader.className = `flex items-center justify-between gap-3 ${dark ? "text-base sm:text-lg xl:text-2xl" : "text-xs sm:text-sm"}`;
         }
         const rankEl = rowEl.querySelector('[data-col="rank"]');
-        rankEl.className = `inline-flex items-center justify-center ${dark ? "w-8 h-7 rounded-md bg-stone-800 text-amber-300 text-sm" : "w-6 h-5 rounded bg-stone-100 text-stone-700 text-[11px]"} font-bold tabular-nums shrink-0 rank-pill-transition`;
+        rankEl.className = `inline-flex items-center justify-center ${dark ? "w-10 h-8 rounded-lg bg-stone-800 text-amber-300 text-base xl:text-lg" : "w-6 h-5 rounded bg-stone-100 text-stone-700 text-[11px]"} font-bold tabular-nums shrink-0 rank-pill-transition`;
         rankEl.textContent = `#${g.rank}`;
         const dotEl = rowEl.querySelector('[data-col="dot"]');
-        dotEl.className = `${dark ? "w-3.5 h-3.5" : "w-2.5 h-2.5"} rounded-full shrink-0`;
+        dotEl.className = `${dark ? "w-4 h-4" : "w-2.5 h-2.5"} rounded-full shrink-0`;
         dotEl.style.backgroundColor = g.color;
         const nameEl = rowEl.querySelector('[data-col="name"]');
         nameEl.className = `${dark ? "font-bold text-white" : "font-semibold text-stone-900"} truncate`;
         nameEl.textContent = g.name;
         const medalsEl = rowEl.querySelector('[data-col="medals"]');
         if (!compact) {
-          medalsEl.className = `hidden sm:inline ${dark ? "text-xs xl:text-sm text-stone-300" : "text-xs text-stone-400"} tabular-nums shrink-0`;
+          medalsEl.className = `hidden sm:inline ${dark ? "text-sm xl:text-base text-stone-300" : "text-xs text-stone-400"} tabular-nums shrink-0`;
           medalsEl.textContent = `(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)`;
         }
         const rawEl = rowEl.querySelector('[data-col="raw"]');
-        rawEl.className = `${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"}`;
+        rawEl.className = `${dark ? "text-sm xl:text-base text-stone-300" : "text-[11px] text-stone-500"}`;
         animateNumericCell(rawEl, g.rawMarks, 1, " raw");
         const ptsEl = rowEl.querySelector('[data-col="pts"]');
-        ptsEl.className = `font-bold ${dark ? "text-base xl:text-xl text-amber-300" : "text-stone-900"}`;
+        ptsEl.className = `font-bold ${dark ? "text-xl xl:text-3xl text-amber-300" : "text-stone-900"}`;
         animateNumericCell(ptsEl, g.points, 0, " pts");
         const trackEl = rowEl.querySelector('[data-col="track"]');
         if (trackEl) {
-          trackEl.className = `w-full ${dark ? "h-3.5 bg-stone-800" : "h-3 bg-stone-100"} rounded-full overflow-hidden`;
+          trackEl.className = `w-full ${dark ? "h-5 bg-stone-800" : "h-3 bg-stone-100"} rounded-full overflow-hidden`;
         }
         const fillEl = rowEl.querySelector('[data-col="fill"]');
         fillEl.style.backgroundColor = g.color;
@@ -7995,26 +8037,26 @@
             ? tiedLeaders.map(g => escapeHtml(g.name)).join(" &amp; ")
             : escapeHtml(leader.name);
           bannerEl.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 tab-row-enter">
-              <div class="flex items-center gap-3.5 min-w-0">
-                <span class="inline-flex items-center justify-center ${dark ? "w-12 h-12 xl:w-14 xl:h-14 text-lg xl:text-xl rounded-2xl shadow-md" : "w-10 h-10 text-sm rounded-xl"} text-white font-bold tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 tab-row-enter">
+              <div class="flex items-center gap-4 min-w-0">
+                <span class="inline-flex items-center justify-center ${dark ? "w-14 h-14 xl:w-16 xl:h-16 text-xl xl:text-2xl rounded-2xl shadow-lg" : "w-10 h-10 text-sm rounded-xl"} text-white font-bold tabular-nums shrink-0 rank-pill-transition" style="background-color: ${escapeHtml(leader.color)}">#1</span>
                 <div class="min-w-0">
-                  <div class="${dark ? "text-xs tracking-widest text-amber-400" : "text-[11px] tracking-wider text-amber-800"} font-bold uppercase">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
-                  <div class="${dark ? "text-2xl xl:text-3xl text-white leading-tight truncate mt-0.5" : "text-xl text-stone-900"} font-bold font-display">${leaderTitle}</div>
+                  <div class="${dark ? "text-xs xl:text-sm tracking-widest text-amber-400" : "text-[11px] tracking-wider text-amber-800"} font-bold uppercase">${tiedLeaders.length > 1 ? "Joint Leading Groups" : "Leading Group"}</div>
+                  <div class="${dark ? "text-2xl xl:text-4xl text-white leading-tight truncate mt-0.5" : "text-xl text-stone-900"} font-bold font-display">${leaderTitle}</div>
                 </div>
               </div>
-              <div class="flex flex-wrap items-center gap-5 ${dark ? "xl:gap-7" : "sm:gap-7"} tabular-nums shrink-0">
+              <div class="flex flex-wrap items-center gap-5 ${dark ? "xl:gap-8" : "sm:gap-7"} tabular-nums shrink-0">
                 <div>
-                  <div class="${dark ? "text-xs text-stone-300" : "text-[11px] text-stone-500"} font-medium">Points</div>
-                  <div class="${dark ? "text-2xl xl:text-4xl text-amber-300 leading-none mt-0.5" : "text-xl text-stone-900"} font-bold">${leader.points} pts</div>
+                  <div class="${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"} font-medium">Points</div>
+                  <div class="${dark ? "text-3xl xl:text-5xl text-amber-300 leading-none mt-0.5" : "text-xl text-stone-900"} font-bold">${leader.points} pts</div>
                 </div>
                 <div>
-                  <div class="${dark ? "text-xs text-stone-300" : "text-[11px] text-stone-500"} font-medium">Raw Marks</div>
-                  <div class="${dark ? "text-base xl:text-lg text-stone-100 mt-0.5" : "text-base text-stone-700"} font-semibold">${leader.rawMarks.toFixed(1)}</div>
+                  <div class="${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"} font-medium">Raw Marks</div>
+                  <div class="${dark ? "text-base xl:text-xl text-stone-100 mt-0.5" : "text-base text-stone-700"} font-semibold">${leader.rawMarks.toFixed(1)}</div>
                 </div>
                 <div>
-                  <div class="${dark ? "text-xs text-stone-300" : "text-[11px] text-stone-500"} font-medium">1st/2nd/3rd</div>
-                  <div class="${dark ? "text-base xl:text-lg text-stone-100 mt-0.5" : "text-sm text-stone-700"} font-semibold">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
+                  <div class="${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"} font-medium">1st/2nd/3rd</div>
+                  <div class="${dark ? "text-base xl:text-xl text-stone-100 mt-0.5" : "text-sm text-stone-700"} font-semibold">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
                 </div>
               </div>
             </div>
@@ -8076,7 +8118,7 @@
               tr.classList.toggle("hover:bg-stone-800/60", dark && !isLeaderRow);
 
               const rankTd = tr.querySelector('[data-col="rank"]');
-              setPreservingAnimClasses(rankTd, `py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${dark ? (isLeaderRow ? "text-amber-300 text-lg xl:text-xl" : "text-stone-100 text-base xl:text-lg") : "text-stone-900"}`);
+              setPreservingAnimClasses(rankTd, `py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${dark ? (isLeaderRow ? "text-amber-300 text-sm xl:text-base" : "text-stone-100 text-sm") : "text-stone-900"}`);
               const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
               if (rankLabelEl) {
                 rankLabelEl.textContent = `#${g.rank}`;
@@ -8085,11 +8127,11 @@
               }
 
               const dotEl = tr.querySelector('[data-col="dot"]');
-              dotEl.className = `${dark ? "w-3.5 h-3.5" : "w-2.5 h-2.5"} rounded-full shrink-0`;
+              dotEl.className = `${dark ? "w-2.5 h-2.5" : "w-2.5 h-2.5"} rounded-full shrink-0`;
               dotEl.style.backgroundColor = g.color;
 
               const nameEl = tr.querySelector('[data-col="name"]');
-              nameEl.className = `${dark ? "font-bold text-white text-base xl:text-lg" : "font-semibold text-stone-900"}`;
+              nameEl.className = `${dark ? "font-bold text-white text-sm xl:text-base leading-tight" : "font-semibold text-stone-900"}`;
               nameEl.textContent = g.name;
 
               const medalsTd = tr.querySelector('[data-col="medals"]');
@@ -8097,16 +8139,16 @@
               const prevMedalsText = medalsTd.getAttribute("data-medals-val");
               const medalsChanged = !isNew && prevMedalsText !== null && prevMedalsText !== nextMedalsText;
               medalsTd.setAttribute("data-medals-val", nextMedalsText);
-              setPreservingAnimClasses(medalsTd, `py-2.5 px-3 text-right ${dark ? "text-sm xl:text-base text-stone-200 font-medium" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
+              setPreservingAnimClasses(medalsTd, `py-2.5 px-3 text-right ${dark ? "text-xs text-stone-200 font-medium" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
               medalsTd.textContent = nextMedalsText;
               if (medalsChanged) triggerTransientAnim(medalsTd, "score-updated-flash", ["score-updated-flash"], 1200);
 
               const rawTd = tr.querySelector('[data-col="raw"]');
-              setPreservingAnimClasses(rawTd, `py-2.5 px-3 text-right ${dark ? "text-sm xl:text-base text-stone-200 font-medium" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
+              setPreservingAnimClasses(rawTd, `py-2.5 px-3 text-right ${dark ? "text-xs text-stone-200 font-medium" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
               const rawChanged = animateNumericCell(rawTd, g.rawMarks, 1, "", { isNew });
 
               const ptsTd = tr.querySelector('[data-col="pts"]');
-              setPreservingAnimClasses(ptsTd, `py-2.5 px-3 text-right font-bold ${dark ? "text-amber-300 text-lg xl:text-2xl" : "text-stone-900"} tabular-nums whitespace-nowrap`);
+              setPreservingAnimClasses(ptsTd, `py-2.5 px-3 text-right font-bold ${dark ? "text-amber-300 text-sm xl:text-base" : "text-stone-900"} tabular-nums whitespace-nowrap`);
               const ptsChanged = animateNumericCell(ptsTd, g.points, 0, " pts", { isNew });
               return { rank: g.rank, scoreChanged: medalsChanged || rawChanged || ptsChanged };
             }
@@ -8402,6 +8444,20 @@
       document.body.classList.toggle("stage-tv-mode", isStageTvMode);
       const exitBtn = document.getElementById("exit-tv-mode-btn");
       const tvHeader = document.getElementById("stage-tv-header");
+      const standingsCard = document.getElementById("tab-standings-card");
+      const itemResultsSection = document.getElementById("tab-item-results-section");
+      const standingsInnerGrid = document.getElementById("tab-standings-inner-grid");
+      if (standingsCard && itemResultsSection && standingsInnerGrid) {
+        if (isStageTvMode) {
+          if (standingsCard.parentElement !== itemResultsSection) {
+            itemResultsSection.appendChild(standingsCard);
+          }
+        } else {
+          if (standingsCard.parentElement !== standingsInnerGrid) {
+            standingsInnerGrid.appendChild(standingsCard);
+          }
+        }
+      }
       if (exitBtn) {
         exitBtn.classList.toggle("hidden", !isStageTvMode);
         exitBtn.classList.toggle("inline-flex", isStageTvMode);
@@ -8579,7 +8635,7 @@
           const rankTd = tr.querySelector('[data-col="rank"]');
           setPreservingAnimClasses(rankTd, `py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${
             dark
-              ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300 text-base xl:text-xl" : "text-stone-200 text-base xl:text-lg")
+              ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300 text-sm xl:text-lg" : "text-stone-200 text-sm xl:text-base")
               : "text-stone-900"
           }`);
           const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
@@ -8590,16 +8646,16 @@
           }
 
           const chestTd = tr.querySelector('[data-col="chest"]');
-          chestTd.className = `py-3 px-4 font-semibold tabular-nums whitespace-nowrap ${dark ? "text-amber-200 text-base xl:text-lg font-bold" : "text-stone-900"}`;
+          chestTd.className = `py-3 px-4 font-semibold tabular-nums whitespace-nowrap ${dark ? "text-amber-200 text-sm xl:text-base font-bold" : "text-stone-900"}`;
           chestTd.textContent = `#${r.p.chestNo}`;
 
           const nameEl = tr.querySelector('[data-col="name"]');
-          nameEl.className = `${dark ? "font-bold text-white text-base xl:text-xl leading-snug" : "font-semibold text-stone-900"}`;
+          nameEl.className = `${dark ? "font-bold text-white text-sm xl:text-base leading-tight" : "font-semibold text-stone-900"}`;
           nameEl.textContent = r.p.name;
 
           const metaRow = tr.querySelector('[data-col="meta-row"]');
           if (metaRow) {
-            metaRow.className = `flex flex-wrap items-center gap-x-2.5 gap-y-0.5 ${dark ? "text-xs xl:text-sm text-stone-300 mt-0.5" : "text-xs text-stone-500"}`;
+            metaRow.className = `flex flex-wrap items-center gap-x-2 gap-y-0.5 ${dark ? "text-[11px] xl:text-xs text-stone-300 leading-tight mt-0.5" : "text-xs text-stone-500"}`;
           }
           const schoolEl = tr.querySelector('[data-col="school"]');
           if (schoolEl) {
@@ -8608,10 +8664,10 @@
           }
 
           const grpWrap = tr.querySelector('[data-col="group"]');
-          grpWrap.className = `${groupLabel ? "inline-flex" : "hidden"} items-center gap-1.5 font-semibold ${dark ? "text-stone-100" : "text-stone-700"}`;
+          grpWrap.className = `${groupLabel ? "inline-flex" : "hidden"} items-center gap-1 font-semibold ${dark ? "text-stone-100" : "text-stone-700"}`;
           if (groupLabel) {
             const grpDot = tr.querySelector('[data-col="group-dot"]');
-            grpDot.className = `${dark ? "w-2.5 h-2.5" : "w-2 h-2"} rounded-full inline-block`;
+            grpDot.className = `${dark ? "w-2 h-2" : "w-2 h-2"} rounded-full inline-block`;
             grpDot.style.backgroundColor = groupColor;
             tr.querySelector('[data-col="group-name"]').textContent = groupLabel;
           }
@@ -8624,7 +8680,7 @@
           setPreservingAnimClasses(j1Td, hideJudgeColsInTv ? `${judgeCellClass} hidden` : judgeCellClass);
           setPreservingAnimClasses(j2Td, hideJudgeColsInTv ? `${judgeCellClass} hidden` : judgeCellClass);
           setPreservingAnimClasses(j3Td, (!hideJudgeColsInTv && showJ3) ? judgeCellClass : `${judgeCellClass} hidden`);
-          setPreservingAnimClasses(avgTd, `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-lg xl:text-2xl" : "text-stone-900"}`);
+          setPreservingAnimClasses(avgTd, `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-base xl:text-xl" : "text-stone-900"}`);
 
           const j1Changed = animateNumericCell(j1Td, r.j1, 0, "", { isNew });
           const j2Changed = animateNumericCell(j2Td, r.j2, 0, "", { isNew });
@@ -8642,7 +8698,7 @@
           const nextGrade = String(r.grade || "—");
           const gradeChanged = !isNew && prevGrade !== null && prevGrade !== nextGrade;
           gradeTd.setAttribute("data-grade-val", nextGrade);
-          setPreservingAnimClasses(gradeTd, `py-3 px-4 text-right whitespace-nowrap ${dark ? "text-base xl:text-lg font-bold text-amber-300" : "text-xs font-medium text-stone-700"}`);
+          setPreservingAnimClasses(gradeTd, `py-3 px-4 text-right whitespace-nowrap ${dark ? "text-sm xl:text-base font-bold text-amber-300" : "text-xs font-medium text-stone-700"}`);
           gradeTd.textContent = nextGrade;
           if (gradeChanged) triggerTransientAnim(gradeTd, "score-updated-flash", ["score-updated-flash"], 1200);
 
