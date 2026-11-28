@@ -12,6 +12,7 @@ interface CriteriaRequestItem {
   itemName: string;
   malayalamName?: string;
   category?: string;
+  itemType?: string;
 }
 
 const criteriaCache = new Map<string, string[]>();
@@ -33,8 +34,8 @@ function getAiClient(): GoogleGenAI | null {
   return cachedAi;
 }
 
-function buildCacheKey(itemName: string, malayalamName = "", category = ""): string {
-  return `${itemName.trim().toLowerCase()}__${malayalamName.trim().toLowerCase()}__${category.trim().toLowerCase()}`;
+function buildCacheKey(itemName: string, malayalamName = "", category = "", itemType = ""): string {
+  return `${itemName.trim().toLowerCase()}__${malayalamName.trim().toLowerCase()}__${category.trim().toLowerCase()}__${itemType.trim().toLowerCase()}`;
 }
 
 function formatBilingualCriterion(raw: unknown): string {
@@ -98,12 +99,14 @@ async function generateCriteriaForSingleItem(
   ai: GoogleGenAI,
   itemName: string,
   malayalamName = "",
-  category = ""
+  category = "",
+  itemType = ""
 ): Promise<string[]> {
   const promptLines = [
     `Item Name (English): ${itemName}`,
     malayalamName ? `Malayalam Name: ${malayalamName}` : "",
     category ? `Category: ${category}` : "",
+    itemType ? `Item Type: ${itemType}${itemType.toLowerCase() === "group" ? " (emphasize team coordination, synchronization, formations, and collective stage presentation)" : ""}` : "",
   ].filter(Boolean);
 
   const response = await ai.models.generateContent({
@@ -145,6 +148,7 @@ async function generateCriteriaForBatch(
       itemName: it.itemName,
       malayalamName: it.malayalamName || "",
       category: it.category || "General",
+      itemType: it.itemType || "Individual",
     }))
   );
 
@@ -198,7 +202,7 @@ async function generateCriteriaForBatch(
     await Promise.all(
       missing.slice(0, 10).map(async (it) => {
         try {
-          const single = await generateCriteriaForSingleItem(ai, it.itemName, it.malayalamName, it.category);
+          const single = await generateCriteriaForSingleItem(ai, it.itemName, it.malayalamName, it.category, it.itemType);
           out[it.key] = single;
         } catch {
           // Leave missing if individual generation fails so client uses local fallback
@@ -224,13 +228,15 @@ async function startServer() {
     const itemName = String(req.body?.itemName || "").trim().slice(0, 120);
     const malayalamName = String(req.body?.malayalamName || "").trim().slice(0, 120);
     const category = String(req.body?.category || "").trim().slice(0, 60);
+    const rawItemType = String(req.body?.itemType || "").trim();
+    const itemType = rawItemType.toLowerCase() === "group" ? "Group" : rawItemType ? "Individual" : "";
 
     if (!itemName) {
       res.status(400).json({ error: "Item Name is required to generate criteria." });
       return;
     }
 
-    const cacheKey = buildCacheKey(itemName, malayalamName, category);
+    const cacheKey = buildCacheKey(itemName, malayalamName, category, itemType);
     const cached = criteriaCache.get(cacheKey);
     if (cached) {
       res.json({ criteria: cached, model: GEMINI_MODEL, cached: true });
@@ -244,7 +250,7 @@ async function startServer() {
     }
 
     try {
-      const criteria = await generateCriteriaForSingleItem(ai, itemName, malayalamName, category);
+      const criteria = await generateCriteriaForSingleItem(ai, itemName, malayalamName, category, itemType);
       criteriaCache.set(cacheKey, criteria);
       res.json({ criteria, model: GEMINI_MODEL, cached: false });
     } catch (err) {
@@ -262,6 +268,7 @@ async function startServer() {
         itemName: String(entry?.itemName || "").trim().slice(0, 120),
         malayalamName: String(entry?.malayalamName || "").trim().slice(0, 120),
         category: String(entry?.category || "").trim().slice(0, 60),
+        itemType: String(entry?.itemType || "").trim().toLowerCase() === "group" ? "Group" : "Individual",
       }))
       .filter((entry: CriteriaRequestItem) => Boolean(entry.key && entry.itemName));
 
@@ -274,7 +281,7 @@ async function startServer() {
     const uncached: CriteriaRequestItem[] = [];
 
     for (const item of normalizedItems) {
-      const cacheKey = buildCacheKey(item.itemName, item.malayalamName, item.category);
+      const cacheKey = buildCacheKey(item.itemName, item.malayalamName, item.category, item.itemType);
       const cached = criteriaCache.get(cacheKey);
       if (cached) {
         results[item.key] = cached;
@@ -300,7 +307,7 @@ async function startServer() {
         const crit = generated[item.key];
         if (crit) {
           results[item.key] = crit;
-          criteriaCache.set(buildCacheKey(item.itemName, item.malayalamName, item.category), crit);
+          criteriaCache.set(buildCacheKey(item.itemName, item.malayalamName, item.category, item.itemType), crit);
         }
       }
       res.json({ results, model: GEMINI_MODEL, cached: false });

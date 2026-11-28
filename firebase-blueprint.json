@@ -379,6 +379,12 @@
           "maxLength": 40,
           "description": "Competition division category."
         },
+        "itemType": {
+          "type": "string",
+          "enum": ["Individual", "Group"],
+          "maxLength": 20,
+          "description": "Whether the competition item is an Individual or Group event."
+        },
         "stage": {
           "type": "string",
           "minLength": 1,

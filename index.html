@@ -298,6 +298,7 @@
     body.stage-tv-mode #tab-chart-selector,
     body.stage-tv-mode #tab-group-points-caption,
     body.stage-tv-mode #tab-grade-rules-badge,
+    body.stage-tv-mode #tab-item-type-badge,
     body.stage-tv-mode #tab-chart-mode-label {
       display: none !important;
     }
@@ -1403,8 +1404,9 @@
         <!-- Item-wise Leaderboard -->
         <div id="tab-item-results-section" class="space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <h2 id="tab-item-results-heading" class="text-lg font-bold text-stone-900 font-display">Competition Item Results</h2>
+              <span id="tab-item-type-badge" class="hidden"></span>
               <span id="tab-grade-rules-badge" class="text-xs font-medium text-stone-500 tabular-nums">Grading: A ≥ 80% · B ≥ 70% · C ≥ 60%</span>
             </div>
             <div id="tab-publish-result-wrap" class="no-print flex flex-wrap items-center gap-2.5">
@@ -1836,6 +1838,21 @@
             <label for="admin-item-ml" class="block text-xs font-semibold text-stone-700 mb-1.5">Malayalam Name</label>
             <input id="admin-item-ml" type="text" oninput="handleAddItemNameInput()" placeholder="e.g. ദഫ്‌മുട്ട്, ഒപ്പന, കുച്ചിപ്പുടി, പോസ്റ്റർ രചന" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15" />
           </div>
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <label for="admin-item-type" class="block text-xs font-semibold text-stone-700">Item Type</label>
+              <span id="admin-item-type-hint" class="text-[11px] font-medium text-stone-500">Solo / Individual scoring criteria</span>
+            </div>
+            <input id="admin-item-type" type="hidden" value="Individual" />
+            <div role="group" aria-label="Competition Item Type" class="grid grid-cols-2 gap-1.5 p-1 bg-stone-100/90 border border-stone-200/80 rounded-xl">
+              <button type="button" id="admin-item-type-btn-individual" aria-pressed="true" onclick="handleAddItemTypeSelect('Individual')" class="px-3 py-2 text-xs font-semibold rounded-lg bg-white text-stone-900 shadow-xs border border-stone-200/80 transition-all cursor-pointer">
+                Individual
+              </button>
+              <button type="button" id="admin-item-type-btn-group" aria-pressed="false" onclick="handleAddItemTypeSelect('Group')" class="px-3 py-2 text-xs font-semibold rounded-lg text-stone-600 hover:text-stone-900 border border-transparent transition-all cursor-pointer">
+                Group
+              </button>
+            </div>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label for="admin-item-cat" class="block text-xs font-semibold text-stone-700 mb-1.5">Category</label>
@@ -1909,6 +1926,7 @@
                   <option value="mimicry">Mimicry / മിമിക്രി</option>
                   <option value="mime">Mime / മൈം</option>
                   <option value="drama">Drama &amp; Skit / നാടകം / സ്കിറ്റ്</option>
+                  <option value="group_default">Group Event Standard Rubric (Team Sync &amp; Formation)</option>
                   <option value="custom">Custom / Editable Rubric</option>
                 </select>
                 <button type="button" id="admin-ai-criteria-btn" onclick="handleAiGenerateItemCriteria()" class="px-3.5 py-2.5 text-xs font-semibold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 rounded-xl shadow-sm transition-all duration-150 active:scale-[0.98] whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
@@ -1948,8 +1966,11 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label for="admin-part-item" class="block text-xs font-semibold text-stone-700 mb-1.5">Select Item</label>
-              <select id="admin-part-item" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15"></select>
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <label for="admin-part-item" class="block text-xs font-semibold text-stone-700">Select Item</label>
+                <span id="admin-part-item-type-badge" class="hidden"></span>
+              </div>
+              <select id="admin-part-item" onchange="syncAdminPartItemTypeBadge()" class="w-full px-3.5 py-2.5 text-sm bg-white border border-stone-200/90 hover:border-stone-300 rounded-xl shadow-[0_1px_2px_rgba(28,25,23,0.03)] transition-all focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-500/15"></select>
             </div>
             <div>
               <label for="admin-part-group" class="block text-xs font-semibold text-stone-700 mb-1.5">Select Group</label>
@@ -3523,6 +3544,12 @@
         "Script, Dialogue & Theme / തിരക്കഥയും സംഭാഷണവും പ്രമേയവും",
         "Direction, Stage Setting & Timing / സംവിധാനവും രംഗസജ്ജീകരണവും സമയക്രമവും",
         "Teamwork & Overall Impact / കൂട്ടായ്മയും സമ്പൂർണ്ണ അവതരണമികവും"
+      ],
+      group_default: [
+        "Team Coordination & Synchronization",
+        "Formation, Movement & Stage Utilization",
+        "Rhythm, Expression & Theme Execution",
+        "Overall Group Impact & Presentation"
       ]
     };
 
@@ -3573,8 +3600,86 @@
       mimicry: "Mimicry / മിമിക്രി",
       mime: "Mime / മൈം",
       drama: "Drama & Skit / നാടകം / സ്കിറ്റ്",
+      group_default: "Group Event Standard Rubric",
       custom: "Custom / Editable Rubric"
     };
+
+    const GROUP_EVENT_PRESET_KEYS = new Set([
+      "group_default",
+      "thiruvathira",
+      "oppana",
+      "duffmuttu",
+      "vattappattu",
+      "kolkkali",
+      "margamkali",
+      "group_song",
+      "patriotic_song",
+      "ganamela",
+      "folk_song",
+      "vanchippattu",
+      "mime",
+      "drama"
+    ]);
+
+    const FESTIVAL_MANUAL_GROUP_KEYS = new Set([
+      "mappilappattu_group",
+      "group_song_indian",
+      "group_song_western",
+      "patriotic_song",
+      "ganamela",
+      "folk_song",
+      "vanchippattu",
+      "chendamelam",
+      "panchavadyam",
+      "band_melam",
+      "folk_dance_group",
+      "thiruvathira",
+      "oppana",
+      "duffmuttu",
+      "arabanamuttu",
+      "vattappattu",
+      "kolkkali",
+      "parichamuttukali",
+      "poorakkali",
+      "margamkali",
+      "mime",
+      "drama",
+      "skit"
+    ]);
+
+    function inferItemTypeFromMeta(itemName = "", malayalamName = "", presetKey = "") {
+      const text = `${String(itemName || "")} ${String(malayalamName || "")}`.toLowerCase();
+      if (/\b(solo|single|individual|mono\s*act|monoact)\b|സിംഗിൾ|സോളോ|ഏകാംഗ/.test(text)) {
+        return "Individual";
+      }
+      if (/\b(group|team|ensemble|choir|chorus|band\s*melam|panchavadyam|chendamelam|sangha|sangham|skit|tableau|flash\s*mob)\b|സംഘ|ഗ്രൂപ്പ്|കൂട്ട/.test(text)) {
+        return "Group";
+      }
+      const key = presetKey || matchLocalCriteriaPresetKey(itemName, malayalamName);
+      if (key && GROUP_EVENT_PRESET_KEYS.has(key)) {
+        return "Group";
+      }
+      return "Individual";
+    }
+
+    function normalizeItemType(rawType, itemName = "", malayalamName = "", presetKey = "") {
+      const cleaned = String(rawType || "").trim().toLowerCase();
+      if (cleaned === "group" || cleaned === "team") return "Group";
+      if (cleaned === "individual" || cleaned === "solo" || cleaned === "single") return "Individual";
+      return inferItemTypeFromMeta(itemName, malayalamName, presetKey);
+    }
+
+    function resolveItemType(item) {
+      if (!item) return "Individual";
+      return normalizeItemType(item.itemType, item.name, item.malayalamName);
+    }
+
+    function renderItemTypeBadgeHtml(itemType) {
+      const isGroup = String(itemType || "").toLowerCase() === "group";
+      return isGroup
+        ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-indigo-50 text-indigo-800 border border-indigo-200/80 shrink-0">Group</span>`
+        : `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-stone-100 text-stone-600 border border-stone-200/80 shrink-0">Individual</span>`;
+    }
 
     const FESTIVAL_MANUAL_CATALOG = {
       essay_ml: { name: "Essay Writing (Malayalam)", ml: "ഉപന്യാസം (മലയാളം)", preset: "writing" },
@@ -3871,8 +3976,15 @@
       "Overall Presentation / സമ്പൂർണ്ണ അവതരണം"
     ];
 
-    function generateSmartOfflineCriteria(itemName = "", malayalamName = "", category = "") {
+    function generateSmartOfflineCriteria(itemName = "", malayalamName = "", category = "", itemType = "") {
+      const isGroupType = String(itemType || "").trim().toLowerCase() === "group";
       const presetKey = matchLocalCriteriaPresetKey(itemName, malayalamName);
+      if (isGroupType) {
+        if (presetKey && GROUP_EVENT_PRESET_KEYS.has(presetKey) && CRITERIA_PRESETS[presetKey]) {
+          return { criteria: [...CRITERIA_PRESETS[presetKey]], presetKey };
+        }
+        return { criteria: [...CRITERIA_PRESETS.group_default], presetKey: "group_default" };
+      }
       if (presetKey && CRITERIA_PRESETS[presetKey]) {
         return { criteria: [...CRITERIA_PRESETS[presetKey]], presetKey };
       }
@@ -3885,19 +3997,19 @@
       return { criteria: [...GENERIC_SMART_OFFLINE_CRITERIA], presetKey: "custom" };
     }
 
-    function normalizeCriteriaArray(rawCriteria, fallbackName = "", fallbackMl = "") {
+    function normalizeCriteriaArray(rawCriteria, fallbackName = "", fallbackMl = "", fallbackItemType = "") {
       if (Array.isArray(rawCriteria) && rawCriteria.length === 4) {
         const cleaned = rawCriteria.map(c => String(c || "").trim().slice(0, 120));
         if (cleaned.every(c => c.length >= 1)) {
           return cleaned;
         }
       }
-      return generateSmartOfflineCriteria(fallbackName, fallbackMl).criteria;
+      return generateSmartOfflineCriteria(fallbackName, fallbackMl, "", fallbackItemType).criteria;
     }
 
     function resolveItemCriteria(item) {
       if (!item) return [...CRITERIA_PRESETS.dance];
-      return normalizeCriteriaArray(item.criteria, item.name, item.malayalamName);
+      return normalizeCriteriaArray(item.criteria, item.name, item.malayalamName, resolveItemType(item));
     }
 
     function stripCriterionSuffix(text) {
@@ -3957,8 +4069,8 @@
           { id: "grp_yellow", name: "Yellow House", color: "#D97706" }
         ],
         items: [
-          { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance], isPublished: true, publishedAt: new Date().toISOString() },
-          { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.dance], isPublished: false, publishedAt: null }
+          { id: "item_1", name: "Bharatanatyam", malayalamName: "ഭരതനാട്യം", category: "High School", itemType: "Individual", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance], isPublished: true, publishedAt: new Date().toISOString() },
+          { id: "item_2", name: "Mohiniyattam", malayalamName: "മോഹിനിയാട്ടം", category: "Higher Secondary", itemType: "Individual", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.dance], isPublished: false, publishedAt: null }
         ],
         participants: [
           { id: "p_101", itemId: "item_1", chestNo: "101", name: "Meenakshi S. Nair", school: "Providence Girls HSS, Kozhikode", groupId: "grp_red", groupName: "Red House" },
@@ -4001,10 +4113,10 @@
           { id: "demo_grp_yellow", name: "Yellow House", color: "#D97706" }
         ],
         items: [
-          { id: "demo_item_1", name: "Mappilappattu (HS)", malayalamName: "മാപ്പിളപ്പാട്ട് (HS)", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.music], isPublished: true, publishedAt: new Date(Date.now() - 45 * 60000).toISOString() },
-          { id: "demo_item_2", name: "Elocution - Malayalam", malayalamName: "പ്രസംഗം - മലയാളം", category: "Higher Secondary", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.speech], isPublished: true, publishedAt: new Date(Date.now() - 25 * 60000).toISOString() },
-          { id: "demo_item_3", name: "Oppana (Group)", malayalamName: "ഒപ്പന (സംഘം)", category: "High School", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.dance], isPublished: true, publishedAt: new Date(Date.now() - 10 * 60000).toISOString() },
-          { id: "demo_item_4", name: "Light Music", malayalamName: "ലളിതഗാനം", category: "General", stage: "Stage 3 — Kabani", criteria: [...CRITERIA_PRESETS.music], isPublished: false, publishedAt: null }
+          { id: "demo_item_1", name: "Mappilappattu (HS)", malayalamName: "മാപ്പിളപ്പാട്ട് (HS)", category: "High School", itemType: "Individual", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.music], isPublished: true, publishedAt: new Date(Date.now() - 45 * 60000).toISOString() },
+          { id: "demo_item_2", name: "Elocution - Malayalam", malayalamName: "പ്രസംഗം - മലയാളം", category: "Higher Secondary", itemType: "Individual", stage: "Stage 2 — Periyar", criteria: [...CRITERIA_PRESETS.speech], isPublished: true, publishedAt: new Date(Date.now() - 25 * 60000).toISOString() },
+          { id: "demo_item_3", name: "Oppana (Group)", malayalamName: "ഒപ്പന (സംഘം)", category: "High School", itemType: "Group", stage: "Stage 1 — Nila", criteria: [...CRITERIA_PRESETS.oppana], isPublished: true, publishedAt: new Date(Date.now() - 10 * 60000).toISOString() },
+          { id: "demo_item_4", name: "Light Music", malayalamName: "ലളിതഗാനം", category: "General", itemType: "Individual", stage: "Stage 3 — Kabani", criteria: [...CRITERIA_PRESETS.music], isPublished: false, publishedAt: null }
         ],
         participants: [
           { id: "demo_p_101", itemId: "demo_item_1", chestNo: "101", name: "Amina Fathima K.", school: "Markaz Girls HSS, Karanthur", groupId: "demo_grp_red", groupName: "Red House" },
@@ -7077,7 +7189,7 @@
       const currentPartGroupFilter = partGroupFilterEl?.value || "all";
 
       const opts = window.state.items.length
-        ? window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)})</option>`).join("")
+        ? window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(resolveItemType(it))})</option>`).join("")
         : `<option value="">No competition items available</option>`;
 
       document.getElementById("tab-item-select").innerHTML = opts;
@@ -7119,7 +7231,7 @@
 
       if (partItemFilterEl) {
         partItemFilterEl.innerHTML = `<option value="all">All Competition Items</option>` +
-          window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)})</option>`).join("");
+          window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(resolveItemType(it))})</option>`).join("");
         partItemFilterEl.value = (currentPartItemFilter === "all" || window.state.items.some(i => i.id === currentPartItemFilter))
           ? currentPartItemFilter
           : "all";
@@ -7137,7 +7249,7 @@
       if (scoresItemFilterEl) {
         const currentScoresItemFilter = scoresItemFilterEl.value || "all";
         scoresItemFilterEl.innerHTML = `<option value="all">All Competition Items</option>` +
-          window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)})</option>`).join("");
+          window.state.items.map(it => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.name)} (${escapeHtml(it.category)} · ${escapeHtml(resolveItemType(it))})</option>`).join("");
         scoresItemFilterEl.value = (currentScoresItemFilter === "all" || window.state.items.some(i => i.id === currentScoresItemFilter))
           ? currentScoresItemFilter
           : "all";
@@ -7153,6 +7265,9 @@
         document.getElementById("admin-part-group").value = currentAdminPartGroup;
       }
 
+      if (typeof window.syncAdminPartItemTypeBadge === "function") {
+        window.syncAdminPartItemTypeBadge();
+      }
       syncAdminLiveItemUI();
       syncJudgeActiveItemUI();
       const stageDatalistEl = document.getElementById("admin-stages-datalist");
@@ -8611,6 +8726,21 @@
       updateStageTvHeaderMeta(selectedItem);
       renderLiveResultsTicker();
 
+      const tabTypeBadgeEl = document.getElementById("tab-item-type-badge");
+      if (tabTypeBadgeEl) {
+        if (!dark && selectedItem) {
+          const itemType = resolveItemType(selectedItem);
+          const isGroup = itemType === "Group";
+          tabTypeBadgeEl.textContent = itemType;
+          tabTypeBadgeEl.className = isGroup
+            ? "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-indigo-50 text-indigo-800 border border-indigo-200/80 shrink-0"
+            : "inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-stone-100 text-stone-600 border border-stone-200/80 shrink-0";
+        } else {
+          tabTypeBadgeEl.textContent = "";
+          tabTypeBadgeEl.className = "hidden";
+        }
+      }
+
       // Sync Public Publication Control for Selected Item
       const pubWrap = document.getElementById("tab-publish-result-wrap");
       const pubStatus = document.getElementById("tab-publish-status-text");
@@ -8634,7 +8764,7 @@
         ? `${selectedItem.name}${selectedItem.malayalamName ? " (" + selectedItem.malayalamName + ")" : ""}`
         : "Official Results";
       document.getElementById("print-event-meta").textContent = selectedItem
-        ? `Event ${activeEventCode} · ${selectedItem.category} · ${selectedItem.stage} · Printed ${new Date().toLocaleDateString()}`
+        ? `Event ${activeEventCode} · ${selectedItem.category} · ${resolveItemType(selectedItem)} · ${selectedItem.stage} · Printed ${new Date().toLocaleDateString()}`
         : `Event ${activeEventCode}`;
 
       if (parts.length === 0) {
@@ -8844,7 +8974,8 @@
           String(it.name || "").toLowerCase().includes(searchLower) ||
           String(it.malayalamName || "").toLowerCase().includes(searchLower) ||
           String(it.category || "").toLowerCase().includes(searchLower) ||
-          String(it.stage || "").toLowerCase().includes(searchLower)
+          String(it.stage || "").toLowerCase().includes(searchLower) ||
+          resolveItemType(it).toLowerCase().includes(searchLower)
         );
       });
 
@@ -8869,6 +9000,7 @@
         itemsList.innerHTML = filteredItems.map(it => {
           const itemCriteria = resolveItemCriteria(it);
           const itemPresetKey = detectCriteriaPresetKey(itemCriteria);
+          const itemType = resolveItemType(it);
           const criteriaSummary = itemCriteria.map(c => c.replace(/\s*\(0\s*[-–]\s*25\)/gi, "")).join(" · ");
           if (editingAdminItemId === it.id) {
             return `
@@ -8883,7 +9015,14 @@
                     <input id="edit-item-ml-${escapeHtml(it.id)}" type="text" maxlength="120" value="${escapeHtml(it.malayalamName || "")}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600" />
                   </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Item Type</label>
+                    <select id="edit-item-type-${escapeHtml(it.id)}" onchange="handleEditItemTypeChange('${escapeHtml(it.id)}')" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600">
+                      <option value="Individual" ${itemType === "Individual" ? "selected" : ""}>Individual</option>
+                      <option value="Group" ${itemType === "Group" ? "selected" : ""}>Group</option>
+                    </select>
+                  </div>
                   <div>
                     <label class="block text-[11px] font-semibold text-stone-600 mb-0.5">Category</label>
                     <select id="edit-item-cat-${escapeHtml(it.id)}" class="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-600">
@@ -8906,7 +9045,7 @@
                         ${Object.entries(CRITERIA_PRESET_LABELS).map(([pKey, pLabel]) => `<option value="${escapeHtml(pKey)}" ${itemPresetKey === pKey ? "selected" : ""}>${escapeHtml(pLabel)}</option>`).join("")}
                       </select>
                       <button type="button" id="edit-ai-criteria-btn-${escapeHtml(it.id)}" onclick="handleAiGenerateEditItemCriteria('${escapeHtml(it.id)}')" class="px-2.5 py-1.5 text-[11px] font-semibold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-md transition-colors whitespace-nowrap disabled:opacity-60">
-                        ✨ AI Generate
+                        ✨ Auto-Fill Criteria
                       </button>
                     </div>
                   </div>
@@ -8935,7 +9074,10 @@
           return `
             <div class="px-5 py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
               <div class="min-w-0">
-                <div class="text-sm font-semibold text-stone-900 truncate">${escapeHtml(it.name)}${it.malayalamName ? " · " + escapeHtml(it.malayalamName) : ""}</div>
+                <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+                  <span class="text-sm font-semibold text-stone-900 truncate">${escapeHtml(it.name)}${it.malayalamName ? " · " + escapeHtml(it.malayalamName) : ""}</span>
+                  ${renderItemTypeBadgeHtml(itemType)}
+                </div>
                 <div class="text-xs text-stone-500">
                   ${escapeHtml(it.category)} · ${escapeHtml(it.stage)} · <span class="text-amber-800 font-medium">${escapeHtml(CRITERIA_PRESET_LABELS[itemPresetKey] || "Custom Criteria")}</span>
                   · <span class="${isPublished ? "text-emerald-700 font-semibold" : "text-stone-400"}">${isPublished ? `Published${escapeHtml(pubTimeLabel)}` : "Draft (Hidden)"}</span>
@@ -9011,6 +9153,7 @@
           const itemLabel = item
             ? `${item.name}${item.category ? ` (${item.category})` : ""}`
             : "Event";
+          const itemTypeBadge = item ? renderItemTypeBadgeHtml(resolveItemType(item)) : "";
           const grp = p.groupId ? groups.find(g => g.id === p.groupId) : null;
           const groupLabel = grp?.name || p.groupName || "";
           const groupColor = grp?.color || "#78716C";
@@ -9022,6 +9165,7 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
                   <span class="truncate">${escapeHtml(itemLabel)}${p.school ? " · " + escapeHtml(p.school) : ""}</span>
+                  ${itemTypeBadge}
                   ${groupLabel ? `<span class="inline-flex items-center gap-1 font-semibold text-stone-700 shrink-0"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(groupColor)}"></span>${escapeHtml(groupLabel)}</span>` : ""}
                 </div>
               </div>
@@ -10014,9 +10158,24 @@
       }
     };
 
-    async function resolveAiCriteriaWithFallback(itemName, malayalamName = "", category = "") {
+    async function resolveAiCriteriaWithFallback(itemName, malayalamName = "", category = "", itemType = "") {
+      const isGroupType = String(itemType || "").trim().toLowerCase() === "group";
       // 1. Check the built-in Festival Manual & Smart Offline Criteria Dictionary first (instant & exact)
       const matchedKey = matchLocalCriteriaPresetKey(itemName, malayalamName);
+      if (isGroupType) {
+        if (matchedKey && GROUP_EVENT_PRESET_KEYS.has(matchedKey) && CRITERIA_PRESETS[matchedKey]) {
+          return {
+            criteria: [...CRITERIA_PRESETS[matchedKey]],
+            source: "smart-offline",
+            presetKey: matchedKey
+          };
+        }
+        return {
+          criteria: [...CRITERIA_PRESETS.group_default],
+          source: "smart-offline",
+          presetKey: "group_default"
+        };
+      }
       if (matchedKey && CRITERIA_PRESETS[matchedKey]) {
         return {
           criteria: [...CRITERIA_PRESETS[matchedKey]],
@@ -10044,7 +10203,7 @@
           const res = await fetch("/api/ai/criteria", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ itemName, malayalamName, category }),
+            body: JSON.stringify({ itemName, malayalamName, category, itemType }),
             signal: controller.signal
           });
           const data = await res.json().catch(() => ({}));
@@ -10059,7 +10218,7 @@
       }
 
       // 3. Built-in Smart Offline Criteria Engine fallback
-      const smart = generateSmartOfflineCriteria(itemName, malayalamName, category);
+      const smart = generateSmartOfflineCriteria(itemName, malayalamName, category, itemType);
       return {
         criteria: smart.criteria,
         source: "smart-offline",
@@ -10068,10 +10227,98 @@
     }
 
     let addItemCriteriaTouched = false;
+    let addItemTypeManuallySet = false;
     let addItemAiDebounceTimer = null;
     let addItemAiLastKey = "";
     let addItemAiInFlightKey = "";
     let addItemAiReqSeq = 0;
+
+    function getAddFormItemType() {
+      const raw = document.getElementById("admin-item-type")?.value || "Individual";
+      return String(raw).trim().toLowerCase() === "group" ? "Group" : "Individual";
+    }
+
+    function setAddItemTypeUI(nextType) {
+      const normalized = String(nextType || "").trim().toLowerCase() === "group" ? "Group" : "Individual";
+      const hiddenEl = document.getElementById("admin-item-type");
+      const indBtn = document.getElementById("admin-item-type-btn-individual");
+      const grpBtn = document.getElementById("admin-item-type-btn-group");
+      const hintEl = document.getElementById("admin-item-type-hint");
+      if (hiddenEl) hiddenEl.value = normalized;
+      const activeCls = "px-3 py-2 text-xs font-semibold rounded-lg bg-white text-stone-900 shadow-xs border border-stone-200/80 transition-all cursor-pointer";
+      const activeGroupCls = "px-3 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white shadow-xs border border-indigo-600 transition-all cursor-pointer";
+      const idleCls = "px-3 py-2 text-xs font-semibold rounded-lg text-stone-600 hover:text-stone-900 border border-transparent transition-all cursor-pointer";
+      if (indBtn) {
+        indBtn.setAttribute("aria-pressed", normalized === "Individual" ? "true" : "false");
+        indBtn.className = normalized === "Individual" ? activeCls : idleCls;
+      }
+      if (grpBtn) {
+        grpBtn.setAttribute("aria-pressed", normalized === "Group" ? "true" : "false");
+        grpBtn.className = normalized === "Group" ? activeGroupCls : idleCls;
+      }
+      if (hintEl) {
+        hintEl.textContent = normalized === "Group"
+          ? "Group judging criteria ready (editable below)"
+          : "Solo / Individual scoring criteria";
+        hintEl.className = normalized === "Group"
+          ? "text-[11px] font-medium text-indigo-700"
+          : "text-[11px] font-medium text-stone-500";
+      }
+      return normalized;
+    }
+
+    window.handleAddItemTypeSelect = (nextType) => {
+      const normalized = setAddItemTypeUI(nextType);
+      addItemTypeManuallySet = true;
+      if (addItemCriteriaTouched) return;
+      const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
+      const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
+      const matched = matchLocalCriteriaPresetKey(nameVal, mlVal);
+      if (normalized === "Group") {
+        if (matched && GROUP_EVENT_PRESET_KEYS.has(matched) && CRITERIA_PRESETS[matched]) {
+          applyAddFormCriteriaList(CRITERIA_PRESETS[matched], matched);
+          setAddItemAiStatus(`✓ Group criteria applied for "${CRITERIA_PRESET_LABELS[matched] || matched}" (editable below).`, "success");
+        } else {
+          applyAddFormCriteriaList(CRITERIA_PRESETS.group_default, "group_default");
+          setAddItemAiStatus("✓ Auto-filled 4 Group judging criteria (editable below).", "success");
+        }
+      } else {
+        if (matched && matched !== "group_default" && CRITERIA_PRESETS[matched]) {
+          applyAddFormCriteriaList(CRITERIA_PRESETS[matched], matched);
+          setAddItemAiStatus(`✓ Individual criteria applied for "${CRITERIA_PRESET_LABELS[matched] || matched}" (editable below).`, "success");
+        } else if (nameVal || mlVal) {
+          const smart = generateSmartOfflineCriteria(nameVal, mlVal, getAddFormCategoryValue(), "Individual");
+          applyAddFormCriteriaList(smart.criteria, smart.presetKey || "");
+          setAddItemAiStatus("✓ Individual criteria applied (editable below).", "success");
+        } else {
+          applyAddFormCriteriaList(CRITERIA_PRESETS.dance, "dance");
+          setAddItemAiStatus("");
+        }
+      }
+    };
+
+    window.syncAdminPartItemTypeBadge = () => {
+      const selEl = document.getElementById("admin-part-item");
+      const badgeEl = document.getElementById("admin-part-item-type-badge");
+      const nameInput = document.getElementById("admin-part-name");
+      if (!selEl || !badgeEl) return;
+      const item = (window.state?.items || []).find(it => it.id === selEl.value);
+      if (!item) {
+        badgeEl.textContent = "";
+        badgeEl.className = "hidden";
+        if (nameInput) nameInput.placeholder = "Full Name";
+        return;
+      }
+      const itemType = resolveItemType(item);
+      const isGroup = itemType === "Group";
+      badgeEl.textContent = itemType;
+      badgeEl.className = isGroup
+        ? "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-indigo-50 text-indigo-800 border border-indigo-200/80"
+        : "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-stone-100 text-stone-600 border border-stone-200/80";
+      if (nameInput) {
+        nameInput.placeholder = isGroup ? "Team Lead / Group Name (e.g. Aysha & Team)" : "Full Name";
+      }
+    };
 
     function getAddFormCategoryValue() {
       const catSelect = document.getElementById("admin-item-cat");
@@ -10120,19 +10367,32 @@
       const mlInp = document.getElementById("admin-item-ml");
       if (nameInp) nameInp.value = entry.name;
       if (mlInp) mlInp.value = entry.ml;
+      const inferredType = FESTIVAL_MANUAL_GROUP_KEYS.has(catalogKey) ? "Group" : inferItemTypeFromMeta(entry.name, entry.ml, entry.preset);
+      setAddItemTypeUI(inferredType);
+      addItemTypeManuallySet = false;
       addItemCriteriaTouched = false;
-      const criteria = CRITERIA_PRESETS[entry.preset] || CRITERIA_PRESETS.dance;
+      const criteria = CRITERIA_PRESETS[entry.preset] || (inferredType === "Group" ? CRITERIA_PRESETS.group_default : CRITERIA_PRESETS.dance);
       applyAddFormCriteriaList(criteria, entry.preset);
-      setAddItemAiStatus(`✓ Auto-filled 4 bilingual criteria for "${entry.name}" (editable below).`, "success");
+      setAddItemAiStatus(`✓ Auto-filled 4 ${inferredType === "Group" ? "Group" : "bilingual"} criteria for "${entry.name}" (editable below).`, "success");
     };
 
     async function requestAiCriteriaForAddForm({ manual = false } = {}) {
       const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
       const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
       const category = getAddFormCategoryValue();
+      const itemType = getAddFormItemType();
       const aiBtn = document.getElementById("admin-ai-criteria-btn");
 
       if (!nameVal) {
+        if (itemType === "Group") {
+          applyAddFormCriteriaList(CRITERIA_PRESETS.group_default, "group_default");
+          if (manual) {
+            addItemCriteriaTouched = false;
+            window.showToast("Group judging criteria applied");
+          }
+          setAddItemAiStatus("✓ Auto-filled 4 Group judging criteria (editable below).", "success");
+          return;
+        }
         if (manual) {
           window.showToast("Enter an Item Name or pick from Festival Manual first");
           document.getElementById("admin-item-name")?.focus();
@@ -10141,15 +10401,15 @@
       }
 
       const seq = ++addItemAiReqSeq;
-      addItemAiInFlightKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}`;
-      setAddItemAiStatus(`✨ Auto-filling tailored bilingual criteria for "${nameVal}"...`, "info");
+      addItemAiInFlightKey = `${nameVal.toLowerCase()}__${mlVal.toLowerCase()}__${category.toLowerCase()}__${itemType.toLowerCase()}`;
+      setAddItemAiStatus(`✨ Auto-filling tailored criteria for "${nameVal}"...`, "info");
       if (aiBtn) {
         aiBtn.disabled = true;
         aiBtn.textContent = "✨ Auto-Filling...";
       }
 
       try {
-        const result = await resolveAiCriteriaWithFallback(nameVal, mlVal, category);
+        const result = await resolveAiCriteriaWithFallback(nameVal, mlVal, category, itemType);
         if (seq !== addItemAiReqSeq) return;
 
         const currentName = (document.getElementById("admin-item-name")?.value || "").trim();
@@ -10162,6 +10422,9 @@
         if (result.source === "server-ai") {
           setAddItemAiStatus(`✨ Gemini AI generated 4 tailored criteria for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast(`✨ AI criteria generated for "${nameVal}"`);
+        } else if (result.presetKey === "group_default") {
+          setAddItemAiStatus(`✓ Auto-filled 4 Group judging criteria for "${nameVal}" (editable below).`, "success");
+          if (manual) window.showToast("Group judging criteria applied");
         } else {
           setAddItemAiStatus(`✓ Smart Offline Criteria Applied for "${nameVal}" (editable below).`, "success");
           if (manual) window.showToast("Smart Offline Criteria Applied");
@@ -10190,18 +10453,46 @@
         clearTimeout(addItemAiDebounceTimer);
         addItemAiDebounceTimer = null;
       }
-      if (addItemCriteriaTouched) return;
       const nameVal = (document.getElementById("admin-item-name")?.value || "").trim();
       const mlVal = (document.getElementById("admin-item-ml")?.value || "").trim();
 
+      if (!addItemTypeManuallySet) {
+        if (!nameVal && !mlVal) {
+          setAddItemTypeUI("Individual");
+        } else {
+          setAddItemTypeUI(inferItemTypeFromMeta(nameVal, mlVal));
+        }
+      }
+
+      if (addItemCriteriaTouched) return;
+      const currentType = getAddFormItemType();
+
       if (!nameVal && !mlVal) {
         addItemAiLastKey = "";
-        setAddItemAiStatus("");
-        applyAddFormCriteriaList(CRITERIA_PRESETS.dance, "dance");
+        if (currentType === "Group") {
+          applyAddFormCriteriaList(CRITERIA_PRESETS.group_default, "group_default");
+          setAddItemAiStatus("✓ Auto-filled 4 Group judging criteria (editable below).", "success");
+        } else {
+          setAddItemAiStatus("");
+          applyAddFormCriteriaList(CRITERIA_PRESETS.dance, "dance");
+        }
         return;
       }
 
       const matched = matchLocalCriteriaPresetKey(nameVal, mlVal);
+      if (currentType === "Group") {
+        if (matched && GROUP_EVENT_PRESET_KEYS.has(matched) && CRITERIA_PRESETS[matched]) {
+          addItemAiLastKey = "";
+          applyAddFormCriteriaList(CRITERIA_PRESETS[matched], matched);
+          setAddItemAiStatus(`✓ Auto-detected Group criteria for "${CRITERIA_PRESET_LABELS[matched] || matched}" (editable below).`, "success");
+          return;
+        }
+        addItemAiLastKey = "";
+        applyAddFormCriteriaList(CRITERIA_PRESETS.group_default, "group_default");
+        setAddItemAiStatus("✓ Auto-filled 4 Group judging criteria (editable below).", "success");
+        return;
+      }
+
       if (matched && CRITERIA_PRESETS[matched]) {
         addItemAiLastKey = "";
         applyAddFormCriteriaList(CRITERIA_PRESETS[matched], matched);
@@ -10231,6 +10522,9 @@
       }
       const presetEl = document.getElementById("admin-item-criteria-preset");
       const key = presetEl?.value || "dance";
+      if (!fromReset && GROUP_EVENT_PRESET_KEYS.has(key)) {
+        setAddItemTypeUI("Group");
+      }
       if (key !== "custom" && CRITERIA_PRESETS[key]) {
         CRITERIA_PRESETS[key].forEach((label, idx) => {
           const inp = document.getElementById(`admin-item-crit-${idx + 1}`);
@@ -10284,12 +10578,14 @@
       }
 
       const stageRaw = normalizeStageName(document.getElementById("admin-item-stage").value) || (getConfiguredStages()[0] || "Stage 1");
+      const itemType = getAddFormItemType();
       const id = "item_" + Date.now();
       const item = {
         id,
         name: document.getElementById("admin-item-name").value.trim(),
         malayalamName: document.getElementById("admin-item-ml").value.trim(),
         category: resolvedCategory,
+        itemType,
         stage: stageRaw,
         criteria: rawCriteria,
         isPublished: false,
@@ -10318,10 +10614,12 @@
       addItemAiReqSeq++;
       setAddItemAiStatus("");
       addItemCriteriaTouched = false;
+      addItemTypeManuallySet = false;
+      setAddItemTypeUI("Individual");
       const presetEl = document.getElementById("admin-item-criteria-preset");
       if (presetEl) presetEl.value = "dance";
       window.handleAddItemPresetChange(true);
-      window.showToast(`Added "${item.name}"`);
+      window.showToast(`Added "${item.name}" (${item.itemType})`);
       try {
         await setDoc(eventDocument("items", id), {
           ...item,
@@ -10539,11 +10837,11 @@
     window.downloadCsvTemplate = (type) => {
       const content = type === "items"
         ? [
-            "Item Name,Malayalam Name,Category,Stage",
-            "Bharatanatyam,ഭരതനാട്യം,High School,Stage 1 — Nila",
-            "Mohiniyattam,മോഹിനിയാട്ടം,Higher Secondary,Stage 2 — Periyar",
-            "Elocution,പ്രസംഗം,Junior,Stage 3 — Kabani",
-            "Mappilappattu,മാപ്പിളപ്പാട്ട്,Senior,Stage 3 — Kabani"
+            "Item Name,Malayalam Name,Category,Item Type,Stage",
+            "Bharatanatyam,ഭരതനാട്യം,High School,Individual,Stage 1 — Nila",
+            "Oppana,ഒപ്പന,High School,Group,Stage 1 — Nila",
+            "Elocution,പ്രസംഗം,Junior,Individual,Stage 3 — Kabani",
+            "Group Song,സംഘഗാനം,Senior,Group,Stage 2 — Periyar"
           ].join("\n")
         : [
             "Item Name,Chest No,Participant Name,Group,Category,School,Stage",
@@ -10581,7 +10879,7 @@
 
     async function enrichCsvCustomItemsWithAi(itemsToEnrich) {
       const unknownItems = (itemsToEnrich || []).filter(
-        it => matchLocalCriteriaPresetKey(it.name, it.malayalamName) === null
+        it => resolveItemType(it) !== "Group" && matchLocalCriteriaPresetKey(it.name, it.malayalamName) === null
       );
       if (unknownItems.length === 0) {
         setCsvAiStatus("");
@@ -10609,7 +10907,8 @@
                   key: it.id,
                   itemName: it.name,
                   malayalamName: it.malayalamName || "",
-                  category: it.category || "General"
+                  category: it.category || "General",
+                  itemType: resolveItemType(it)
                 }))
               }),
               signal: controller.signal
@@ -10626,7 +10925,7 @@
                 it.criteria = generated;
                 serverEnrichedCount++;
               } else {
-                it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
+                it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category, resolveItemType(it)).criteria;
               }
             });
           } catch {
@@ -10647,7 +10946,7 @@
         }
 
         unknownItems.forEach(it => {
-          it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category).criteria;
+          it.criteria = generateSmartOfflineCriteria(it.name, it.malayalamName, it.category, resolveItemType(it)).criteria;
         });
         setCsvAiStatus(`✓ Smart Offline Criteria Applied`, "success");
       })();
@@ -10733,6 +11032,7 @@
         const nameIdx = findColIndex(headers, ["itemname", "name", "item", "competitionitem", "event", "eventname"]);
         const mlIdx = findColIndex(headers, ["malayalamname", "malayalam", "mlname", "itemml"]);
         const catIdx = findColIndex(headers, ["category", "cat", "division"]);
+        const typeIdx = findColIndex(headers, ["itemtype", "type", "eventtype"]);
         const stageIdx = findColIndex(headers, ["stage", "venue", "stagevenue"]);
 
         if (nameIdx === -1) {
@@ -10754,6 +11054,8 @@
           }
           const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").trim().slice(0, 120) : "";
           const category = catIdx !== -1 ? normalizeItemCategory(cols[catIdx]) : "General";
+          const rawItemType = typeIdx !== -1 ? String(cols[typeIdx] || "").trim() : "";
+          const itemType = normalizeItemType(rawItemType, name, malayalamName);
           const stageRaw = stageIdx !== -1 ? String(cols[stageIdx] || "").trim() : "";
           const stage = (stageRaw || "Stage 1 — Nila").slice(0, 60);
           const dedupeKey = `${name.toLowerCase()}__${category.toLowerCase()}`;
@@ -10768,16 +11070,17 @@
             name,
             malayalamName,
             category,
+            itemType,
             stage,
-            criteria: normalizeCriteriaArray(null, name, malayalamName)
+            criteria: normalizeCriteriaArray(null, name, malayalamName, itemType)
           });
         });
 
-        previewHead.innerHTML = `<tr><th class="py-2 px-3">Item Name</th><th class="py-2 px-3">Malayalam</th><th class="py-2 px-3">Category</th><th class="py-2 px-3">Stage</th></tr>`;
+        previewHead.innerHTML = `<tr><th class="py-2 px-3">Item Name</th><th class="py-2 px-3">Type</th><th class="py-2 px-3">Category</th><th class="py-2 px-3">Stage</th></tr>`;
         previewBody.innerHTML = itemsToCreate.slice(0, 8).map(it => `
           <tr>
-            <td class="py-2 px-3 font-semibold text-stone-900">${escapeHtml(it.name)}</td>
-            <td class="py-2 px-3 text-stone-600">${escapeHtml(it.malayalamName || "—")}</td>
+            <td class="py-2 px-3 font-semibold text-stone-900">${escapeHtml(it.name)}${it.malayalamName ? ` <span class="font-normal text-stone-500">· ${escapeHtml(it.malayalamName)}</span>` : ""}</td>
+            <td class="py-2 px-3">${renderItemTypeBadgeHtml(it.itemType)}</td>
             <td class="py-2 px-3 text-stone-700">${escapeHtml(it.category)}</td>
             <td class="py-2 px-3 text-stone-600">${escapeHtml(it.stage)}</td>
           </tr>
@@ -10854,13 +11157,15 @@
             const category = rowCat || "General";
             const stage = (stageIdx !== -1 ? String(cols[stageIdx] || "").normalize("NFC").trim() : "") || "Stage 1 — Nila";
             const malayalamName = mlIdx !== -1 ? String(cols[mlIdx] || "").normalize("NFC").trim().slice(0, 120) : "";
+            const inferredItemType = inferItemTypeFromMeta(rawItem, malayalamName);
             itemObj = {
               id: `item_csv_${baseTs}_${itemsToCreate.length}`,
               name: rawItem,
               malayalamName,
               category,
+              itemType: inferredItemType,
               stage: stage.slice(0, 60),
-              criteria: normalizeCriteriaArray(null, rawItem, malayalamName)
+              criteria: normalizeCriteriaArray(null, rawItem, malayalamName, inferredItemType)
             };
             itemsToCreate.push(itemObj);
             itemLookup.set(normalizeCsvLookupKey(itemObj.id), itemObj);
@@ -11200,8 +11505,11 @@
       if (scoreSlotEl) scoreSlotEl.value = "all";
     };
 
+    let editItemCriteriaTouched = false;
+
     window.startEditItem = (itemId) => {
       editingAdminItemId = itemId;
+      editItemCriteriaTouched = false;
       window.renderAdminLists();
       const input = document.getElementById(`edit-item-name-${itemId}`);
       if (input) {
@@ -11212,46 +11520,81 @@
 
     window.cancelEditItem = () => {
       editingAdminItemId = null;
+      editItemCriteriaTouched = false;
       window.renderAdminLists();
+    };
+
+    window.handleEditItemTypeChange = (itemId) => {
+      if (editItemCriteriaTouched) return;
+      const typeVal = document.getElementById(`edit-item-type-${itemId}`)?.value === "Group" ? "Group" : "Individual";
+      const nameVal = (document.getElementById(`edit-item-name-${itemId}`)?.value || "").trim();
+      const mlVal = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim();
+      const catVal = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || "General");
+      const presetEl = document.getElementById(`edit-item-preset-${itemId}`);
+      const matched = matchLocalCriteriaPresetKey(nameVal, mlVal);
+      if (typeVal === "Group") {
+        const useKey = (matched && GROUP_EVENT_PRESET_KEYS.has(matched) && CRITERIA_PRESETS[matched]) ? matched : "group_default";
+        CRITERIA_PRESETS[useKey].forEach((label, idx) => {
+          const inp = document.getElementById(`edit-item-crit-${idx + 1}-${itemId}`);
+          if (inp) inp.value = label;
+        });
+        if (presetEl) presetEl.value = useKey;
+      } else {
+        const smart = generateSmartOfflineCriteria(nameVal, mlVal, catVal, "Individual");
+        smart.criteria.forEach((label, idx) => {
+          const inp = document.getElementById(`edit-item-crit-${idx + 1}-${itemId}`);
+          if (inp) inp.value = label;
+        });
+        if (presetEl) presetEl.value = smart.presetKey || detectCriteriaPresetKey(smart.criteria);
+      }
     };
 
     window.handleAiGenerateEditItemCriteria = async (itemId) => {
       const nameVal = (document.getElementById(`edit-item-name-${itemId}`)?.value || "").trim();
       const mlVal = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim();
       const category = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || "General");
+      const itemType = document.getElementById(`edit-item-type-${itemId}`)?.value === "Group" ? "Group" : "Individual";
       const btn = document.getElementById(`edit-ai-criteria-btn-${itemId}`);
-      if (!nameVal) {
-        window.showToast("Item name is required to generate AI criteria");
+      if (!nameVal && itemType !== "Group") {
+        window.showToast("Item name is required to auto-fill criteria");
         return;
       }
       if (btn) {
         btn.disabled = true;
-        btn.textContent = "✨ Generating...";
+        btn.textContent = "✨ Auto-Filling...";
       }
       try {
-        const result = await resolveAiCriteriaWithFallback(nameVal, mlVal, category);
+        const result = await resolveAiCriteriaWithFallback(nameVal, mlVal, category, itemType);
         result.criteria.forEach((label, idx) => {
           const inp = document.getElementById(`edit-item-crit-${idx + 1}-${itemId}`);
           if (inp) inp.value = label;
         });
         const presetEl = document.getElementById(`edit-item-preset-${itemId}`);
         if (presetEl) presetEl.value = result.presetKey || detectCriteriaPresetKey(result.criteria);
+        editItemCriteriaTouched = false;
         window.showToast(
-          result.source === "smart-offline"
-            ? "Smart Offline Criteria Applied"
-            : `✨ AI criteria generated for "${nameVal}"`
+          result.presetKey === "group_default"
+            ? "Group judging criteria applied"
+            : result.source === "smart-offline"
+              ? "Smart Offline Criteria Applied"
+              : `✨ AI criteria generated for "${nameVal}"`
         );
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.textContent = "✨ AI Generate";
+          btn.textContent = "✨ Auto-Fill Criteria";
         }
       }
     };
 
     window.handleEditItemPresetChange = (itemId) => {
       const presetEl = document.getElementById(`edit-item-preset-${itemId}`);
+      const typeEl = document.getElementById(`edit-item-type-${itemId}`);
       const key = presetEl?.value || "dance";
+      editItemCriteriaTouched = true;
+      if (typeEl && GROUP_EVENT_PRESET_KEYS.has(key)) {
+        typeEl.value = "Group";
+      }
       if (key !== "custom" && CRITERIA_PRESETS[key]) {
         CRITERIA_PRESETS[key].forEach((label, idx) => {
           const inp = document.getElementById(`edit-item-crit-${idx + 1}-${itemId}`);
@@ -11264,6 +11607,7 @@
     };
 
     window.handleEditItemCriteriaInput = (itemId) => {
+      editItemCriteriaTouched = true;
       const presetEl = document.getElementById(`edit-item-preset-${itemId}`);
       if (!presetEl) return;
       const vals = [1, 2, 3, 4].map(i => (document.getElementById(`edit-item-crit-${i}-${itemId}`)?.value || "").trim());
@@ -11278,6 +11622,7 @@
 
       const name = (document.getElementById(`edit-item-name-${itemId}`)?.value || "").trim().slice(0, 120);
       const malayalamName = (document.getElementById(`edit-item-ml-${itemId}`)?.value || "").trim().slice(0, 120);
+      const itemType = document.getElementById(`edit-item-type-${itemId}`)?.value === "Group" ? "Group" : "Individual";
       const category = normalizeItemCategory(document.getElementById(`edit-item-cat-${itemId}`)?.value || existingItem.category);
       const stage = (normalizeStageName(document.getElementById(`edit-item-stage-${itemId}`)?.value || "") || existingItem.stage || (getConfiguredStages()[0] || "Stage 1")).slice(0, 60);
       const criteria = [1, 2, 3, 4].map(i => (document.getElementById(`edit-item-crit-${i}-${itemId}`)?.value || "").trim().slice(0, 120));
@@ -11291,9 +11636,10 @@
         return;
       }
 
-      const updatedItem = { ...existingItem, name, malayalamName, category, stage, criteria };
+      const updatedItem = { ...existingItem, name, malayalamName, itemType, category, stage, criteria };
       window.state.items = window.state.items.map(it => it.id === itemId ? updatedItem : it);
       editingAdminItemId = null;
+      editItemCriteriaTouched = false;
       await autoRegisterStagesFromNames([stage], { persist: true });
       saveLocalState();
       window.refreshAllSelects();
@@ -11304,6 +11650,7 @@
           id: itemId,
           name,
           malayalamName,
+          itemType,
           category,
           stage,
           criteria,
@@ -12853,8 +13200,10 @@
                 <h3 class="text-base sm:text-lg font-bold text-stone-900 font-display leading-snug">
                   ${escapeHtml(item.name)}${item.malayalamName ? ` <span class="text-stone-600 font-normal">(${escapeHtml(item.malayalamName)})</span>` : ""}
                 </h3>
-                <div class="text-xs text-stone-500 mt-0.5">
-                  ${escapeHtml(item.category)} · ${escapeHtml(item.stage)} · <span class="text-emerald-800 font-semibold">${escapeHtml(pubTimeStr)}</span>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-stone-500 mt-0.5">
+                  <span>${escapeHtml(item.category)} · ${escapeHtml(item.stage)}</span>
+                  ${renderItemTypeBadgeHtml(resolveItemType(item))}
+                  <span>· <span class="text-emerald-800 font-semibold">${escapeHtml(pubTimeStr)}</span></span>
                 </div>
               </div>
               <span class="text-xs font-semibold text-stone-500 tabular-nums shrink-0">${rankedAll.length} ${rankedAll.length === 1 ? "entry" : "entries"}</span>
