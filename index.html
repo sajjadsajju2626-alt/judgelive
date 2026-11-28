@@ -251,6 +251,18 @@
         display: none !important;
       }
     }
+    .live-ticker-viewport {
+      position: relative;
+      flex: 1 1 0%;
+      min-width: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .live-ticker-viewport.ticker-scrolling {
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+    }
     .ticker-track {
       display: inline-flex;
       align-items: center;
@@ -267,6 +279,10 @@
       100% { transform: translateX(-50%); }
     }
     @media (prefers-reduced-motion: reduce) {
+      .live-ticker-viewport.ticker-scrolling {
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
       .ticker-track {
         animation: none !important;
       }
@@ -357,7 +373,9 @@
     body.stage-tv-mode #tab-col-j3-header,
     body.stage-tv-mode #leaderboard-body td[data-col="j1"],
     body.stage-tv-mode #leaderboard-body td[data-col="j2"],
-    body.stage-tv-mode #leaderboard-body td[data-col="j3"] {
+    body.stage-tv-mode #leaderboard-body td[data-col="j3"],
+    body.stage-tv-mode #tab-standings-col-raw-header,
+    body.stage-tv-mode #group-standings-body td[data-col="raw"] {
       display: none !important;
     }
     @media (min-width: 1024px) {
@@ -443,19 +461,48 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
-        overflow-x: auto;
+        overflow-x: hidden;
         overscroll-behavior: contain;
         padding-bottom: 0.3rem;
       }
+      body.stage-tv-mode #tab-leaderboard-card table {
+        table-layout: fixed;
+        width: 100%;
+      }
       body.stage-tv-mode #tab-leaderboard-card thead th {
-        padding: 0.42rem 0.6rem;
-        font-size: 0.76rem;
+        padding: 0.42rem 0.45rem;
+        font-size: 0.74rem;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       body.stage-tv-mode #leaderboard-body td {
-        padding: 0.42rem 0.6rem;
-        font-size: 0.9rem;
+        padding: 0.42rem 0.45rem;
+        font-size: 0.88rem;
         line-height: 1.22;
+      }
+      body.stage-tv-mode #tab-leaderboard-card th:nth-child(1),
+      body.stage-tv-mode #leaderboard-body td:nth-child(1) {
+        width: 14%;
+        padding-left: 0.7rem;
+      }
+      body.stage-tv-mode #tab-leaderboard-card th:nth-child(2),
+      body.stage-tv-mode #leaderboard-body td:nth-child(2) {
+        width: 15%;
+      }
+      body.stage-tv-mode #tab-leaderboard-card th:nth-child(3),
+      body.stage-tv-mode #leaderboard-body td:nth-child(3) {
+        width: 39%;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-leaderboard-card th:nth-child(7),
+      body.stage-tv-mode #leaderboard-body td:nth-child(7) {
+        width: 14%;
+      }
+      body.stage-tv-mode #tab-leaderboard-card th:nth-child(8),
+      body.stage-tv-mode #leaderboard-body td:nth-child(8) {
+        width: 18%;
+        padding-right: 0.75rem;
       }
       body.stage-tv-mode #tab-standings-card {
         flex: 1 1 0%;
@@ -472,9 +519,13 @@
         flex: 1 1 0%;
         min-height: 0;
         overflow-y: auto;
-        overflow-x: auto;
+        overflow-x: hidden;
         overscroll-behavior: contain;
         padding-bottom: 0.3rem;
+      }
+      body.stage-tv-mode #tab-standings-card table {
+        table-layout: fixed;
+        width: 100%;
       }
       body.stage-tv-mode #tab-standings-card thead th,
       body.stage-tv-mode #tab-leaderboard-card thead th {
@@ -484,14 +535,35 @@
         background-color: #171412;
       }
       body.stage-tv-mode #tab-standings-card thead th {
-        padding: 0.4rem 0.58rem;
+        padding: 0.4rem 0.55rem;
         font-size: 0.75rem;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       body.stage-tv-mode #group-standings-body td {
-        padding: 0.42rem 0.58rem;
+        padding: 0.42rem 0.55rem;
         font-size: 0.88rem;
         line-height: 1.22;
+      }
+      body.stage-tv-mode #tab-standings-card th:nth-child(1),
+      body.stage-tv-mode #group-standings-body td:nth-child(1) {
+        width: 15%;
+        padding-left: 0.7rem;
+      }
+      body.stage-tv-mode #tab-standings-card th:nth-child(2),
+      body.stage-tv-mode #group-standings-body td:nth-child(2) {
+        width: 43%;
+        overflow: hidden;
+      }
+      body.stage-tv-mode #tab-standings-card th:nth-child(3),
+      body.stage-tv-mode #group-standings-body td:nth-child(3) {
+        width: 21%;
+      }
+      body.stage-tv-mode #tab-standings-card th:nth-child(5),
+      body.stage-tv-mode #group-standings-body td:nth-child(5) {
+        width: 21%;
+        padding-right: 0.75rem;
       }
       body.stage-tv-mode #tab-group-standings-section {
         grid-column: 6 / span 7;
@@ -1261,11 +1333,11 @@
 
       <!-- Live Breaking Results Ticker (Scrolling Winner Banner) -->
       <div id="live-results-ticker" class="no-print live-ticker-wrap flex items-stretch overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-        <div id="live-results-ticker-badge" class="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-amber-700 text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
+        <div id="live-results-ticker-badge" class="relative z-10 flex items-center gap-2 px-4 py-2 bg-amber-700 text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-300 animate-pulse" aria-hidden="true"></span>
           <span>LIVE RESULTS</span>
         </div>
-        <div class="relative flex-1 overflow-hidden flex items-center">
+        <div id="live-results-ticker-viewport" class="live-ticker-viewport">
           <div id="live-results-ticker-track" class="ticker-track"></div>
         </div>
       </div>
@@ -1317,7 +1389,7 @@
                       <th class="py-2.5 px-3">Rank</th>
                       <th class="py-2.5 px-3">Group</th>
                       <th class="py-2.5 px-3 text-right">1st/2nd/3rd</th>
-                      <th class="py-2.5 px-3 text-right">Raw Marks</th>
+                      <th id="tab-standings-col-raw-header" class="py-2.5 px-3 text-right">Raw Marks</th>
                       <th class="py-2.5 px-3 text-right">Points</th>
                     </tr>
                   </thead>
@@ -7500,7 +7572,7 @@
             <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="${dark ? 10 : 6}" fill="${escapeHtml(g.color)}" />
             <text x="${cx.toFixed(1)}" y="${(y - (dark ? 12 : 7)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 22 : 11}" font-weight="700" fill="${dark ? "#FCD34D" : "#1C1917"}" class="tabular-nums">${g.points} pts</text>
             <text x="${cx.toFixed(1)}" y="${(padTop + plotH + (dark ? 26 : 17)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 18 : 11}" font-weight="700" fill="${dark ? "#FFFFFF" : "#1C1917"}">${escapeHtml(shortName)}</text>
-            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + (dark ? 48 : 33)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 14 : 10}" font-weight="600" fill="${dark ? "#D6D3D1" : "#78716C"}" class="tabular-nums">#${g.rank} · ${g.rawMarks.toFixed(0)}m</text>
+            <text x="${cx.toFixed(1)}" y="${(padTop + plotH + (dark ? 48 : 33)).toFixed(1)}" text-anchor="middle" font-size="${dark ? 14 : 10}" font-weight="600" fill="${dark ? "#D6D3D1" : "#78716C"}" class="tabular-nums">${dark ? `Rank #${g.rank}` : `#${g.rank} · ${g.rawMarks.toFixed(0)}m`}</text>
           </g>
         `;
       }).join("");
@@ -7924,7 +7996,7 @@
           medalsEl.textContent = `(${g.firsts}G · ${g.seconds}S · ${g.thirds}B)`;
         }
         const rawEl = rowEl.querySelector('[data-col="raw"]');
-        rawEl.className = `${dark ? "text-sm xl:text-base text-stone-300" : "text-[11px] text-stone-500"}`;
+        rawEl.className = dark ? "hidden" : "text-[11px] text-stone-500";
         animateNumericCell(rawEl, g.rawMarks, 1, " raw");
         const ptsEl = rowEl.querySelector('[data-col="pts"]');
         ptsEl.className = `font-bold ${dark ? "text-xl xl:text-3xl text-amber-300" : "text-stone-900"}`;
@@ -8008,6 +8080,8 @@
       const leader = standings[0] || null;
       const hasAnyPoints = standings.some(g => g.points > 0 || g.rawMarks > 0);
       const dark = isStageTvMode;
+      const rawHeaderEl = document.getElementById("tab-standings-col-raw-header");
+      if (rawHeaderEl) rawHeaderEl.classList.toggle("hidden", dark);
       if (bannerEl) {
         if (!leader) {
           bannerEl.innerHTML = `
@@ -8028,7 +8102,7 @@
                   <div class="text-base font-bold ${dark ? "text-white" : "text-stone-900"} font-display">Awaiting judge score submissions (${standings.length} groups registered)</div>
                 </div>
               </div>
-              <div class="text-xs font-medium ${dark ? "text-stone-400" : "text-stone-500"} tabular-nums">0 pts · 0.0 raw marks</div>
+              <div class="text-xs font-medium ${dark ? "text-stone-400" : "text-stone-500"} tabular-nums">${dark ? "0 pts" : "0 pts · 0.0 raw marks"}</div>
             </div>
           `;
         } else {
@@ -8050,10 +8124,12 @@
                   <div class="${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"} font-medium">Points</div>
                   <div class="${dark ? "text-3xl xl:text-5xl text-amber-300 leading-none mt-0.5" : "text-xl text-stone-900"} font-bold">${leader.points} pts</div>
                 </div>
+                ${dark ? "" : `
                 <div>
-                  <div class="${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"} font-medium">Raw Marks</div>
-                  <div class="${dark ? "text-base xl:text-xl text-stone-100 mt-0.5" : "text-base text-stone-700"} font-semibold">${leader.rawMarks.toFixed(1)}</div>
+                  <div class="text-[11px] text-stone-500 font-medium">Raw Marks</div>
+                  <div class="text-base text-stone-700 font-semibold">${leader.rawMarks.toFixed(1)}</div>
                 </div>
+                `}
                 <div>
                   <div class="${dark ? "text-xs xl:text-sm text-stone-300" : "text-[11px] text-stone-500"} font-medium">1st/2nd/3rd</div>
                   <div class="${dark ? "text-base xl:text-xl text-stone-100 mt-0.5" : "text-sm text-stone-700"} font-semibold">${leader.firsts} / ${leader.seconds} / ${leader.thirds}</div>
@@ -8086,7 +8162,7 @@
         if (standings.length === 0) {
           bodyEl.innerHTML = `
             <tr>
-              <td colspan="5" class="py-8 px-4 text-center text-xs sm:text-sm ${dark ? "text-stone-400" : "text-stone-500"}">No groups registered for this festival yet.</td>
+              <td colspan="${dark ? 4 : 5}" class="py-8 px-4 text-center text-xs sm:text-sm ${dark ? "text-stone-400" : "text-stone-500"}">No groups registered for this festival yet.</td>
             </tr>
           `;
         } else {
@@ -8099,9 +8175,9 @@
               tr.innerHTML = `
                 <td data-col="rank" class="py-2.5 px-3 font-bold tabular-nums whitespace-nowrap rank-pill-transition"><span data-col="rank-label"></span><span data-col="rank-delta" aria-hidden="true" class="rank-delta-cue hidden"></span></td>
                 <td class="py-2.5 px-3">
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
                     <span data-col="dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
-                    <span data-col="name" class="font-semibold text-stone-900"></span>
+                    <span data-col="name" class="font-semibold text-stone-900 truncate"></span>
                   </div>
                 </td>
                 <td data-col="medals" class="py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap"></td>
@@ -8131,7 +8207,7 @@
               dotEl.style.backgroundColor = g.color;
 
               const nameEl = tr.querySelector('[data-col="name"]');
-              nameEl.className = `${dark ? "font-bold text-white text-sm xl:text-base leading-tight" : "font-semibold text-stone-900"}`;
+              nameEl.className = `${dark ? "font-bold text-white text-sm xl:text-base leading-tight truncate" : "font-semibold text-stone-900"}`;
               nameEl.textContent = g.name;
 
               const medalsTd = tr.querySelector('[data-col="medals"]');
@@ -8144,7 +8220,8 @@
               if (medalsChanged) triggerTransientAnim(medalsTd, "score-updated-flash", ["score-updated-flash"], 1200);
 
               const rawTd = tr.querySelector('[data-col="raw"]');
-              setPreservingAnimClasses(rawTd, `py-2.5 px-3 text-right ${dark ? "text-xs text-stone-200 font-medium" : "text-xs text-stone-600"} tabular-nums whitespace-nowrap`);
+              const rawCellClass = `py-2.5 px-3 text-right text-xs text-stone-600 tabular-nums whitespace-nowrap`;
+              setPreservingAnimClasses(rawTd, dark ? `${rawCellClass} hidden` : rawCellClass);
               const rawChanged = animateNumericCell(rawTd, g.rawMarks, 1, "", { isNew });
 
               const ptsTd = tr.querySelector('[data-col="pts"]');
@@ -8232,6 +8309,7 @@
     function renderLiveResultsTicker() {
       const wrapEl = document.getElementById("live-results-ticker");
       const badgeEl = document.getElementById("live-results-ticker-badge");
+      const viewportEl = document.getElementById("live-results-ticker-viewport");
       const trackEl = document.getElementById("live-results-ticker-track");
       if (!wrapEl || !trackEl) return;
 
@@ -8240,7 +8318,7 @@
         dark ? "border-stone-800 bg-stone-900 text-stone-100" : "border-stone-200 bg-white text-stone-900"
       }`;
       if (badgeEl) {
-        badgeEl.className = `flex items-center gap-2 px-3.5 sm:px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
+        badgeEl.className = `relative z-10 flex items-center gap-2 px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
           dark ? "bg-amber-500 text-stone-950" : "bg-amber-700 text-white"
         }`;
       }
@@ -8289,6 +8367,7 @@
       itemEntries.sort((a, b) => Number(b.isCompleted) - Number(a.isCompleted));
 
       if (itemEntries.length === 0) {
+        if (viewportEl) viewportEl.classList.remove("ticker-scrolling");
         const emptyKey = `empty_${dark ? "dark" : "light"}`;
         if (trackEl.dataset.tickerKey === emptyKey) return;
         trackEl.dataset.tickerKey = emptyKey;
@@ -8300,6 +8379,8 @@
         `;
         return;
       }
+
+      if (viewportEl) viewportEl.classList.add("ticker-scrolling");
 
       const segmentHtml = itemEntries.map(({ item, topWinners }) => {
         const winnersHtml = topWinners.map(w => {
@@ -8317,7 +8398,7 @@
         }).join(`<span class="${dark ? "text-stone-600" : "text-stone-300"} px-1.5">·</span>`);
 
         return `
-          <span class="inline-flex items-center gap-2.5 px-5 whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5 px-6 whitespace-nowrap">
             <span class="font-bold ${dark ? "text-amber-400" : "text-amber-900"}">${escapeHtml(item.name)}</span>
             <span class="${dark ? "text-stone-600" : "text-stone-400"}">—</span>
             ${winnersHtml}
@@ -8635,7 +8716,7 @@
           const rankTd = tr.querySelector('[data-col="rank"]');
           setPreservingAnimClasses(rankTd, `py-3 px-4 font-bold tabular-nums whitespace-nowrap rank-pill-transition ${
             dark
-              ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300 text-sm xl:text-lg" : "text-stone-200 text-sm xl:text-base")
+              ? (r.rankNum >= 1 && r.rankNum <= 3 ? "text-amber-300 text-xs xl:text-sm" : "text-stone-200 text-xs xl:text-sm")
               : "text-stone-900"
           }`);
           const rankLabelEl = rankTd.querySelector('[data-col="rank-label"]');
@@ -8646,11 +8727,11 @@
           }
 
           const chestTd = tr.querySelector('[data-col="chest"]');
-          chestTd.className = `py-3 px-4 font-semibold tabular-nums whitespace-nowrap ${dark ? "text-amber-200 text-sm xl:text-base font-bold" : "text-stone-900"}`;
+          chestTd.className = `py-3 px-4 font-semibold tabular-nums whitespace-nowrap ${dark ? "text-amber-200 text-xs xl:text-sm font-bold" : "text-stone-900"}`;
           chestTd.textContent = `#${r.p.chestNo}`;
 
           const nameEl = tr.querySelector('[data-col="name"]');
-          nameEl.className = `${dark ? "font-bold text-white text-sm xl:text-base leading-tight" : "font-semibold text-stone-900"}`;
+          nameEl.className = `${dark ? "font-bold text-white text-xs xl:text-sm leading-tight truncate" : "font-semibold text-stone-900"}`;
           nameEl.textContent = r.p.name;
 
           const metaRow = tr.querySelector('[data-col="meta-row"]');
@@ -8680,7 +8761,7 @@
           setPreservingAnimClasses(j1Td, hideJudgeColsInTv ? `${judgeCellClass} hidden` : judgeCellClass);
           setPreservingAnimClasses(j2Td, hideJudgeColsInTv ? `${judgeCellClass} hidden` : judgeCellClass);
           setPreservingAnimClasses(j3Td, (!hideJudgeColsInTv && showJ3) ? judgeCellClass : `${judgeCellClass} hidden`);
-          setPreservingAnimClasses(avgTd, `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-base xl:text-xl" : "text-stone-900"}`);
+          setPreservingAnimClasses(avgTd, `py-3 px-4 text-right font-bold tabular-nums whitespace-nowrap ${dark ? "text-white text-sm xl:text-lg" : "text-stone-900"}`);
 
           const j1Changed = animateNumericCell(j1Td, r.j1, 0, "", { isNew });
           const j2Changed = animateNumericCell(j2Td, r.j2, 0, "", { isNew });
@@ -8698,7 +8779,7 @@
           const nextGrade = String(r.grade || "—");
           const gradeChanged = !isNew && prevGrade !== null && prevGrade !== nextGrade;
           gradeTd.setAttribute("data-grade-val", nextGrade);
-          setPreservingAnimClasses(gradeTd, `py-3 px-4 text-right whitespace-nowrap ${dark ? "text-sm xl:text-base font-bold text-amber-300" : "text-xs font-medium text-stone-700"}`);
+          setPreservingAnimClasses(gradeTd, `py-3 px-4 text-right whitespace-nowrap ${dark ? "text-xs xl:text-sm font-bold text-amber-300" : "text-xs font-medium text-stone-700"}`);
           gradeTd.textContent = nextGrade;
           if (gradeChanged) triggerTransientAnim(gradeTd, "score-updated-flash", ["score-updated-flash"], 1200);
 
